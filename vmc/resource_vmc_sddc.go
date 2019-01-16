@@ -113,7 +113,8 @@ func resourceSddcRead(d *schema.ResourceData, m interface{}) error {
 		return fmt.Errorf("Sddc %s was not found", sddcID)
 	}
 
-	d.Set("org_id", sddc.Id)
+	d.SetId(sddc.Id)
+	d.Set("org_id", sddc.OrgId)
 	d.Set("sddc_name", sddc.Name)
 	d.Set("provider_type", sddc.Provider)
 	d.Set("created", sddc.Created)

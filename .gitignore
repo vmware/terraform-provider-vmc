@@ -1,3 +1,4 @@
 terraform.*
 crash.log
 .terraform*
+terraform-provider-vmc
