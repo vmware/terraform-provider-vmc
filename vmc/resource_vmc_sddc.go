@@ -5,9 +5,7 @@ import (
 	"fmt"
 
 	"github.com/hashicorp/terraform/helper/schema"
-
 	"gitlab.eng.vmware.com/het/vmc-go-sdk/vmc"
-
 	"net/http"
 )
 
@@ -70,7 +68,7 @@ func resourceSddcCreate(d *schema.ResourceData, m interface{}) error {
 	}
 
 	// Create a Sddc
-	task, resp, err := vmcClient.SddcApi.OrgsOrgSddcsPost(context.TODO(), orgID, *awsSddcConfig)
+	task, resp, err := vmcClient.SddcApi.OrgsOrgSddcsPost(context.Background(), orgID, *awsSddcConfig)
 	if err != nil {
 		return fmt.Errorf("Error while creating sddc %s: %v", sddcName, err)
 	}
@@ -83,7 +81,7 @@ func resourceSddcCreate(d *schema.ResourceData, m interface{}) error {
 	}
 
 	// Get Sddc detail
-	sddc, resp, err := vmcClient.SddcApi.OrgsOrgSddcsSddcGet(context.TODO(), orgID, sddcID)
+	sddc, resp, err := vmcClient.SddcApi.OrgsOrgSddcsSddcGet(context.Background(), orgID, sddcID)
 	if err != nil {
 		return fmt.Errorf("Error while getting sddc detail %s: %v", sddcID, err)
 	}
@@ -103,7 +101,7 @@ func resourceSddcRead(d *schema.ResourceData, m interface{}) error {
 	vmcClient := m.(*vmc.APIClient)
 	sddcID := d.Id()
 	orgID := d.Get("org_id").(string)
-	sddc, resp, err := vmcClient.SddcApi.OrgsOrgSddcsSddcGet(context.TODO(), orgID, sddcID)
+	sddc, resp, err := vmcClient.SddcApi.OrgsOrgSddcsSddcGet(context.Background(), orgID, sddcID)
 	if err != nil {
 		return fmt.Errorf("Error while getting sddc detail %s: %v", sddcID, err)
 	}
@@ -123,6 +121,18 @@ func resourceSddcRead(d *schema.ResourceData, m interface{}) error {
 }
 
 func resourceSddcDelete(d *schema.ResourceData, m interface{}) error {
+	vmcClient := m.(*vmc.APIClient)
+	sddcID := d.Id()
+	orgID := d.Get("org_id").(string)
+	task, _, err := vmcClient.SddcApi.OrgsOrgSddcsSddcDelete(context.Background(), orgID, sddcID, nil)
+	if err != nil {
+		return fmt.Errorf("Error while deleting sddc %s: %v", sddcID, err)
+	}
+	err = waitForTask(vmcClient, orgID, task.Id)
+	if err != nil {
+		return fmt.Errorf("Error while waiting for task %s: %v", task.Id, err)
+	}
+	d.SetId("")
 	return nil
 }
 
