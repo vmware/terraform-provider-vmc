@@ -75,7 +75,7 @@ func resourceSddcCreate(d *schema.ResourceData, m interface{}) error {
 
 	// Wait until Sddc is created
 	sddcID := task.ResourceId
-	err = waitForTask(vmcClient, orgID, task.Id)
+	err = vmc.WaitForTask(vmcClient, orgID, task.Id)
 	if err != nil {
 		return fmt.Errorf("Error while waiting for task %s: %v", task.Id, err)
 	}
@@ -116,7 +116,6 @@ func resourceSddcRead(d *schema.ResourceData, m interface{}) error {
 	d.Set("sddc_name", sddc.Name)
 	d.Set("provider_type", sddc.Provider)
 	d.Set("created", sddc.Created)
-
 	return nil
 }
 
@@ -128,7 +127,7 @@ func resourceSddcDelete(d *schema.ResourceData, m interface{}) error {
 	if err != nil {
 		return fmt.Errorf("Error while deleting sddc %s: %v", sddcID, err)
 	}
-	err = waitForTask(vmcClient, orgID, task.Id)
+	err = vmc.WaitForTask(vmcClient, orgID, task.Id)
 	if err != nil {
 		return fmt.Errorf("Error while waiting for task %s: %v", task.Id, err)
 	}

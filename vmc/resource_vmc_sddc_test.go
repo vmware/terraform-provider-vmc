@@ -71,7 +71,7 @@ func testCheckVmcSddcDestroy(s *terraform.State) error {
 		// if err != nil {
 		// 	return fmt.Errorf("Error while deleting sddc %q, %v, %v", sddcID, err, resp)
 		// }
-		err = waitForTask(client, orgID, task.Id)
+		err = vmc.WaitForTask(client, orgID, task.Id)
 		if err != nil {
 			return fmt.Errorf("Error while waiting for task %q: %v", task.Id, err)
 		}
