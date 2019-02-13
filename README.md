@@ -12,6 +12,7 @@ Please note the binding may change before the public release.
 git clone https://gitlab.eng.vmware.com/het/terraform-provider-vmc.git
 cd terraform-provider-vmc
 go get ...
+go build -o terraform-provider-vmc
 ```
 
 fill in your refresh_token in main.ft
