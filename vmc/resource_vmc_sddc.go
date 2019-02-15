@@ -3,6 +3,7 @@ package vmc
 import (
 	"context"
 	"fmt"
+	"github.com/antihax/optional"
 
 	"github.com/hashicorp/terraform/helper/schema"
 	"gitlab.eng.vmware.com/het/vmc-go-sdk/vmc"
@@ -15,6 +16,9 @@ func resourceSddc() *schema.Resource {
 		Read:   resourceSddcRead,
 		Update: resourceSddcUpdate,
 		Delete: resourceSddcDelete,
+		Importer: &schema.ResourceImporter{
+			State: schema.ImportStatePassthrough,
+		},
 
 		Schema: map[string]*schema.Schema{
 			"org_id": &schema.Schema{
@@ -25,12 +29,10 @@ func resourceSddc() *schema.Resource {
 			"sddc_name": &schema.Schema{
 				Type:     schema.TypeString,
 				Required: true,
-				ForceNew: true,
 			},
 			"num_host": &schema.Schema{
 				Type:     schema.TypeInt,
 				Required: true,
-				ForceNew: true,
 			},
 			"provider_type": &schema.Schema{
 				Type:     schema.TypeString,
@@ -41,7 +43,6 @@ func resourceSddc() *schema.Resource {
 			"region": &schema.Schema{
 				Type:     schema.TypeString,
 				Optional: true,
-				ForceNew: true,
 				Default:  "US_WEST_2",
 			},
 			"created": &schema.Schema{
@@ -94,7 +95,7 @@ func resourceSddcCreate(d *schema.ResourceData, m interface{}) error {
 	d.Set("name", sddc.Name)
 	d.Set("created", sddc.Created)
 
-	return nil
+	return resourceSddcRead(d, m)
 }
 
 func resourceSddcRead(d *schema.ResourceData, m interface{}) error {
@@ -108,7 +109,7 @@ func resourceSddcRead(d *schema.ResourceData, m interface{}) error {
 
 	if resp.StatusCode == http.StatusNotFound {
 		d.SetId("")
-		return fmt.Errorf("Sddc %s was not found", sddcID)
+		return nil
 	}
 
 	d.SetId(sddc.Id)
@@ -136,5 +137,37 @@ func resourceSddcDelete(d *schema.ResourceData, m interface{}) error {
 }
 
 func resourceSddcUpdate(d *schema.ResourceData, m interface{}) error {
-	return nil
+	vmcClient := m.(*vmc.APIClient)
+	sddcID := d.Id()
+	orgID := d.Get("org_id").(string)
+	oldTmp, newTmp := d.GetChange("num_host")
+	oldNum := oldTmp.(int)
+	newNum := newTmp.(int)
+
+	action := "add"
+	diffNum := newNum - oldNum
+
+	if newNum < oldNum {
+		action = "remove"
+		diffNum = oldNum - newNum
+	}
+
+	esxConfig := vmc.EsxConfig{
+		NumHosts: int32(diffNum),
+	}
+
+	actionString := optional.NewString(action)
+
+	// API_CALL
+	task, _, err := vmcClient.EsxApi.OrgsOrgSddcsSddcEsxsPost(context.Background(), orgID, sddcID, esxConfig, &vmc.OrgsOrgSddcsSddcEsxsPostOpts{Action: actionString})
+
+	if err != nil {
+		return fmt.Errorf("Error while deleting sddc %s: %v", sddcID, err)
+	}
+	err = vmc.WaitForTask(vmcClient, orgID, task.Id)
+	if err != nil {
+		return fmt.Errorf("Error while waiting for task %s: %v", task.Id, err)
+	}
+
+	return resourceSddcRead(d, m)
 }

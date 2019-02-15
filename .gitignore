@@ -1,5 +1,6 @@
 terraform.*
 crash.log
 .terraform*
+main.tf
 terraform-provider-vmc
 vender/*
