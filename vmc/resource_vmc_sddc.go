@@ -26,19 +26,66 @@ func resourceSddc() *schema.Resource {
 				Required:    true,
 				Description: "ID of this resource",
 			},
+			"storage_capacity": &schema.Schema{
+				Type:     schema.TypeInt,
+				Optional: true,
+			},
 			"sddc_name": &schema.Schema{
 				Type:     schema.TypeString,
 				Required: true,
+			},
+			"account_link_sddc_config": &schema.Schema{
+				Type: schema.TypeList,
+				Elem: &schema.Schema{
+					Type: schema.TypeMap,
+				},
+				Optional: true,
+			},
+			"vpc_cidr": &schema.Schema{
+				Type:     schema.TypeString,
+				Optional: true,
 			},
 			"num_host": &schema.Schema{
 				Type:     schema.TypeInt,
 				Required: true,
 			},
+			"sddc_type": &schema.Schema{
+				Type:     schema.TypeString,
+				Optional: true,
+			},
+			"vxlan_subnet": &schema.Schema{
+				Type:     schema.TypeString,
+				Optional: true,
+			},
+			// TODO check the deprecation statement
+			"account_link_config": &schema.Schema{
+				Type:     schema.TypeMap,
+				Optional: true,
+			},
+			// TODO change default to AWS
 			"provider_type": &schema.Schema{
 				Type:     schema.TypeString,
 				Optional: true,
 				ForceNew: true,
 				Default:  "ZEROCLOUD",
+			},
+			"skip_creating_vxlan": &schema.Schema{
+				Type:     schema.TypeBool,
+				Optional: true,
+				Default:  true,
+			},
+			"sso_domain": &schema.Schema{
+				Type:     schema.TypeString,
+				Optional: true,
+			},
+			"sddc_template_id": &schema.Schema{
+				Type:     schema.TypeString,
+				Optional: true,
+			},
+			"deployment_type": &schema.Schema{
+				Type:     schema.TypeString,
+				Optional: true,
+				Default:  "SingleAZ",
 			},
 			"region": &schema.Schema{
 				Type:     schema.TypeString,
