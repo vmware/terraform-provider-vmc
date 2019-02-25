@@ -28,6 +28,7 @@ Enter the provider directory and build the provider
 
 ```sh
 cd $GOPATH/src/gitlab.eng.vmware.com/vapi-sdk/terraform-provider-vmc
+go get
 go build -o terraform-provider-vmc
 ```
 
@@ -38,7 +39,7 @@ terraform init
 
 ## Connect to VMC and create a testing sddc
 
-Update following fields in the main.ft with your infra settings
+Update following fields in the [main.tf](main.tf) with your infra settings
 
 * refresh_token
 * csp_url
@@ -83,6 +84,18 @@ terraform apply
 ```
 
 Verified the sddc is created
+
+## Add/Remove hosts
+
+Update the "num_host" field in [main.tf](main.tf) to expected number.   
+Review and execute the plan
+
+```sh
+terraform plan
+terraform apply
+```
+
+Verified the hosts are added/removed successfully.
 
 ## To delete the sddc
 
