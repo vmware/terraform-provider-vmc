@@ -1,7 +1,7 @@
 # Terraform VMC Provider
 
 This is the repository for the Terraform VMC Provider, which one can use with
-Terraform to work with (VMware Cloud on AWS)[https://vmc.vmware.com/].
+Terraform to work with [VMware Cloud on AWS](https://vmc.vmware.com/).
 
 This provider is currently implemented using go bindings generated from swagger codegen.   
 Please note the binding may change before the public release.
