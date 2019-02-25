@@ -13,4 +13,5 @@ resource "vmc_sddc" "sddc_1" {
   num_host      = 4
   provider_type = "ZEROCLOUD"
   region        = "US_WEST_1"
+  vpc_cidr      = "10.0.0.0/17"
 }

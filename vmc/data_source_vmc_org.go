@@ -7,7 +7,7 @@ import (
 	"net/http"
 
 	"github.com/hashicorp/terraform/helper/schema"
-	"gitlab.eng.vmware.com/het/vmc-go-sdk/vmc"
+	"gitlab.eng.vmware.com/vapi-sdk/vmc-go-sdk/vmc"
 )
 
 func dataSourceVmcOrg() *schema.Resource {

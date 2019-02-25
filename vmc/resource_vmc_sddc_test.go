@@ -10,7 +10,7 @@ import (
 
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
-	"gitlab.eng.vmware.com/het/vmc-go-sdk/vmc"
+	"gitlab.eng.vmware.com/vapi-sdk/vmc-go-sdk/vmc"
 )
 
 func TestAccResourceVmcSddc_basic(t *testing.T) {

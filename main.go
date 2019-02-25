@@ -3,7 +3,7 @@ package main
 import (
 	"github.com/hashicorp/terraform/plugin"
 	"github.com/hashicorp/terraform/terraform"
-	"gitlab.eng.vmware.com/het/terraform-provider-vmc/vmc"
+	"gitlab.eng.vmware.com/vapi-sdk/terraform-provider-vmc/vmc"
 )
 
 func main() {

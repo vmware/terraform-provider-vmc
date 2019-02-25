@@ -6,7 +6,7 @@ import (
 	"github.com/antihax/optional"
 
 	"github.com/hashicorp/terraform/helper/schema"
-	"gitlab.eng.vmware.com/het/vmc-go-sdk/vmc"
+	"gitlab.eng.vmware.com/vapi-sdk/vmc-go-sdk/vmc"
 	"net/http"
 )
 
@@ -105,7 +105,19 @@ func resourceSddcCreate(d *schema.ResourceData, m interface{}) error {
 	vmcClient := m.(*vmc.APIClient)
 	orgID := d.Get("org_id").(string)
 	sddcName := d.Get("sddc_name").(string)
+	// TODO add account linking
+	// vpcCidr := d.Get("vpc_cidr").(string)
 	numHost := d.Get("num_host").(int)
+	// sddcType := d.Get("num_host").(string)
+	// vxlanSubnet := d.Get("vxlan_subnet").(string)
+
+	// // TODO
+	// account_link_config := d.Get("account_link_config")
+
+	// skipCreatingVxlan := d.Get("skip_creating_vxlan").(bool)
+	// ssoDomain := d.Get("sso_domain").(string)
+	// sddcTemplateId := d.Get("sddc_template_id").(string)
+
 	providerType := d.Get("provider_type").(string)
 	region := d.Get("region").(string)
 	var awsSddcConfig = &vmc.AwsSddcConfig{
