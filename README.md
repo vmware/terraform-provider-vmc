@@ -42,16 +42,17 @@ terraform init
 Update following fields in the [main.tf](main.tf) with your infra settings
 
 * refresh_token
-* csp_url
 * id
 * sddc_name
+
+Note if you wnat to connect to the staging environment, uncomment the vmc_url and csp_url under vmc settings.
 
 ```
 provider "vmc" {
   refresh_token = ""
-  csp_url       = "https://console-stg.cloud.vmware.com"
-  # for production 
-  # cap_url     = "https://console.cloud.vmware.com"
+  # if use staging environment
+  # vmc_url     = "https://stg.skyscraper.vmware.com/vmc/api"
+  # cap_url     = "https://console-stg.cloud.vmware.com"
 }
 
 data "vmc_org" "my_org" {

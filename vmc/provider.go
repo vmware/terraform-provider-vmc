@@ -14,10 +14,15 @@ func Provider() terraform.ResourceProvider {
 				Type:     schema.TypeString,
 				Required: true,
 			},
+			"vmc_url": &schema.Schema{
+				Type:     schema.TypeString,
+				Optional: true,
+				Default:  "https://vmc.vmware.com/vmc/api",
+			},
 			"csp_url": &schema.Schema{
 				Type:     schema.TypeString,
 				Optional: true,
-				Default:  "https://console-stg.cloud.vmware.com",
+				Default:  "https://console.cloud.vmware.com",
 			},
 		},
 
@@ -35,9 +40,10 @@ func Provider() terraform.ResourceProvider {
 
 func providerConfigure(d *schema.ResourceData) (interface{}, error) {
 	refreshToken := d.Get("refresh_token").(string)
+	vmcURL := d.Get("vmc_url").(string)
 	cspURL := d.Get("csp_url").(string)
 
-	apiClient, err := vmc.NewVmcClient(refreshToken, cspURL)
+	apiClient, err := vmc.NewVmcClient(refreshToken, vmcURL, cspURL)
 
 	return apiClient, err
 }

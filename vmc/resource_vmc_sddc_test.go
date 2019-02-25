@@ -84,6 +84,7 @@ func testAccVmcSddcConfigBasic(sddcName string) string {
 	return fmt.Sprintf(`
 provider "vmc" {
 	refresh_token = %q
+	vmc_url       = "https://stg.skyscraper.vmware.com/vmc/api"
 	csp_url       = "https://console-stg.cloud.vmware.com"
   }
 
