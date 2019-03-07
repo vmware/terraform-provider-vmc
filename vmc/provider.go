@@ -43,6 +43,9 @@ func providerConfigure(d *schema.ResourceData) (interface{}, error) {
 	vmcURL := d.Get("vmc_url").(string)
 	cspURL := d.Get("csp_url").(string)
 
+	println(vmcURL)
+	println(cspURL)
+
 	apiClient, err := vmc.NewVmcClient(refreshToken, vmcURL, cspURL)
 
 	return apiClient, err

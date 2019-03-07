@@ -93,11 +93,18 @@ data "vmc_org" "test_org" {
 }
 
 resource "vmc_sddc" "test_sddc" {
-	org_id        = "${data.vmc_org.test_org.id}"
-	sddc_name     = %q
-	num_host      = 4
-	provider_type = "ZEROCLOUD"
-	region        = "US_WEST_1"
+	org_id        		= "${data.vmc_org.test_org.id}"
+	sddc_name     		= %q
+	num_host      		= 4
+	provider_type 		= "ZEROCLOUD"
+	region        		= "US_WEST_1"
+	vpc_cidr            = "10.0.0.0/17"
+	vxlan_subnet        = "192.168.1.0/24"
+	delay_account_link  = true
+	skip_creating_vxlan = false
+	sso_domain          = "tianhao.local"
+	sddc_template_id    = ""
+	deployment_type     = "SINGLE_AZ"
 }	
 `,
 		os.Getenv("REFRESH_TOKEN"),

@@ -36,8 +36,21 @@ func resourceSddc() *schema.Resource {
 			},
 			"account_link_sddc_config": &schema.Schema{
 				Type: schema.TypeList,
-				Elem: &schema.Schema{
-					Type: schema.TypeMap,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"customer_subnet_ids": {
+							Type: schema.TypeList,
+							Elem: &schema.Schema{
+								Type: schema.TypeString,
+								// Optional: true,
+							},
+							Optional: true,
+						},
+						"connected_account_id": {
+							Type:     schema.TypeString,
+							Optional: true,
+						},
+					},
 				},
 				Optional: true,
 			},
@@ -58,9 +71,10 @@ func resourceSddc() *schema.Resource {
 				Optional: true,
 			},
 			// TODO check the deprecation statement
-			"account_link_config": &schema.Schema{
-				Type:     schema.TypeMap,
+			"delay_account_link": &schema.Schema{
+				Type:     schema.TypeBool,
 				Optional: true,
+				Default:  false,
 			},
 			// TODO change default to AWS
 			"provider_type": &schema.Schema{
@@ -77,6 +91,7 @@ func resourceSddc() *schema.Resource {
 			"sso_domain": &schema.Schema{
 				Type:     schema.TypeString,
 				Optional: true,
+				Default:  "vmc.local",
 			},
 			"sddc_template_id": &schema.Schema{
 				Type:     schema.TypeString,
@@ -92,39 +107,46 @@ func resourceSddc() *schema.Resource {
 				Optional: true,
 				Default:  "US_WEST_2",
 			},
-			"created": &schema.Schema{
-				Type:     schema.TypeString,
-				Optional: true,
-				Computed: true,
-			},
 		},
 	}
 }
 
 func resourceSddcCreate(d *schema.ResourceData, m interface{}) error {
+	fmt.Println("XXXXXXXX")
 	vmcClient := m.(*vmc.APIClient)
 	orgID := d.Get("org_id").(string)
+	storageCapacity := d.Get("storage_capacity").(int)
 	sddcName := d.Get("sddc_name").(string)
-	// TODO add account linking
-	// vpcCidr := d.Get("vpc_cidr").(string)
+	vpcCidr := d.Get("vpc_cidr").(string)
 	numHost := d.Get("num_host").(int)
-	// sddcType := d.Get("num_host").(string)
-	// vxlanSubnet := d.Get("vxlan_subnet").(string)
-
-	// // TODO
-	// account_link_config := d.Get("account_link_config")
-
-	// skipCreatingVxlan := d.Get("skip_creating_vxlan").(bool)
-	// ssoDomain := d.Get("sso_domain").(string)
-	// sddcTemplateId := d.Get("sddc_template_id").(string)
-
+	sddcType := d.Get("sddc_type").(string)
+	vxlanSubnet := d.Get("vxlan_subnet").(string)
+	accountLinkConfig := &vmc.AccountLinkConfig{
+		DelayAccountLink: d.Get("delay_account_link").(bool),
+	}
 	providerType := d.Get("provider_type").(string)
+	skipCreatingVxlan := d.Get("skip_creating_vxlan").(bool)
+	ssoDomain := d.Get("sso_domain").(string)
+	sddcTemplateID := d.Get("sddc_template_id").(string)
+	deploymentType := d.Get("deployment_type").(string)
 	region := d.Get("region").(string)
+	accountLinkSddcConfig := expandAccountLinkSddcConfig(d.Get("account_link_sddc_config").([]interface{}))
+
 	var awsSddcConfig = &vmc.AwsSddcConfig{
-		Name:     sddcName,
-		NumHosts: int32(numHost),
-		Provider: providerType,
-		Region:   region,
+		StorageCapacity:       int64(storageCapacity),
+		Name:                  sddcName,
+		VpcCidr:               vpcCidr,
+		NumHosts:              int32(numHost),
+		SddcType:              sddcType,
+		VxlanSubnet:           vxlanSubnet,
+		AccountLinkConfig:     accountLinkConfig,
+		Provider:              providerType,
+		SkipCreatingVxlan:     skipCreatingVxlan,
+		AccountLinkSddcConfig: accountLinkSddcConfig,
+		SsoDomain:             ssoDomain,
+		SddcTemplateId:        sddcTemplateID,
+		DeploymentType:        deploymentType,
+		Region:                region,
 	}
 
 	// Create a Sddc
@@ -152,7 +174,20 @@ func resourceSddcCreate(d *schema.ResourceData, m interface{}) error {
 
 	d.SetId(sddc.Id)
 	d.Set("name", sddc.Name)
+	d.Set("updated", sddc.Updated)
+	d.Set("user_id", sddc.UserId)
+	d.Set("updated_by_user_id", sddc.UpdatedByUserId)
 	d.Set("created", sddc.Created)
+	d.Set("version", sddc.Version)
+	d.Set("updated_by_user_name", sddc.UpdatedByUserName)
+	d.Set("user_name", sddc.UserName)
+	d.Set("sddc_state", sddc.SddcState)
+	d.Set("org_id", sddc.OrgId)
+	d.Set("sddc_type", sddc.SddcType)
+	d.Set("provider", sddc.Provider)
+	d.Set("account_link_state", sddc.AccountLinkState)
+	d.Set("sddc_access_state", sddc.SddcAccessState)
+	d.Set("sddc_type", sddc.SddcType)
 
 	return resourceSddcRead(d, m)
 }
@@ -229,4 +264,29 @@ func resourceSddcUpdate(d *schema.ResourceData, m interface{}) error {
 	}
 
 	return resourceSddcRead(d, m)
+}
+
+func expandAccountLinkSddcConfig(l []interface{}) []vmc.AccountLinkSddcConfig {
+	if len(l) == 0 {
+		return nil
+	}
+
+	var configs []vmc.AccountLinkSddcConfig
+
+	for _, config := range l {
+		c := config.(map[string]interface{})
+		var subnetIds []string
+		for _, subnetID := range c["customer_subnet_ids"].([]interface{}) {
+
+			subnetIds = append(subnetIds, subnetID.(string))
+		}
+
+		con := vmc.AccountLinkSddcConfig{
+			CustomerSubnetIds:  subnetIds,
+			ConnectedAccountId: c["connected_account_id"].(string),
+		}
+
+		configs = append(configs, con)
+	}
+	return configs
 }
