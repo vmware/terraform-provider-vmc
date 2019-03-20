@@ -31,7 +31,8 @@ func Provider() terraform.ResourceProvider {
 		},
 
 		DataSourcesMap: map[string]*schema.Resource{
-			"vmc_org": dataSourceVmcOrg(),
+			"vmc_org":                dataSourceVmcOrg(),
+			"vmc_connected_accounts": dataSourceVmcConnectedAccounts(),
 		},
 
 		ConfigureFunc: providerConfigure,

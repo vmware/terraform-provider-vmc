@@ -8,6 +8,16 @@ default: build
 build:
 	go install
 
+init:
+	go build -o terraform-provider-vmc
+	terraform init
+	
+plan: init
+	terraform plan
+
+apply: init
+	terraform apply
+
 test: fmtcheck
 	go test -i $(TEST) || exit 1
 	echo $(TEST) | \

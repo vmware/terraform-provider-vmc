@@ -105,14 +105,13 @@ func resourceSddc() *schema.Resource {
 			"region": &schema.Schema{
 				Type:     schema.TypeString,
 				Optional: true,
-				Default:  "US_WEST_2",
+				Default:  "us-west-2",
 			},
 		},
 	}
 }
 
 func resourceSddcCreate(d *schema.ResourceData, m interface{}) error {
-	fmt.Println("XXXXXXXX")
 	vmcClient := m.(*vmc.APIClient)
 	orgID := d.Get("org_id").(string)
 	storageCapacity := d.Get("storage_capacity").(int)
@@ -234,33 +233,51 @@ func resourceSddcUpdate(d *schema.ResourceData, m interface{}) error {
 	vmcClient := m.(*vmc.APIClient)
 	sddcID := d.Id()
 	orgID := d.Get("org_id").(string)
-	oldTmp, newTmp := d.GetChange("num_host")
-	oldNum := oldTmp.(int)
-	newNum := newTmp.(int)
 
-	action := "add"
-	diffNum := newNum - oldNum
+	// Add,remove hosts
+	if d.HasChange("num_host") {
+		oldTmp, newTmp := d.GetChange("num_host")
+		oldNum := oldTmp.(int)
+		newNum := newTmp.(int)
 
-	if newNum < oldNum {
-		action = "remove"
-		diffNum = oldNum - newNum
+		action := "add"
+		diffNum := newNum - oldNum
+
+		if newNum < oldNum {
+			action = "remove"
+			diffNum = oldNum - newNum
+		}
+
+		esxConfig := vmc.EsxConfig{
+			NumHosts: int32(diffNum),
+		}
+
+		actionString := optional.NewString(action)
+
+		// API_CALL
+		task, _, err := vmcClient.EsxApi.OrgsOrgSddcsSddcEsxsPost(
+			context.Background(), orgID, sddcID, esxConfig, &vmc.OrgsOrgSddcsSddcEsxsPostOpts{Action: actionString})
+
+		if err != nil {
+			return fmt.Errorf("Error while deleting sddc %s: %v", sddcID, err)
+		}
+		err = vmc.WaitForTask(vmcClient, orgID, task.Id)
+		if err != nil {
+			return fmt.Errorf("Error while waiting for task %s: %v", task.Id, err)
+		}
 	}
 
-	esxConfig := vmc.EsxConfig{
-		NumHosts: int32(diffNum),
-	}
+	// Update sddc name
+	if d.HasChange("sddc_name") {
+		sddcPatchRequest := vmc.SddcPatchRequest{
+			Name: d.Get("sddc_name").(string),
+		}
+		sddc, _, err := vmcClient.SddcApi.OrgsOrgSddcsSddcPatch(context.Background(), orgID, sddcID, sddcPatchRequest)
 
-	actionString := optional.NewString(action)
-
-	// API_CALL
-	task, _, err := vmcClient.EsxApi.OrgsOrgSddcsSddcEsxsPost(context.Background(), orgID, sddcID, esxConfig, &vmc.OrgsOrgSddcsSddcEsxsPostOpts{Action: actionString})
-
-	if err != nil {
-		return fmt.Errorf("Error while deleting sddc %s: %v", sddcID, err)
-	}
-	err = vmc.WaitForTask(vmcClient, orgID, task.Id)
-	if err != nil {
-		return fmt.Errorf("Error while waiting for task %s: %v", task.Id, err)
+		if err != nil {
+			return fmt.Errorf("Error while updating sddc's name %v", err)
+		}
+		d.Set("sddc_name", sddc.Name)
 	}
 
 	return resourceSddcRead(d, m)

@@ -19,18 +19,15 @@ func dataSourceVmcOrg() *schema.Resource {
 				Type:        schema.TypeString,
 				Description: "Unique ID of this resource",
 				Required:    true,
-				// Computed:    true,
 			},
 			"display_name": &schema.Schema{
 				Type:        schema.TypeString,
 				Description: "The display name of this resource",
-				Optional:    true,
 				Computed:    true,
 			},
 			"name": &schema.Schema{
 				Type:        schema.TypeString,
 				Description: "The Name of this resource",
-				Optional:    true,
 				Computed:    true,
 			},
 		},

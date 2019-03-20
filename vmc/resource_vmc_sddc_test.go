@@ -23,7 +23,7 @@ func TestAccResourceVmcSddc_basic(t *testing.T) {
 			resource.TestStep{
 				Config: testAccVmcSddcConfigBasic(sddcName),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckVmcSddcExists("vmc_sddc.test_sddc"),
+					testCheckVmcSddcExists("vmc_sddc.sddc_1"),
 				),
 			},
 		},
@@ -84,28 +84,51 @@ func testAccVmcSddcConfigBasic(sddcName string) string {
 	return fmt.Sprintf(`
 provider "vmc" {
 	refresh_token = %q
-	vmc_url       = "https://stg.skyscraper.vmware.com/vmc/api"
-	csp_url       = "https://console-stg.cloud.vmware.com"
-  }
+	
+	# refresh_token = "ac5140ea-1749-4355-a892-56cff4893be0"
+	# vmc_url       = "https://stg.skyscraper.vmware.com/vmc/api"
+	# csp_url       = "https://console-stg.cloud.vmware.com"
+}
+	
+data "vmc_org" "my_org" {
+	id = "058f47c4-92aa-417f-8747-87f3ed61cb45"
 
-data "vmc_org" "test_org" {
-	id = "05e0a625-3293-41bb-a01f-35e762781c2a"
+	# id = "05e0a625-3293-41bb-a01f-35e762781c2a"
 }
 
-resource "vmc_sddc" "test_sddc" {
-	org_id        		= "${data.vmc_org.test_org.id}"
-	sddc_name     		= %q
-	num_host      		= 4
-	provider_type 		= "ZEROCLOUD"
-	region        		= "US_WEST_1"
-	vpc_cidr            = "10.0.0.0/17"
-	vxlan_subnet        = "192.168.1.0/24"
-	delay_account_link  = true
+data "vmc_connected_accounts" "accounts" {
+	org_id = "${data.vmc_org.my_org.id}"
+}
+
+resource "vmc_sddc" "sddc_1" {
+	org_id = "${data.vmc_org.my_org.id}"
+
+	# storage_capacity    = 100
+	sddc_name = %q
+
+	vpc_cidr      = "10.2.0.0/16"
+	num_host      = 1
+	provider_type = "ZEROCLOUD"
+
+	region = "US_EAST_1"
+
+	vxlan_subnet = "192.168.1.0/24"
+
+	delay_account_link  = false
 	skip_creating_vxlan = false
-	sso_domain          = "tianhao.local"
+	sso_domain          = "vmc.local"
+
 	sddc_template_id    = ""
-	deployment_type     = "SINGLE_AZ"
-}	
+	deployment_type = "SingleAZ"
+
+	# TODO raise exception here need to debug
+	#account_link_sddc_config = [
+	#	{
+	#	  customer_subnet_ids  = ["subnet-13a0c249"]
+	#	  connected_account_id = "${data.vmc_connected_accounts.accounts.ids.0}"
+	#	},
+	#  ]
+}
 `,
 		os.Getenv("REFRESH_TOKEN"),
 		sddcName,
