@@ -29,6 +29,7 @@ func resourceSddc() *schema.Resource {
 			"storage_capacity": &schema.Schema{
 				Type:     schema.TypeInt,
 				Optional: true,
+				ForceNew: true,
 			},
 			"sddc_name": &schema.Schema{
 				Type:     schema.TypeString,
@@ -53,10 +54,12 @@ func resourceSddc() *schema.Resource {
 					},
 				},
 				Optional: true,
+				ForceNew: true,
 			},
 			"vpc_cidr": &schema.Schema{
 				Type:     schema.TypeString,
 				Optional: true,
+				ForceNew: true,
 			},
 			"num_host": &schema.Schema{
 				Type:     schema.TypeInt,
@@ -65,16 +68,19 @@ func resourceSddc() *schema.Resource {
 			"sddc_type": &schema.Schema{
 				Type:     schema.TypeString,
 				Optional: true,
+				ForceNew: true,
 			},
 			"vxlan_subnet": &schema.Schema{
 				Type:     schema.TypeString,
 				Optional: true,
+				ForceNew: true,
 			},
 			// TODO check the deprecation statement
 			"delay_account_link": &schema.Schema{
 				Type:     schema.TypeBool,
 				Optional: true,
 				Default:  false,
+				ForceNew: true,
 			},
 			// TODO change default to AWS
 			"provider_type": &schema.Schema{
@@ -87,24 +93,29 @@ func resourceSddc() *schema.Resource {
 				Type:     schema.TypeBool,
 				Optional: true,
 				Default:  true,
+				ForceNew: true,
 			},
 			"sso_domain": &schema.Schema{
 				Type:     schema.TypeString,
 				Optional: true,
+				ForceNew: true,
 				Default:  "vmc.local",
 			},
 			"sddc_template_id": &schema.Schema{
 				Type:     schema.TypeString,
 				Optional: true,
+				ForceNew: true,
 			},
 			"deployment_type": &schema.Schema{
 				Type:     schema.TypeString,
 				Optional: true,
+				ForceNew: true,
 				Default:  "SingleAZ",
 			},
 			"region": &schema.Schema{
 				Type:     schema.TypeString,
 				Optional: true,
+				ForceNew: true,
 				Default:  "us-west-2",
 			},
 		},

@@ -33,6 +33,7 @@ func Provider() terraform.ResourceProvider {
 		DataSourcesMap: map[string]*schema.Resource{
 			"vmc_org":                dataSourceVmcOrg(),
 			"vmc_connected_accounts": dataSourceVmcConnectedAccounts(),
+			"vmc_customer_subnets":   dataSourceVmcCustomerSubnets(),
 		},
 
 		ConfigureFunc: providerConfigure,

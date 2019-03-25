@@ -27,9 +27,10 @@ func dataSourceVmcConnectedAccounts() *schema.Resource {
 				Default:     "AWS",
 			},
 			"ids": {
-				Type:     schema.TypeList,
-				Computed: true,
-				Elem:     &schema.Schema{Type: schema.TypeString},
+				Type:        schema.TypeList,
+				Description: "The corresponding connected (customer) account UUID this connection is attached to.",
+				Computed:    true,
+				Elem:        &schema.Schema{Type: schema.TypeString},
 			},
 		},
 	}

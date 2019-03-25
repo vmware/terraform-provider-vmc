@@ -15,8 +15,8 @@ func TestAccDataSourceVmcConnectedAccounts_basic(t *testing.T) {
 			{
 				Config: testAccDataSourceVmcConnectedAccountsConfig(),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("data.vmc_connected_accounts.accounts", "ids.#", "1"),
-					resource.TestCheckResourceAttr("data.vmc_connected_accounts.accounts", "ids.0", "2d5259d2-e85d-3d02-a511-9045094b4b10"),
+					resource.TestCheckResourceAttr("data.vmc_connected_accounts.my_accounts", "ids.#", "1"),
+					resource.TestCheckResourceAttr("data.vmc_connected_accounts.my_accounts", "ids.0", "2d5259d2-e85d-3d02-a511-9045094b4b10"),
 				),
 			},
 		},
@@ -33,7 +33,7 @@ data "vmc_org" "my_org" {
 	id = "058f47c4-92aa-417f-8747-87f3ed61cb45"
 }
 	
-data "vmc_connected_accounts" "accounts" {
+data "vmc_connected_accounts" "my_accounts" {
 	org_id = "${data.vmc_org.my_org.id}"
 }
 `,
