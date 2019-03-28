@@ -4,24 +4,33 @@ run_accept_tests:
     only:
         - pushes
     script:
+        # download repo and copy to go src folder
+        - apt-get update
+        - apt-get install -y wget zip unzip git make gcc
+        - git config --global url."git@gitlab.eng.vmware.com:".insteadOf "https://gitlab.eng.vmware.com/"
+        - mkdir $HOME/go
+        - mkdir $HOME/Download
+        - export GOPATH=$HOME/go
+        - mkdir -p $GOPATH/src/gitlab.eng.vmware.com/vapi-sdk/
+        - cd $GOPATH/src/gitlab.eng.vmware.com/vapi-sdk/
+        - git clone git@gitlab.eng.vmware.com:vapi-sdk/terraform-provider-vmc.git
+        # - cp -r * $GOPATH/src/gitlab.eng.vmware.com/vapi-sdk/terraform-provider-vmc
+
         # install terraform
-        - wget https://releases.hashicorp.com/terraform/0.11.13/terraform_0.11.13_freebsd_amd64.zip
+        - cd $HOME/Download
+        - wget https://releases.hashicorp.com/terraform/0.11.13/terraform_0.11.13_linux_amd64.zip
         - unzip *.zip
-        - export PATH=$PATH:`pwd`
-        - terraform version
+        # - export PATH=$PATH:$HOME/Download
+        - mv terraform /usr/local/bin/
+        - terraform --version
         
         # install go
         - wget https://dl.google.com/go/go1.12.1.linux-amd64.tar.gz
-        - sudo tar -C /usr/local -xzf *.gz
+        - tar -C /usr/local -xzf *.gz
         - export PATH=$PATH:/usr/local/go/bin
         - go version
 
-        # download repo and build the provider
-        - mkdir $HOME/go
-        - export GOPATH=$HOME/go
-        - mkdir -p $GOPATH/src/gitlab.eng.vmware.com/vapi-sdk
-        - cd $GOPATH/src/gitlab.eng.vmware.com/vapi-sdk
-        - git clone https://gitlab.eng.vmware.com/vapi-sdk/terraform-provider-vmc.git
+        # build the provider
         - cd $GOPATH/src/gitlab.eng.vmware.com/vapi-sdk/terraform-provider-vmc
         - go get
         - go build -o terraform-provider-vmc
