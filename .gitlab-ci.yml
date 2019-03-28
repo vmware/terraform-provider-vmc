@@ -1,0 +1,19 @@
+run_accept_tests:
+    tags: [docker-runner]
+    image: hashicorp/terraform:latest
+    only:
+        - pushes
+    script:
+        export GOPATH=$HOME/go
+        mkdir -p $GOPATH/src/gitlab.eng.vmware.com/vapi-sdk
+        cd $GOPATH/src/gitlab.eng.vmware.com/vapi-sdk
+        git clone https://gitlab.eng.vmware.com/vapi-sdk/terraform-provider-vmc.git
+        cd $GOPATH/src/gitlab.eng.vmware.com/vapi-sdk/terraform-provider-vmc
+        go get
+        go build -o terraform-provider-vmc
+        terraform init
+        export REFRESH_TOKEN=085c5176-8c2e-4c11-ae31-0b802fce424d
+        make testacc
+
+
+
