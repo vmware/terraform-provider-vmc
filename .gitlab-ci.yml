@@ -1,5 +1,5 @@
 run_accept_tests:
-    tags: [docker-runner]
+    tags: [docker_runner_2]
     image: hashicorp/terraform:latest
     only:
         - pushes
