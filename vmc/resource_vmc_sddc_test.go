@@ -40,7 +40,7 @@ func testCheckVmcSddcExists(name string) resource.TestCheckFunc {
 		sddcName := rs.Primary.Attributes["sddc_name"]
 		orgID := rs.Primary.Attributes["org_id"]
 
-		client := testAccProvider.Meta().(*vmc.APIClient)
+		client := testAccProvider.Meta().(*vmc.Client)
 		_, resp, err := client.SddcApi.OrgsOrgSddcsSddcGet(context.Background(), orgID, sddcID)
 		if err != nil {
 			return fmt.Errorf("Bad: Get on sddcApi: %s", err)
@@ -57,7 +57,7 @@ func testCheckVmcSddcExists(name string) resource.TestCheckFunc {
 
 func testCheckVmcSddcDestroy(s *terraform.State) error {
 
-	client := testAccProvider.Meta().(*vmc.APIClient)
+	client := testAccProvider.Meta().(*vmc.Client)
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "vmc_sddc" {

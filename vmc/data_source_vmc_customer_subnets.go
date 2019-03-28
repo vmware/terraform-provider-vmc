@@ -56,7 +56,7 @@ func dataSourceVmcCustomerSubnets() *schema.Resource {
 }
 
 func dataSourceVmcCustomerSubnetsRead(d *schema.ResourceData, m interface{}) error {
-	vmcClient := m.(*vmc.APIClient)
+	client := m.(*vmc.Client)
 	orgID := d.Get("org_id").(string)
 	accountID := d.Get("connected_account_id").(string)
 	sddcID := d.Get("sddc_id").(string)
@@ -69,7 +69,7 @@ func dataSourceVmcCustomerSubnetsRead(d *schema.ResourceData, m interface{}) err
 		Sddc:            optional.NewString(sddcID),
 	}
 
-	compSubnets, _, err := vmcClient.AccountLinkingApi.OrgsOrgAccountLinkCompatibleSubnetsGet(
+	compSubnets, _, err := client.AccountLinkingApi.OrgsOrgAccountLinkCompatibleSubnetsGet(
 		context.Background(), orgID, getOpts)
 
 	ids := []string{}

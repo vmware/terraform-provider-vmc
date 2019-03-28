@@ -37,12 +37,12 @@ func dataSourceVmcConnectedAccounts() *schema.Resource {
 }
 
 func dataSourceVmcConnectedAccountsRead(d *schema.ResourceData, m interface{}) error {
-	vmcClient := m.(*vmc.APIClient)
+	client := m.(*vmc.Client)
 	orgID := d.Get("org_id").(string)
 	providerType := d.Get("provider_type").(string)
 	// var obj vmc.Organization
 	providerString := optional.NewString(providerType)
-	accounts, _, err := vmcClient.AccountLinkingApi.OrgsOrgAccountLinkConnectedAccountsGet(
+	accounts, _, err := client.AccountLinkingApi.OrgsOrgAccountLinkConnectedAccountsGet(
 		context.Background(), orgID, &vmc.OrgsOrgAccountLinkConnectedAccountsGetOpts{Provider: providerString})
 
 	ids := []string{}

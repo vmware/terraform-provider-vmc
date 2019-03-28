@@ -4,7 +4,9 @@ import (
 	"context"
 	"fmt"
 	"github.com/antihax/optional"
+	"time"
 
+	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/helper/schema"
 	"gitlab.eng.vmware.com/vapi-sdk/vmc-go-sdk/vmc"
 	"net/http"
@@ -123,7 +125,7 @@ func resourceSddc() *schema.Resource {
 }
 
 func resourceSddcCreate(d *schema.ResourceData, m interface{}) error {
-	vmcClient := m.(*vmc.APIClient)
+	client := m.(*vmc.Client)
 	orgID := d.Get("org_id").(string)
 	storageCapacity := d.Get("storage_capacity").(int)
 	sddcName := d.Get("sddc_name").(string)
@@ -160,26 +162,51 @@ func resourceSddcCreate(d *schema.ResourceData, m interface{}) error {
 	}
 
 	// Create a Sddc
-	task, resp, err := vmcClient.SddcApi.OrgsOrgSddcsPost(context.Background(), orgID, *awsSddcConfig)
+	task, _, err := client.SddcApi.OrgsOrgSddcsPost(context.Background(), orgID, *awsSddcConfig)
 	if err != nil {
 		return fmt.Errorf("Error while creating sddc %s: %v", sddcName, err)
 	}
 
 	// Wait until Sddc is created
 	sddcID := task.ResourceId
-	err = vmc.WaitForTask(vmcClient, orgID, task.Id)
-	if err != nil {
-		return fmt.Errorf("Error while waiting for task %s: %v", task.Id, err)
-	}
+	d.SetId(sddcID)
 
-	// Get Sddc detail
-	sddc, resp, err := vmcClient.SddcApi.OrgsOrgSddcsSddcGet(context.Background(), orgID, sddcID)
+	return resource.Retry(300*time.Minute, func() *resource.RetryError {
+
+		task, resp, err := client.TaskApi.OrgsOrgTasksTaskGet(context.Background(), orgID, task.Id)
+
+		if resp.StatusCode == 401 {
+			err = client.Authenticate()
+			if err != nil {
+				return resource.NonRetryableError(fmt.Errorf("Error authenticating in CSP: %s", err))
+			}
+			return resource.RetryableError(fmt.Errorf("Expected instance to be created but was in state %s", resp.Status))
+		}
+
+		if err != nil {
+			return resource.NonRetryableError(fmt.Errorf("Error describing instance: %s", err))
+		}
+
+		if task.Status != "FINISHED" {
+			return resource.RetryableError(fmt.Errorf("Expected instance to be created but was in state %s", resp.Status))
+		}
+
+		return resource.NonRetryableError(resourceSddcRead(d, m))
+	})
+}
+
+func resourceSddcRead(d *schema.ResourceData, m interface{}) error {
+	client := m.(*vmc.Client)
+	sddcID := d.Id()
+	orgID := d.Get("org_id").(string)
+	sddc, resp, err := client.SddcApi.OrgsOrgSddcsSddcGet(context.Background(), orgID, sddcID)
 	if err != nil {
 		return fmt.Errorf("Error while getting sddc detail %s: %v", sddcID, err)
 	}
 
 	if resp.StatusCode == http.StatusNotFound {
-		return fmt.Errorf("Sddc %s was not found", sddcID)
+		d.SetId("")
+		return nil
 	}
 
 	d.SetId(sddc.Id)
@@ -198,41 +225,18 @@ func resourceSddcCreate(d *schema.ResourceData, m interface{}) error {
 	d.Set("account_link_state", sddc.AccountLinkState)
 	d.Set("sddc_access_state", sddc.SddcAccessState)
 	d.Set("sddc_type", sddc.SddcType)
-
-	return resourceSddcRead(d, m)
-}
-
-func resourceSddcRead(d *schema.ResourceData, m interface{}) error {
-	vmcClient := m.(*vmc.APIClient)
-	sddcID := d.Id()
-	orgID := d.Get("org_id").(string)
-	sddc, resp, err := vmcClient.SddcApi.OrgsOrgSddcsSddcGet(context.Background(), orgID, sddcID)
-	if err != nil {
-		return fmt.Errorf("Error while getting sddc detail %s: %v", sddcID, err)
-	}
-
-	if resp.StatusCode == http.StatusNotFound {
-		d.SetId("")
-		return nil
-	}
-
-	d.SetId(sddc.Id)
-	d.Set("org_id", sddc.OrgId)
-	d.Set("sddc_name", sddc.Name)
-	d.Set("provider_type", sddc.Provider)
-	d.Set("created", sddc.Created)
 	return nil
 }
 
 func resourceSddcDelete(d *schema.ResourceData, m interface{}) error {
-	vmcClient := m.(*vmc.APIClient)
+	client := m.(*vmc.Client)
 	sddcID := d.Id()
 	orgID := d.Get("org_id").(string)
-	task, _, err := vmcClient.SddcApi.OrgsOrgSddcsSddcDelete(context.Background(), orgID, sddcID, nil)
+	task, _, err := client.SddcApi.OrgsOrgSddcsSddcDelete(context.Background(), orgID, sddcID, nil)
 	if err != nil {
 		return fmt.Errorf("Error while deleting sddc %s: %v", sddcID, err)
 	}
-	err = vmc.WaitForTask(vmcClient, orgID, task.Id)
+	err = vmc.WaitForTask(client, orgID, task.Id)
 	if err != nil {
 		return fmt.Errorf("Error while waiting for task %s: %v", task.Id, err)
 	}
@@ -241,7 +245,7 @@ func resourceSddcDelete(d *schema.ResourceData, m interface{}) error {
 }
 
 func resourceSddcUpdate(d *schema.ResourceData, m interface{}) error {
-	vmcClient := m.(*vmc.APIClient)
+	client := m.(*vmc.Client)
 	sddcID := d.Id()
 	orgID := d.Get("org_id").(string)
 
@@ -266,13 +270,13 @@ func resourceSddcUpdate(d *schema.ResourceData, m interface{}) error {
 		actionString := optional.NewString(action)
 
 		// API_CALL
-		task, _, err := vmcClient.EsxApi.OrgsOrgSddcsSddcEsxsPost(
+		task, _, err := client.EsxApi.OrgsOrgSddcsSddcEsxsPost(
 			context.Background(), orgID, sddcID, esxConfig, &vmc.OrgsOrgSddcsSddcEsxsPostOpts{Action: actionString})
 
 		if err != nil {
 			return fmt.Errorf("Error while deleting sddc %s: %v", sddcID, err)
 		}
-		err = vmc.WaitForTask(vmcClient, orgID, task.Id)
+		err = vmc.WaitForTask(client, orgID, task.Id)
 		if err != nil {
 			return fmt.Errorf("Error while waiting for task %s: %v", task.Id, err)
 		}
@@ -283,7 +287,7 @@ func resourceSddcUpdate(d *schema.ResourceData, m interface{}) error {
 		sddcPatchRequest := vmc.SddcPatchRequest{
 			Name: d.Get("sddc_name").(string),
 		}
-		sddc, _, err := vmcClient.SddcApi.OrgsOrgSddcsSddcPatch(context.Background(), orgID, sddcID, sddcPatchRequest)
+		sddc, _, err := client.SddcApi.OrgsOrgSddcsSddcPatch(context.Background(), orgID, sddcID, sddcPatchRequest)
 
 		if err != nil {
 			return fmt.Errorf("Error while updating sddc's name %v", err)

@@ -35,10 +35,10 @@ func dataSourceVmcOrg() *schema.Resource {
 }
 
 func dataSourceVmcOrgRead(d *schema.ResourceData, m interface{}) error {
-	vmcClient := m.(*vmc.APIClient)
+	client := m.(*vmc.Client)
 	objID := d.Get("id").(string)
 	var obj vmc.Organization
-	obj, resp, err := vmcClient.OrgsApi.OrgsOrgGet(context.Background(), objID)
+	obj, resp, err := client.OrgsApi.OrgsOrgGet(context.Background(), objID)
 	if err != nil {
 		return fmt.Errorf("Error while reading ns group %s: %v", objID, err)
 	}
