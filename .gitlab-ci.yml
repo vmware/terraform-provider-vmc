@@ -1,6 +1,6 @@
 run_accept_tests:
     tags: [docker_runner_2]
-    image: golang:latest
+    image: ubuntu:latest
     only:
         - pushes
     script:
@@ -10,6 +10,12 @@ run_accept_tests:
         - export PATH=$PATH:`pwd`
         - terraform version
         
+        # install go
+        - wget https://dl.google.com/go/go1.12.1.linux-amd64.tar.gz
+        - sudo tar -C /usr/local -xzf *.gz
+        - export PATH=$PATH:/usr/local/go/bin
+        - go version
+
         # download repo and build the provider
         - mkdir $HOME/go
         - export GOPATH=$HOME/go
