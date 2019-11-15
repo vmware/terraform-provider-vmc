@@ -7,22 +7,23 @@ import (
 	"testing"
 )
 
-func TestAccDataSourceVmcConnectedAccounts_basic(t *testing.T) {
+func TestAccDataSourceVmcOrg_basic(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:  func() { testAccPreCheck(t) },
 		Providers: testAccProviders,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccDataSourceVmcConnectedAccountsConfig(),
+				Config: testAccDataSourceVmcOrgConfig(),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("data.vmc_connected_accounts.my_accounts", "ids.#", "0"),
+					resource.TestCheckResourceAttr("data.vmc_org.my_org", "display_name", "VMC Org"),
+					resource.TestCheckResourceAttr("data.vmc_org.my_org", "name", "j4acl4e3"),
 				),
 			},
 		},
 	})
 }
 
-func testAccDataSourceVmcConnectedAccountsConfig() string {
+func testAccDataSourceVmcOrgConfig() string {
 	return fmt.Sprintf(`
 provider "vmc" {
 	refresh_token = %q
@@ -32,10 +33,7 @@ provider "vmc" {
 	
 data "vmc_org" "my_org" {
 	id = %q
-}
-	
-data "vmc_connected_accounts" "my_accounts" {
-	org_id = "${data.vmc_org.my_org.id}"
+
 }
 `,
 		os.Getenv("REFRESH_TOKEN"),

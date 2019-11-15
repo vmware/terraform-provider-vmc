@@ -1,13 +1,9 @@
 package vmc
 
 import (
-	"context"
 	"fmt"
-
-	"net/http"
-
 	"github.com/hashicorp/terraform/helper/schema"
-	"gitlab.eng.vmware.com/vapi-sdk/vmc-go-sdk/vmc"
+	"gitlab.eng.vmware.com/het/vmware-vmc-sdk/vapi/bindings/vmc/orgs"
 )
 
 func dataSourceVmcOrg() *schema.Resource {
@@ -15,17 +11,17 @@ func dataSourceVmcOrg() *schema.Resource {
 		Read: dataSourceVmcOrgRead,
 
 		Schema: map[string]*schema.Schema{
-			"id": &schema.Schema{
+			"id": {
 				Type:        schema.TypeString,
 				Description: "Unique ID of this resource",
 				Required:    true,
 			},
-			"display_name": &schema.Schema{
+			"display_name": {
 				Type:        schema.TypeString,
 				Description: "The display name of this resource",
 				Computed:    true,
 			},
-			"name": &schema.Schema{
+			"name": {
 				Type:        schema.TypeString,
 				Description: "The Name of this resource",
 				Computed:    true,
@@ -35,19 +31,21 @@ func dataSourceVmcOrg() *schema.Resource {
 }
 
 func dataSourceVmcOrgRead(d *schema.ResourceData, m interface{}) error {
-	client := m.(*vmc.Client)
-	objID := d.Get("id").(string)
-	var obj vmc.Organization
-	obj, resp, err := client.OrgsApi.OrgsOrgGet(context.Background(), objID)
+	orgID := d.Get("id").(string)
+	if orgID == "" {
+		return fmt.Errorf("org ID is a required parameter and cannot be empty")
+	}
+
+	connector := (m.(*ConnectorWrapper)).Connector
+	orgClient := orgs.NewOrgsClientImpl(connector)
+	org, err := orgClient.Get(orgID)
+
 	if err != nil {
-		return fmt.Errorf("Error while reading ns group %s: %v", objID, err)
+		return fmt.Errorf("Error while reading org information for %s: %v", orgID, err)
 	}
-	if resp.StatusCode == http.StatusNotFound {
-		return fmt.Errorf("NS group %s was not found", objID)
-	}
-	d.SetId(obj.Id)
-	d.Set("display_name", obj.DisplayName)
-	d.Set("name", obj.Name)
+	d.SetId(org.Id)
+	d.Set("display_name", org.DisplayName)
+	d.Set("name", org.Name)
 
 	return nil
 }

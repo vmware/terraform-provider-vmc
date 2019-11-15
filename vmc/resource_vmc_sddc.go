@@ -1,15 +1,16 @@
 package vmc
 
 import (
-	"context"
 	"fmt"
-	"github.com/antihax/optional"
-	"time"
-
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/helper/schema"
-	"gitlab.eng.vmware.com/vapi-sdk/vmc-go-sdk/vmc"
-	"net/http"
+	"gitlab.eng.vmware.com/het/vmware-vmc-sdk/vapi/bindings/vapi/std/errors"
+	"gitlab.eng.vmware.com/het/vmware-vmc-sdk/vapi/bindings/vmc/model"
+	"gitlab.eng.vmware.com/het/vmware-vmc-sdk/vapi/bindings/vmc/orgs/sddcs"
+	"gitlab.eng.vmware.com/het/vmware-vmc-sdk/vapi/bindings/vmc/orgs/sddcs/esxs"
+	"gitlab.eng.vmware.com/het/vmware-vmc-sdk/vapi/bindings/vmc/orgs/tasks"
+	"log"
+	"time"
 )
 
 func resourceSddc() *schema.Resource {
@@ -22,22 +23,28 @@ func resourceSddc() *schema.Resource {
 			State: schema.ImportStatePassthrough,
 		},
 
+		Timeouts: &schema.ResourceTimeout{
+			Create: schema.DefaultTimeout(300 * time.Minute),
+			Update: schema.DefaultTimeout(300 * time.Minute),
+			Delete: schema.DefaultTimeout(180 * time.Minute),
+		},
+
 		Schema: map[string]*schema.Schema{
-			"org_id": &schema.Schema{
+			"org_id": {
 				Type:        schema.TypeString,
 				Required:    true,
 				Description: "ID of this resource",
 			},
-			"storage_capacity": &schema.Schema{
+			"storage_capacity": {
 				Type:     schema.TypeInt,
 				Optional: true,
 				ForceNew: true,
 			},
-			"sddc_name": &schema.Schema{
+			"sddc_name": {
 				Type:     schema.TypeString,
 				Required: true,
 			},
-			"account_link_sddc_config": &schema.Schema{
+			"account_link_sddc_config": {
 				Type: schema.TypeList,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
@@ -58,83 +65,106 @@ func resourceSddc() *schema.Resource {
 				Optional: true,
 				ForceNew: true,
 			},
-			"vpc_cidr": &schema.Schema{
+			"vpc_cidr": {
 				Type:     schema.TypeString,
 				Optional: true,
 				ForceNew: true,
 			},
-			"num_host": &schema.Schema{
+			"num_host": {
 				Type:     schema.TypeInt,
 				Required: true,
 			},
-			"sddc_type": &schema.Schema{
+			"sddc_type": {
 				Type:     schema.TypeString,
 				Optional: true,
 				ForceNew: true,
 			},
-			"vxlan_subnet": &schema.Schema{
+			"vxlan_subnet": {
 				Type:     schema.TypeString,
 				Optional: true,
 				ForceNew: true,
 			},
 			// TODO check the deprecation statement
-			"delay_account_link": &schema.Schema{
+			"delay_account_link": {
 				Type:     schema.TypeBool,
 				Optional: true,
 				Default:  false,
 				ForceNew: true,
 			},
 			// TODO change default to AWS
-			"provider_type": &schema.Schema{
+			"provider_type": {
 				Type:     schema.TypeString,
 				Optional: true,
 				ForceNew: true,
 				Default:  "ZEROCLOUD",
 			},
-			"skip_creating_vxlan": &schema.Schema{
+			"skip_creating_vxlan": {
 				Type:     schema.TypeBool,
 				Optional: true,
 				Default:  true,
 				ForceNew: true,
 			},
-			"sso_domain": &schema.Schema{
+			"sso_domain": {
 				Type:     schema.TypeString,
 				Optional: true,
 				ForceNew: true,
 				Default:  "vmc.local",
 			},
-			"sddc_template_id": &schema.Schema{
+			"sddc_template_id": {
 				Type:     schema.TypeString,
 				Optional: true,
 				ForceNew: true,
 			},
-			"deployment_type": &schema.Schema{
+			"deployment_type": {
 				Type:     schema.TypeString,
 				Optional: true,
 				ForceNew: true,
 				Default:  "SingleAZ",
 			},
-			"region": &schema.Schema{
+			"region": {
 				Type:     schema.TypeString,
 				Optional: true,
 				ForceNew: true,
 				Default:  "us-west-2",
+			},
+			"cluster_id": {
+				Type:     schema.TypeString,
+				Computed: true,
 			},
 		},
 	}
 }
 
 func resourceSddcCreate(d *schema.ResourceData, m interface{}) error {
-	client := m.(*vmc.Client)
+	connectorWrapper := m.(*ConnectorWrapper)
+	sddcClient := sddcs.NewSddcsClientImpl(connectorWrapper.Connector)
+
 	orgID := d.Get("org_id").(string)
 	storageCapacity := d.Get("storage_capacity").(int)
+	storageCapacityConverted := int64(storageCapacity)
 	sddcName := d.Get("sddc_name").(string)
 	vpcCidr := d.Get("vpc_cidr").(string)
 	numHost := d.Get("num_host").(int)
 	sddcType := d.Get("sddc_type").(string)
+
+	if orgID == "" {
+		return fmt.Errorf("org ID is a required parameter and cannot be empty")
+	}
+	if sddcName == "" {
+		return fmt.Errorf("SDDC Name is a required parameter and cannot be empty")
+	}
+	if numHost == 0 {
+		return fmt.Errorf("number of hosts is a required parameter and cannot be 0")
+	}
+
+	var sddcTypePtr *string
+	if sddcType != "" {
+		sddcTypePtr = &sddcType
+	}
 	vxlanSubnet := d.Get("vxlan_subnet").(string)
-	accountLinkConfig := &vmc.AccountLinkConfig{
-		DelayAccountLink: d.Get("delay_account_link").(bool),
+	delayAccountLink := d.Get("delay_account_link").(bool)
+	accountLinkConfig := &model.AccountLinkConfig{
+		DelayAccountLink: &delayAccountLink,
 	}
 	providerType := d.Get("provider_type").(string)
 	skipCreatingVxlan := d.Get("skip_creating_vxlan").(bool)
@@ -144,72 +174,66 @@ func resourceSddcCreate(d *schema.ResourceData, m interface{}) error {
 	region := d.Get("region").(string)
 	accountLinkSddcConfig := expandAccountLinkSddcConfig(d.Get("account_link_sddc_config").([]interface{}))
 
-	var awsSddcConfig = &vmc.AwsSddcConfig{
-		StorageCapacity:       int64(storageCapacity),
+	var awsSddcConfig = &model.AwsSddcConfig{
+		StorageCapacity:       &storageCapacityConverted,
 		Name:                  sddcName,
-		VpcCidr:               vpcCidr,
-		NumHosts:              int32(numHost),
-		SddcType:              sddcType,
-		VxlanSubnet:           vxlanSubnet,
+		VpcCidr:               &vpcCidr,
+		NumHosts:              int64(numHost),
+		SddcType:              sddcTypePtr,
+		VxlanSubnet:           &vxlanSubnet,
 		AccountLinkConfig:     accountLinkConfig,
 		Provider:              providerType,
-		SkipCreatingVxlan:     skipCreatingVxlan,
+		SkipCreatingVxlan:     &skipCreatingVxlan,
 		AccountLinkSddcConfig: accountLinkSddcConfig,
-		SsoDomain:             ssoDomain,
-		SddcTemplateId:        sddcTemplateID,
-		DeploymentType:        deploymentType,
+		SsoDomain:             &ssoDomain,
+		SddcTemplateId:        &sddcTemplateID,
+		DeploymentType:        &deploymentType,
 		Region:                region,
 	}
 
 	// Create a Sddc
-	task, _, err := client.SddcApi.OrgsOrgSddcsPost(context.Background(), orgID, *awsSddcConfig)
+	task, err := sddcClient.Create(orgID, *awsSddcConfig, nil)
 	if err != nil {
 		return fmt.Errorf("Error while creating sddc %s: %v", sddcName, err)
 	}
 
 	// Wait until Sddc is created
 	sddcID := task.ResourceId
-	d.SetId(sddcID)
-
-	return resource.Retry(300*time.Minute, func() *resource.RetryError {
-
-		task, resp, err := client.TaskApi.OrgsOrgTasksTaskGet(context.Background(), orgID, task.Id)
-
-		if resp.StatusCode == 401 {
-			err = client.Authenticate()
-			if err != nil {
-				return resource.NonRetryableError(fmt.Errorf("Error authenticating in CSP: %s", err))
-			}
-			return resource.RetryableError(fmt.Errorf("Expected instance to be created but was in state %s", resp.Status))
-		}
-
+	d.SetId(*sddcID)
+	return resource.Retry(d.Timeout(schema.TimeoutCreate), func() *resource.RetryError {
+		tasksClient := tasks.NewTasksClientImpl(connectorWrapper.Connector)
+		task, err := tasksClient.Get(orgID, task.Id)
 		if err != nil {
+			if err.Error() == (errors.Unauthenticated{}.Error()) {
+				log.Print("Auth error", err.Error(), errors.Unauthenticated{}.Error())
+				err = connectorWrapper.authenticate()
+				if err != nil {
+					return resource.NonRetryableError(fmt.Errorf("Error authenticating in CSP: %s", err))
+				}
+				return resource.RetryableError(fmt.Errorf("Instance creation still in progress"))
+			}
 			return resource.NonRetryableError(fmt.Errorf("Error describing instance: %s", err))
-		}
 
-		if task.Status != "FINISHED" {
-			return resource.RetryableError(fmt.Errorf("Expected instance to be created but was in state %s", resp.Status))
 		}
-
+		if *task.Status != "FINISHED" {
+			return resource.RetryableError(fmt.Errorf("Expected instance to be created but was in state %s", *task.Status))
+		}
 		return resource.NonRetryableError(resourceSddcRead(d, m))
 	})
 }
 
 func resourceSddcRead(d *schema.ResourceData, m interface{}) error {
-	client := m.(*vmc.Client)
+	connector := (m.(*ConnectorWrapper)).Connector
+	sddcClient := sddcs.NewSddcsClientImpl(connector)
 	sddcID := d.Id()
 	orgID := d.Get("org_id").(string)
-	sddc, resp, err := client.SddcApi.OrgsOrgSddcsSddcGet(context.Background(), orgID, sddcID)
+	sddc, err := sddcClient.Get(orgID, sddcID)
 	if err != nil {
 		return fmt.Errorf("Error while getting sddc detail %s: %v", sddcID, err)
 	}
 
-	if resp.StatusCode == http.StatusNotFound {
-		d.SetId("")
-		return nil
-	}
-
 	d.SetId(sddc.Id)
+
 	d.Set("name", sddc.Name)
 	d.Set("updated", sddc.Updated)
 	d.Set("user_id", sddc.UserId)
@@ -225,27 +249,37 @@ func resourceSddcRead(d *schema.ResourceData, m interface{}) error {
 	d.Set("account_link_state", sddc.AccountLinkState)
 	d.Set("sddc_access_state", sddc.SddcAccessState)
 	d.Set("sddc_type", sddc.SddcType)
+
 	return nil
 }
 
 func resourceSddcDelete(d *schema.ResourceData, m interface{}) error {
-	client := m.(*vmc.Client)
+	connector := (m.(*ConnectorWrapper)).Connector
+	sddcClient := sddcs.NewSddcsClientImpl(connector)
 	sddcID := d.Id()
 	orgID := d.Get("org_id").(string)
-	task, _, err := client.SddcApi.OrgsOrgSddcsSddcDelete(context.Background(), orgID, sddcID, nil)
+
+	task, err := sddcClient.Delete(orgID, sddcID, nil, nil, nil)
 	if err != nil {
 		return fmt.Errorf("Error while deleting sddc %s: %v", sddcID, err)
 	}
-	err = vmc.WaitForTask(client, orgID, task.Id)
-	if err != nil {
-		return fmt.Errorf("Error while waiting for task %s: %v", task.Id, err)
-	}
-	d.SetId("")
-	return nil
+	tasksClient := tasks.NewTasksClientImpl(connector)
+	return resource.Retry(d.Timeout(schema.TimeoutDelete), func() *resource.RetryError {
+		task, err := tasksClient.Get(orgID, task.Id)
+		if err != nil {
+			return resource.NonRetryableError(fmt.Errorf("Error while deleting sddc %s: %v", sddcID, err))
+		}
+		if *task.Status != "FINISHED" {
+			return resource.RetryableError(fmt.Errorf("Expected instance to be deleted but was in state %s", *task.Status))
+		}
+		d.SetId("")
+		return resource.NonRetryableError(nil)
+	})
 }
 
 func resourceSddcUpdate(d *schema.ResourceData, m interface{}) error {
-	client := m.(*vmc.Client)
+	connector := (m.(*ConnectorWrapper)).Connector
+	esxsClient := esxs.NewEsxsClientImpl(connector)
 	sddcID := d.Id()
 	orgID := d.Get("org_id").(string)
 
@@ -263,59 +297,65 @@ func resourceSddcUpdate(d *schema.ResourceData, m interface{}) error {
 			diffNum = oldNum - newNum
 		}
 
-		esxConfig := vmc.EsxConfig{
-			NumHosts: int32(diffNum),
+		esxConfig := model.EsxConfig{
+			NumHosts: int64(diffNum),
 		}
 
-		actionString := optional.NewString(action)
-
-		// API_CALL
-		task, _, err := client.EsxApi.OrgsOrgSddcsSddcEsxsPost(
-			context.Background(), orgID, sddcID, esxConfig, &vmc.OrgsOrgSddcsSddcEsxsPostOpts{Action: actionString})
+		task, err := esxsClient.Create(orgID, sddcID, esxConfig, &action)
 
 		if err != nil {
-			return fmt.Errorf("Error while deleting sddc %s: %v", sddcID, err)
+			return fmt.Errorf("Error while updating number of host for SDDC %s: %v", sddcID, err)
 		}
-		err = vmc.WaitForTask(client, orgID, task.Id)
+		tasksClient := tasks.NewTasksClientImpl(connector)
+		err = resource.Retry(d.Timeout(schema.TimeoutUpdate), func() *resource.RetryError {
+			task, err := tasksClient.Get(orgID, task.Id)
+			if err != nil {
+				return resource.NonRetryableError(fmt.Errorf("Error while waiting for task sddc %s: %v", task.Id, err))
+			}
+			if *task.Status != "FINISHED" {
+				return resource.RetryableError(fmt.Errorf("Expected Host to be updated but was in state %s", *task.Status))
+			}
+			return resource.NonRetryableError(resourceSddcRead(d, m))
+		})
 		if err != nil {
-			return fmt.Errorf("Error while waiting for task %s: %v", task.Id, err)
+			return err
 		}
 	}
-
 	// Update sddc name
 	if d.HasChange("sddc_name") {
-		sddcPatchRequest := vmc.SddcPatchRequest{
-			Name: d.Get("sddc_name").(string),
+		sddcClient := sddcs.NewSddcsClientImpl(connector)
+		newSDDCName := d.Get("sddc_name").(string)
+		sddcPatchRequest := model.SddcPatchRequest{
+			Name: &newSDDCName,
 		}
-		sddc, _, err := client.SddcApi.OrgsOrgSddcsSddcPatch(context.Background(), orgID, sddcID, sddcPatchRequest)
+		sddc, err := sddcClient.Patch(orgID, sddcID, sddcPatchRequest)
 
 		if err != nil {
 			return fmt.Errorf("Error while updating sddc's name %v", err)
 		}
 		d.Set("sddc_name", sddc.Name)
 	}
-
 	return resourceSddcRead(d, m)
 }
 
-func expandAccountLinkSddcConfig(l []interface{}) []vmc.AccountLinkSddcConfig {
+func expandAccountLinkSddcConfig(l []interface{}) []model.AccountLinkSddcConfig {
+
 	if len(l) == 0 {
 		return nil
 	}
 
-	var configs []vmc.AccountLinkSddcConfig
+	var configs []model.AccountLinkSddcConfig
 
 	for _, config := range l {
 		c := config.(map[string]interface{})
 		var subnetIds []string
 		for _, subnetID := range c["customer_subnet_ids"].([]interface{}) {
-
 			subnetIds = append(subnetIds, subnetID.(string))
 		}
-
-		con := vmc.AccountLinkSddcConfig{
+		var connectedAccId = c["connected_account_id"].(string)
+		con := model.AccountLinkSddcConfig{
 			CustomerSubnetIds:  subnetIds,
-			ConnectedAccountId: c["connected_account_id"].(string),
+			ConnectedAccountId: &connectedAccId,
 		}
 
 		configs = append(configs, con)

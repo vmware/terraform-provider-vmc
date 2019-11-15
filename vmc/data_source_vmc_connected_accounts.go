@@ -1,13 +1,9 @@
 package vmc
 
 import (
-	"context"
 	"fmt"
-	"github.com/antihax/optional"
-	"log"
-
 	"github.com/hashicorp/terraform/helper/schema"
-	"gitlab.eng.vmware.com/vapi-sdk/vmc-go-sdk/vmc"
+	"gitlab.eng.vmware.com/het/vmware-vmc-sdk/vapi/bindings/vmc/orgs/account_link/connectedAccounts"
 )
 
 func dataSourceVmcConnectedAccounts() *schema.Resource {
@@ -15,12 +11,12 @@ func dataSourceVmcConnectedAccounts() *schema.Resource {
 		Read: dataSourceVmcConnectedAccountsRead,
 
 		Schema: map[string]*schema.Schema{
-			"org_id": &schema.Schema{
+			"org_id": {
 				Type:        schema.TypeString,
 				Description: "Organization identifier.",
 				Required:    true,
 			},
-			"provider_type": &schema.Schema{
+			"provider_type": {
 				Type:        schema.TypeString,
 				Description: "The cloud provider of the SDDC (AWS or ZeroCloud).",
 				Optional:    true,
@@ -37,20 +33,22 @@ func dataSourceVmcConnectedAccounts() *schema.Resource {
 }
 
 func dataSourceVmcConnectedAccountsRead(d *schema.ResourceData, m interface{}) error {
-	client := m.(*vmc.Client)
+
 	orgID := d.Get("org_id").(string)
 	providerType := d.Get("provider_type").(string)
-	// var obj vmc.Organization
-	providerString := optional.NewString(providerType)
-	accounts, _, err := client.AccountLinkingApi.OrgsOrgAccountLinkConnectedAccountsGet(
-		context.Background(), orgID, &vmc.OrgsOrgAccountLinkConnectedAccountsGetOpts{Provider: providerString})
+
+	if orgID == "" {
+		return fmt.Errorf("org ID is a required parameter and cannot be empty")
+	}
+
+	connector := (m.(*ConnectorWrapper)).Connector
+	connectedAccountsClient := connectedAccounts.NewConnectedAccountsClientImpl(connector)
+	accounts, err := connectedAccountsClient.Get(orgID, &providerType)
 
 	ids := []string{}
 	for _, account := range accounts {
 		ids = append(ids, account.Id)
 	}
-
-	log.Printf("[DEBUG] Connected accounts are %v\n", accounts)
 
 	if err != nil {
 		return fmt.Errorf("Error while reading accounts from org %q: %v", orgID, err)
