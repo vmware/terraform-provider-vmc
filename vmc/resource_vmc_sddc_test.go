@@ -1,16 +1,16 @@
 package vmc
 
 import (
-	"context"
 	"fmt"
 	"github.com/hashicorp/terraform/helper/acctest"
-	"net/http"
-	"os"
-	"testing"
-
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
-	"gitlab.eng.vmware.com/vapi-sdk/vmc-go-sdk/vmc"
+	"gitlab.eng.vmware.com/het/vmware-vmc-sdk/vapi/bindings/vmc/orgs/sddcs"
+	"gitlab.eng.vmware.com/het/vmware-vmc-sdk/vapi/bindings/vmc/orgs/tasks"
+	"os"
+	"strings"
+	"testing"
+	"time"
 )
 
 func TestAccResourceVmcSddc_basic(t *testing.T) {
@@ -39,25 +39,29 @@ func testCheckVmcSddcExists(name string) resource.TestCheckFunc {
 		sddcID := rs.Primary.Attributes["id"]
 		sddcName := rs.Primary.Attributes["sddc_name"]
 		orgID := rs.Primary.Attributes["org_id"]
+		connectorWrapper := testAccProvider.Meta().(*ConnectorWrapper)
+		connector := connectorWrapper.Connector
+		sddcClient := sddcs.NewSddcsClientImpl(connector)
 
-		client := testAccProvider.Meta().(*vmc.Client)
-		_, resp, err := client.SddcApi.OrgsOrgSddcsSddcGet(context.Background(), orgID, sddcID)
+		sddc, err := sddcClient.Get(orgID, sddcID)
 		if err != nil {
 			return fmt.Errorf("Bad: Get on sddcApi: %s", err)
 		}
 
-		if resp.StatusCode == http.StatusNotFound {
+		if sddc.Id != sddcID {
 			return fmt.Errorf("Bad: Sddc %q does not exist", sddcName)
 		}
 
-		fmt.Print("SDDC created successfully")
+		fmt.Printf("SDDC %s created successfully with id %s ", sddcName, sddcID)
 		return nil
 	}
 }
 
 func testCheckVmcSddcDestroy(s *terraform.State) error {
 
-	client := testAccProvider.Meta().(*vmc.Client)
+	connectorWrapper := testAccProvider.Meta().(*ConnectorWrapper)
+	connector := connectorWrapper.Connector
+	sddcClient := sddcs.NewSddcsClientImpl(connector)
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "vmc_sddc" {
@@ -66,12 +70,25 @@ func testCheckVmcSddcDestroy(s *terraform.State) error {
 
 		sddcID := rs.Primary.Attributes["id"]
 		orgID := rs.Primary.Attributes["org_id"]
-		task, _, err := client.SddcApi.OrgsOrgSddcsSddcDelete(context.Background(), orgID, sddcID, nil)
-		// TODO: check why error raised when deleting sddc.
-		// if err != nil {
-		// 	return fmt.Errorf("Error while deleting sddc %q, %v, %v", sddcID, err, resp)
-		// }
-		err = vmc.WaitForTask(client, orgID, task.Id)
+		task, err := sddcClient.Delete(orgID, sddcID, nil, nil, nil)
+		if err != nil {
+			return fmt.Errorf("Error while deleting sddc %s, %s", sddcID, err)
+		}
+		tasksClient := tasks.NewTasksClientImpl(connector)
+		err = resource.Retry(180*time.Minute, func() *resource.RetryError {
+			task, err := tasksClient.Get(orgID, task.Id)
+			if err != nil {
+				return resource.NonRetryableError(fmt.Errorf("Error while deleting sddc %s: %v", sddcID, err))
+			}
+			if task.ErrorMessage != nil && strings.Contains(*task.ErrorMessage, "Entity is not found") {
+				fmt.Print("Resource already deleted")
+				return resource.NonRetryableError(nil)
+			}
+			if *task.Status != "FINISHED" {
+				return resource.RetryableError(fmt.Errorf("Expected instance to be deleted but was in state %s", *task.Status))
+			}
+			return resource.NonRetryableError(nil)
+		})
 		if err != nil {
 			return fmt.Errorf("Error while waiting for task %q: %v", task.Id, err)
 		}
@@ -84,16 +101,12 @@ func testAccVmcSddcConfigBasic(sddcName string) string {
 	return fmt.Sprintf(`
 provider "vmc" {
 	refresh_token = %q
-	
-	# refresh_token = "ac5140ea-1749-4355-a892-56cff4893be0"
-	# vmc_url       = "https://stg.skyscraper.vmware.com/vmc/api"
-	# csp_url       = "https://console-stg.cloud.vmware.com"
+	vmc_url       = "https://stg.skyscraper.vmware.com/vmc/api"
+  	csp_url       = "https://console-stg.cloud.vmware.com"
 }
 	
 data "vmc_org" "my_org" {
-	id = "058f47c4-92aa-417f-8747-87f3ed61cb45"
-
-	# id = "05e0a625-3293-41bb-a01f-35e762781c2a"
+	id = %q
 }
 
 data "vmc_connected_accounts" "accounts" {
@@ -107,10 +120,10 @@ resource "vmc_sddc" "sddc_1" {
 	sddc_name = %q
 
 	vpc_cidr      = "10.2.0.0/16"
-	num_host      = 1
+	num_host      = 3
 	provider_type = "ZEROCLOUD"
 
-	region = "US_EAST_1"
+	region = "US_WEST_2"
 
 	vxlan_subnet = "192.168.1.0/24"
 
@@ -118,7 +131,6 @@ resource "vmc_sddc" "sddc_1" {
 	skip_creating_vxlan = false
 	sso_domain          = "vmc.local"
 
-	sddc_template_id    = ""
 	deployment_type = "SingleAZ"
 
 	# TODO raise exception here need to debug
@@ -131,6 +143,7 @@ resource "vmc_sddc" "sddc_1" {
 }
 `,
 		os.Getenv("REFRESH_TOKEN"),
+		os.Getenv("ORG_ID"),
 		sddcName,
 	)
 }

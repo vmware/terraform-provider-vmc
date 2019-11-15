@@ -1,13 +1,10 @@
 package vmc
 
 import (
-	"context"
 	"fmt"
-	"github.com/antihax/optional"
-	"log"
-
 	"github.com/hashicorp/terraform/helper/schema"
-	"gitlab.eng.vmware.com/vapi-sdk/vmc-go-sdk/vmc"
+	"gitlab.eng.vmware.com/het/vmware-vmc-sdk/vapi/bindings/vmc/orgs/account_link/compatibleSubnets"
+	"log"
 )
 
 func dataSourceVmcCustomerSubnets() *schema.Resource {
@@ -15,24 +12,44 @@ func dataSourceVmcCustomerSubnets() *schema.Resource {
 		Read: dataSourceVmcCustomerSubnetsRead,
 
 		Schema: map[string]*schema.Schema{
-			"org_id": &schema.Schema{
+			"org_id": {
 				Type:        schema.TypeString,
 				Description: "Organization identifier.",
 				Required:    true,
 			},
-			"connected_account_id": &schema.Schema{
+			"connected_account_id": {
 				Type:        schema.TypeString,
 				Description: "The linked connected account identifier.",
 				Optional:    true,
 			},
-			"region": &schema.Schema{
+			"region": {
 				Type:        schema.TypeString,
 				Description: "The region of the cloud resources to work in.",
 				Required:    true,
 			},
-			"sddc_id": &schema.Schema{
+			"num_hosts": {
+				Type:        schema.TypeInt,
+				Description: "The number of hosts .",
+				Optional:    true,
+			},
+			"sddc_id": {
 				Type:        schema.TypeString,
 				Description: "Sddc ID.",
+				Optional:    true,
+			},
+			"sddc_type": {
+				Type:        schema.TypeString,
+				Description: "Sddc Type.",
+				Optional:    true,
+			},
+			"force_refresh": {
+				Type:        schema.TypeBool,
+				Description: "When true, forces the mappings for datacenters to be refreshed for the connected account.",
+				Optional:    true,
+			},
+			"instance_type": {
+				Type:        schema.TypeString,
+				Description: "The server instance type to be used.",
 				Optional:    true,
 			},
 			"customer_available_zones": {
@@ -56,26 +73,31 @@ func dataSourceVmcCustomerSubnets() *schema.Resource {
 }
 
 func dataSourceVmcCustomerSubnetsRead(d *schema.ResourceData, m interface{}) error {
-	client := m.(*vmc.Client)
+
 	orgID := d.Get("org_id").(string)
 	accountID := d.Get("connected_account_id").(string)
 	sddcID := d.Get("sddc_id").(string)
 	region := d.Get("region").(string)
-	// providerString := optional.NewString(providerType)
+	numHosts := int64(d.Get("num_hosts").(int))
+	sddcType := d.Get("sddc_type").(string)
+	forceRefresh := d.Get("force_refresh").(bool)
+	instanceType := d.Get("instance_type").(string)
 
-	getOpts := &vmc.OrgsOrgAccountLinkCompatibleSubnetsGetOpts{
-		LinkedAccountId: optional.NewString(accountID),
-		Region:          optional.NewString(region),
-		Sddc:            optional.NewString(sddcID),
+	if orgID == "" {
+		return fmt.Errorf("org ID is a required parameter and cannot be empty")
 	}
 
-	compSubnets, _, err := client.AccountLinkingApi.OrgsOrgAccountLinkCompatibleSubnetsGet(
-		context.Background(), orgID, getOpts)
+	if region == "" {
+		return fmt.Errorf("region is a required parameter and cannot be empty")
+	}
 
+	connector := (m.(*ConnectorWrapper)).Connector
+	compatibleSubnetsClient := compatibleSubnets.NewCompatibleSubnetsClientImpl(connector)
+	compatibleSubnets, err := compatibleSubnetsClient.Get(orgID, &accountID, &region, &sddcID, &forceRefresh, &instanceType, &sddcType, &numHosts)
 	ids := []string{}
-	for _, value := range compSubnets.VpcMap {
+	for _, value := range compatibleSubnets.VpcMap {
 		for _, subnet := range value.Subnets {
-			ids = append(ids, subnet.SubnetId)
+			ids = append(ids, *subnet.SubnetId)
 		}
 	}
 
@@ -89,7 +111,7 @@ func dataSourceVmcCustomerSubnetsRead(d *schema.ResourceData, m interface{}) err
 	}
 
 	d.Set("ids", ids)
-	d.Set("customer_available_zones", compSubnets.CustomerAvailableZones)
+	d.Set("customer_available_zones", compatibleSubnets.CustomerAvailableZones)
 	d.SetId(fmt.Sprintf("%s-%s", orgID, accountID))
 	return nil
 }

@@ -15,10 +15,10 @@ func TestAccDataSourceVmcCustomerSubnets_basic(t *testing.T) {
 			{
 				Config: testAccDataSourceVmcCustomerSubnetsConfig(),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("data.vmc_customer_subnets.my_subnets", "ids.#", "3"),
-					resource.TestCheckResourceAttr("data.vmc_customer_subnets.my_subnets", "ids.0", "subnet-13a0c249"),
-					resource.TestCheckResourceAttr("data.vmc_customer_subnets.my_subnets", "ids.1", "subnet-14a42d6d"),
-					resource.TestCheckResourceAttr("data.vmc_customer_subnets.my_subnets", "ids.2", "subnet-2170db6a"),
+					resource.TestCheckResourceAttr("data.vmc_customer_subnets.my_subnets", "ids.#", "4"),
+					resource.TestCheckResourceAttr("data.vmc_customer_subnets.my_subnets", "ids.0", "subnet-8cabb6f5"),
+					resource.TestCheckResourceAttr("data.vmc_customer_subnets.my_subnets", "ids.1", "subnet-1ecff155"),
+					resource.TestCheckResourceAttr("data.vmc_customer_subnets.my_subnets", "ids.2", "subnet-98fc13c5"),
 				),
 			},
 		},
@@ -29,10 +29,12 @@ func testAccDataSourceVmcCustomerSubnetsConfig() string {
 	return fmt.Sprintf(`
 provider "vmc" {
 	refresh_token = %q
+ csp_url       = "https://console-stg.cloud.vmware.com"
+    vmc_url = "https://stg.skyscraper.vmware.com"
 }
 	
 data "vmc_org" "my_org" {
-	id = "058f47c4-92aa-417f-8747-87f3ed61cb45"
+	id = %q
 }
 	
 data "vmc_connected_accounts" "my_accounts" {
@@ -46,5 +48,6 @@ data "vmc_customer_subnets" "my_subnets" {
 }
 `,
 		os.Getenv("REFRESH_TOKEN"),
+		os.Getenv("ORG_ID"),
 	)
 }

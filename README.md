@@ -137,5 +137,7 @@ terraform destroy
 
 ```sh
 $ export REFRESH_TOKEN=xxx
+$ export ORG_ID=xxx
+$ export TEST_SDDC_ID=xxx 
 $ make testacc
 ```
