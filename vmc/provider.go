@@ -35,7 +35,7 @@ func Provider() terraform.ResourceProvider {
 			"vmc_url": {
 				Type:     schema.TypeString,
 				Optional: true,
-				Default:  "https://vmc.vmware.com",
+				Default:  "https://vmc.vmware.com/vmc/api",
 			},
 			"csp_url": {
 				Type:     schema.TypeString,
