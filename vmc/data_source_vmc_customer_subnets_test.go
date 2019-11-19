@@ -19,6 +19,7 @@ func TestAccDataSourceVmcCustomerSubnets_basic(t *testing.T) {
 					resource.TestCheckResourceAttr("data.vmc_customer_subnets.my_subnets", "ids.0", "subnet-8cabb6f5"),
 					resource.TestCheckResourceAttr("data.vmc_customer_subnets.my_subnets", "ids.1", "subnet-1ecff155"),
 					resource.TestCheckResourceAttr("data.vmc_customer_subnets.my_subnets", "ids.2", "subnet-98fc13c5"),
+					resource.TestCheckResourceAttr("data.vmc_customer_subnets.my_subnets", "ids.3", "subnet-c895f2e3"),
 				),
 			},
 		},
@@ -29,8 +30,8 @@ func testAccDataSourceVmcCustomerSubnetsConfig() string {
 	return fmt.Sprintf(`
 provider "vmc" {
 	refresh_token = %q
- csp_url       = "https://console-stg.cloud.vmware.com"
-    vmc_url = "https://stg.skyscraper.vmware.com"
+ 	#csp_url       = "https://console-stg.cloud.vmware.com"
+    #vmc_url = "https://stg.skyscraper.vmware.com"
 }
 	
 data "vmc_org" "my_org" {
@@ -44,7 +45,7 @@ data "vmc_connected_accounts" "my_accounts" {
 data "vmc_customer_subnets" "my_subnets" {
 	org_id = "${data.vmc_org.my_org.id}"
 	connected_account_id = "${data.vmc_connected_accounts.my_accounts.ids.0}"
-	region = "us-west-2"
+	region = "US_WEST_2"
 }
 `,
 		os.Getenv("REFRESH_TOKEN"),
