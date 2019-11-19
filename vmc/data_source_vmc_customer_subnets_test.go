@@ -30,8 +30,8 @@ func testAccDataSourceVmcCustomerSubnetsConfig() string {
 	return fmt.Sprintf(`
 provider "vmc" {
 	refresh_token = %q
- 	#csp_url       = "https://console-stg.cloud.vmware.com"
-    #vmc_url = "https://stg.skyscraper.vmware.com"
+	#csp_url       = "https://console-stg.cloud.vmware.com"
+	#vmc_url = "https://stg.skyscraper.vmware.com"
 }
 	
 data "vmc_org" "my_org" {
