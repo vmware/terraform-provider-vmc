@@ -2,7 +2,7 @@ provider "vmc" {
   refresh_token = ""
 
   # for staging environment only
-  # vmc_url       = "https://stg.skyscraper.vmware.com"
+  # vmc_url       = "https://stg.skyscraper.vmware.com/vmc/api"
   # csp_url       = "https://console-stg.cloud.vmware.com"
 }
 
@@ -17,7 +17,7 @@ data "vmc_connected_accounts" "my_accounts" {
 data "vmc_customer_subnets" "my_subnets" {
   org_id               = "${data.vmc_org.my_org.id}"
   connected_account_id = "${data.vmc_connected_accounts.my_accounts.ids.0}"
-  region               = "US_WEST_2"
+  region               = "us-west-2"
 }
 
 resource "vmc_sddc" "sddc_1" {
