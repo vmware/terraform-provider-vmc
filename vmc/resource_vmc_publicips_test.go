@@ -5,7 +5,6 @@ import (
 	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
-	"gitlab.eng.vmware.com/het/vmware-vmc-sdk/vapi/bindings/vapi/std/errors"
 	"gitlab.eng.vmware.com/het/vmware-vmc-sdk/vapi/bindings/vmc/orgs/sddcs/publicips"
 	"os"
 	"testing"
@@ -72,16 +71,15 @@ func testCheckVmcPublicIPDestroy(s *terraform.State) error {
 		allocationID := rs.Primary.Attributes["id"]
 		orgID := rs.Primary.Attributes["org_id"]
 		sddcID := rs.Primary.Attributes["sddc_id"]
-		publicIP, err := publicIPClient.Get(orgID, sddcID, allocationID)
 		vmName := rs.Primary.Attributes["name"]
-
-		if err == nil && publicIP.AllocationId != nil {
-			return fmt.Errorf("Entity PublicIP %s still exits with allocation ID %s", vmName, *publicIP.AllocationId)
+		publicIPs, err := publicIPClient.List(orgID, sddcID)
+		if err != nil {
+			return fmt.Errorf("Error while getting the public Ips %s", err)
 		}
-
-		//check if error type if not_found
-		if err.Error() != (errors.NotFound{}.Error()) {
-			return err
+		for _, publicIp := range publicIPs {
+			if *(publicIp.AllocationId) == allocationID {
+				return fmt.Errorf("Entity PublicIP %s still exits with allocation ID %s", vmName, allocationID)
+			}
 		}
 	}
 	return nil
@@ -91,9 +89,6 @@ func testAccVmcPublicIPConfigBasic(name string) string {
 	return fmt.Sprintf(`
 provider "vmc" {
 	refresh_token = %q
-	
-	#csp_url       = "https://console-stg.cloud.vmware.com"
-    #vmc_url = "https://stg.skyscraper.vmware.com"
 }
 	
 data "vmc_org" "my_org" {
