@@ -6,11 +6,8 @@ import (
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
 	"gitlab.eng.vmware.com/het/vmware-vmc-sdk/vapi/bindings/vmc/orgs/sddcs/publicips"
-	"gitlab.eng.vmware.com/het/vmware-vmc-sdk/vapi/bindings/vmc/orgs/tasks"
 	"os"
-	"strings"
 	"testing"
-	"time"
 )
 
 func TestAccResourceVmcPublicIP_basic(t *testing.T) {
@@ -40,32 +37,22 @@ func testCheckVmcPublicIPExists(name string) resource.TestCheckFunc {
 		sddcID := rs.Primary.Attributes["sddc_id"]
 		orgID := rs.Primary.Attributes["org_id"]
 		vmName := rs.Primary.Attributes["name"]
+		allocationID := rs.Primary.Attributes["id"]
+
 		connectorWrapper := testAccProvider.Meta().(*ConnectorWrapper)
 		connector := connectorWrapper.Connector
 		publicIPClient := publicips.NewPublicipsClientImpl(connector)
 
-		publicIPList, err := publicIPClient.List(orgID, sddcID)
-		if err != nil {
-			return fmt.Errorf("Bad: List on publicIP: %s", err)
-		}
-		var allocationID *string
-
-		for i := range publicIPList {
-			if *publicIPList[i].Name == vmName {
-				allocationID = publicIPList[i].AllocationId
-			}
-		}
-
-		publicIP, err := publicIPClient.Get(orgID, sddcID, *allocationID)
+		publicIP, err := publicIPClient.Get(orgID, sddcID, allocationID)
 		if err != nil {
 			return fmt.Errorf("Bad: Get on publicIP API: %s", err)
 		}
 
 		if *publicIP.Name != vmName {
-			return fmt.Errorf("Bad: Public IP %q does not exist", *allocationID)
+			return fmt.Errorf("Bad: Public IP %q does not exist", allocationID)
 		}
 
-		fmt.Printf("Public IP created successfully with id %s ", *allocationID)
+		fmt.Printf("Public IP created successfully with id %s \n", allocationID)
 		return nil
 	}
 }
@@ -84,29 +71,15 @@ func testCheckVmcPublicIPDestroy(s *terraform.State) error {
 		allocationID := rs.Primary.Attributes["id"]
 		orgID := rs.Primary.Attributes["org_id"]
 		sddcID := rs.Primary.Attributes["sddc_id"]
-
-		task, err := publicIPClient.Delete(orgID, sddcID, allocationID)
+		vmName := rs.Primary.Attributes["name"]
+		publicIPs, err := publicIPClient.List(orgID, sddcID)
 		if err != nil {
-			return fmt.Errorf("Error while deleting IP allocation ID %s, %s", allocationID, err)
+			return fmt.Errorf("Error while getting the public Ips %s", err)
 		}
-		tasksClient := tasks.NewTasksClientImpl(connector)
-		err = resource.Retry(10*time.Minute, func() *resource.RetryError {
-			task, err := tasksClient.Get(orgID, task.Id)
-			if err != nil {
-				return resource.NonRetryableError(fmt.Errorf("Error while deleting public IP allocation %s: %v", allocationID, err))
+		for _, publicIp := range publicIPs {
+			if *(publicIp.AllocationId) == allocationID {
+				return fmt.Errorf("Entity PublicIP %s still exits with allocation ID %s", vmName, allocationID)
 			}
-
-			if task.ErrorMessage != nil && strings.Contains(*task.ErrorMessage, "Entity is not found") {
-				fmt.Print("Resource already deleted")
-				return resource.NonRetryableError(nil)
-			}
-			if *task.Status != "FINISHED" {
-				return resource.RetryableError(fmt.Errorf("Expected instance to be deleted but was in state %s", *task.Status))
-			}
-			return resource.NonRetryableError(nil)
-		})
-		if err != nil {
-			return fmt.Errorf("Error while waiting for task %q: %v", task.Id, err)
 		}
 	}
 	return nil
@@ -116,9 +89,6 @@ func testAccVmcPublicIPConfigBasic(name string) string {
 	return fmt.Sprintf(`
 provider "vmc" {
 	refresh_token = %q
-	
-	csp_url       = "https://console-stg.cloud.vmware.com"
-    vmc_url = "https://stg.skyscraper.vmware.com"
 }
 	
 data "vmc_org" "my_org" {

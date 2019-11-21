@@ -131,6 +131,11 @@ func resourceSddc() *schema.Resource {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
+			"host_instance_type": {
+				Type:     schema.TypeString,
+				Optional: true,
+				Default:  "I3_METAL",
+			},
 		},
 	}
 }
@@ -173,6 +178,7 @@ func resourceSddcCreate(d *schema.ResourceData, m interface{}) error {
 	deploymentType := d.Get("deployment_type").(string)
 	region := d.Get("region").(string)
 	accountLinkSddcConfig := expandAccountLinkSddcConfig(d.Get("account_link_sddc_config").([]interface{}))
+	hostInstanceType := model.HostInstanceTypes(d.Get("host_instance_type").(string))
 
 	var awsSddcConfig = &model.AwsSddcConfig{
 		StorageCapacity:       &storageCapacityConverted,
@@ -189,6 +195,7 @@ func resourceSddcCreate(d *schema.ResourceData, m interface{}) error {
 		SddcTemplateId:        &sddcTemplateID,
 		DeploymentType:        &deploymentType,
 		Region:                region,
+		HostInstanceType:      &hostInstanceType,
 	}
 
 	// Create a Sddc

@@ -5,12 +5,10 @@ import (
 	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
+	"gitlab.eng.vmware.com/het/vmware-vmc-sdk/vapi/bindings/vapi/std/errors"
 	"gitlab.eng.vmware.com/het/vmware-vmc-sdk/vapi/bindings/vmc/orgs/sddcs"
-	"gitlab.eng.vmware.com/het/vmware-vmc-sdk/vapi/bindings/vmc/orgs/tasks"
 	"os"
-	"strings"
 	"testing"
-	"time"
 )
 
 func TestAccResourceVmcSddc_basic(t *testing.T) {
@@ -52,7 +50,7 @@ func testCheckVmcSddcExists(name string) resource.TestCheckFunc {
 			return fmt.Errorf("Bad: Sddc %q does not exist", sddcName)
 		}
 
-		fmt.Printf("SDDC %s created successfully with id %s ", sddcName, sddcID)
+		fmt.Printf("SDDC %s created successfully with id %s \n", sddcName, sddcID)
 		return nil
 	}
 }
@@ -70,27 +68,16 @@ func testCheckVmcSddcDestroy(s *terraform.State) error {
 
 		sddcID := rs.Primary.Attributes["id"]
 		orgID := rs.Primary.Attributes["org_id"]
-		task, err := sddcClient.Delete(orgID, sddcID, nil, nil, nil)
-		if err != nil {
-			return fmt.Errorf("Error while deleting sddc %s, %s", sddcID, err)
+		sddc, err := sddcClient.Get(orgID, sddcID)
+		if err == nil {
+			if *sddc.SddcState != "DELETED" {
+				return fmt.Errorf("SDDC %s with ID %s still exits", *sddc.Name, sddc.Id)
+			}
+			return nil
 		}
-		tasksClient := tasks.NewTasksClientImpl(connector)
-		err = resource.Retry(180*time.Minute, func() *resource.RetryError {
-			task, err := tasksClient.Get(orgID, task.Id)
-			if err != nil {
-				return resource.NonRetryableError(fmt.Errorf("Error while deleting sddc %s: %v", sddcID, err))
-			}
-			if task.ErrorMessage != nil && strings.Contains(*task.ErrorMessage, "Entity is not found") {
-				fmt.Print("Resource already deleted")
-				return resource.NonRetryableError(nil)
-			}
-			if *task.Status != "FINISHED" {
-				return resource.RetryableError(fmt.Errorf("Expected instance to be deleted but was in state %s", *task.Status))
-			}
-			return resource.NonRetryableError(nil)
-		})
-		if err != nil {
-			return fmt.Errorf("Error while waiting for task %q: %v", task.Id, err)
+		//check if error type if not_found
+		if err.Error() != (errors.NotFound{}.Error()) {
+			return err
 		}
 	}
 
@@ -101,8 +88,6 @@ func testAccVmcSddcConfigBasic(sddcName string) string {
 	return fmt.Sprintf(`
 provider "vmc" {
 	refresh_token = %q
-	vmc_url       = "https://stg.skyscraper.vmware.com/vmc/api"
-  	csp_url       = "https://console-stg.cloud.vmware.com"
 }
 	
 data "vmc_org" "my_org" {
@@ -120,7 +105,7 @@ resource "vmc_sddc" "sddc_1" {
 	sddc_name = %q
 
 	vpc_cidr      = "10.2.0.0/16"
-	num_host      = 3
+	num_host      = 1
 	provider_type = "ZEROCLOUD"
 
 	region = "US_WEST_2"
