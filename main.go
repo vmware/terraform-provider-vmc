@@ -1,3 +1,6 @@
+/* Copyright © 2019 VMware, Inc.
+   SPDX-License-Identifier: MPL-2.0 */
+
 package main
 
 import (

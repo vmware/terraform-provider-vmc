@@ -141,3 +141,9 @@ $ export ORG_ID=xxx
 $ export TEST_SDDC_ID=xxx 
 $ make testacc
 ```
+
+# License 
+
+Copyright © 2019 VMware, Inc.
+
+The VMC Terraform provider is available under [MPL2.0 license]
