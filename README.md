@@ -44,6 +44,7 @@ Update following fields in the [main.tf](main.tf) with your infra settings
 * refresh_token
 * id
 * sddc_name
+* name
 
 Note if you wnat to connect to the staging environment, uncomment the vmc_url and csp_url under vmc settings.
 
@@ -94,6 +95,14 @@ resource "vmc_sddc" "sddc_1" {
     },
   ]
 }
+
+resource "vmc_publicips" "IP1" {
+  org_id = "${data.vmc_org.my_org.id}"
+  sddc_id = "${vmc_sddc.sddc_1.id}"
+  private_ip = "10.2.33.45"
+  name = ""
+}
+
 
 ```
 

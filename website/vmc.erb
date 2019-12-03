@@ -1,0 +1,44 @@
+<% wrap_layout :inner do %>
+    <% content_for :sidebar do %>
+        <div class="docs-sidebar hidden-print affix-top" role="complementary">
+            <ul class="nav docs-sidenav">
+                <li<%= sidebar_current("docs-home") %>>
+                    <a href="/docs/providers/index.html">All Providers</a>
+                </li>
+
+                <li<%= sidebar_current("docs-vmc-index") %>>
+                    <a href="/docs/providers/vmc/index.html">VMC Provider</a>
+                </li>
+
+                <li<%= sidebar_current("docs-vmc-datasource") %>>
+                <a href="#">Data Sources</a>
+                    <ul class="nav nav-visible">
+                        <li<%= sidebar_current("docs-vmc-datasource-connected-accounts") %>>
+                            <a href="/docs/providers/vmc/d/connected-accounts.html">vmc_connected_accounts</a>
+                        </li>
+                        <li<%= sidebar_current("docs-vmc-datasource-customer-subnets") %>>
+                            <a href="/docs/providers/vmc/d/customer-subnets.html">vmc_customer_subnets</a>
+                        </li>
+                        <li<%= sidebar_current("docs-vmc-datasource-org") %>>
+                            <a href="/docs/providers/vmc/d/org.html">vmc_org</a>
+                        </li>
+                     </ul>
+                </li>
+
+                <li<%= sidebar_current("docs-vmc-resource") %>>
+                    <a href="#">Resources</a>
+                    <ul class="nav nav-visible">
+                        <li<%= sidebar_current("docs-vmc-resource-publicips") %>>
+                            <a href="/docs/providers/vmc/r/publicips.html">vmc_publicips</a>
+                        </li>
+                        <li<%= sidebar_current("docs-vmc-resource-sddc") %>>
+                            <a href="/docs/providers/vmc/r/sddc.html">vmc_sddc</a>
+                        </li>
+                    </ul>
+                </li>
+            </ul>
+        </div>
+    <% end %>
+
+    <%= yield %>
+<% end %>
