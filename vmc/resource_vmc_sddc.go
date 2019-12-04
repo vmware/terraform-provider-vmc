@@ -12,6 +12,7 @@ import (
 	"gitlab.eng.vmware.com/het/vmware-vmc-sdk/vapi/bindings/vmc/orgs/sddcs"
 	"gitlab.eng.vmware.com/het/vmware-vmc-sdk/vapi/bindings/vmc/orgs/sddcs/esxs"
 	"gitlab.eng.vmware.com/het/vmware-vmc-sdk/vapi/bindings/vmc/orgs/tasks"
+	"gitlab.eng.vmware.com/het/vmware-vmc-sdk/vapi/runtime/protocol/client"
 	"log"
 	"time"
 )
@@ -234,12 +235,22 @@ func resourceSddcCreate(d *schema.ResourceData, m interface{}) error {
 
 func resourceSddcRead(d *schema.ResourceData, m interface{}) error {
 	connector := (m.(*ConnectorWrapper)).Connector
-	sddcClient := sddcs.NewSddcsClientImpl(connector)
 	sddcID := d.Id()
 	orgID := d.Get("org_id").(string)
-	sddc, err := sddcClient.Get(orgID, sddcID)
+	sddc, err := getSDDC(connector, orgID, sddcID)
 	if err != nil {
-		return fmt.Errorf("Error while getting sddc detail %s: %v", sddcID, err)
+		if err.Error() == errors.NewNotFound().Error() {
+			log.Printf("SDDC with ID %s not found", sddcID)
+			d.SetId("")
+			return nil
+		}
+		return fmt.Errorf("Error while getting the SDDC with ID %s,%v", sddcID, err)
+	}
+
+	if *sddc.SddcState == "DELETED" {
+		log.Printf("Can't get, SDDC with ID %s is already deleted", sddc.Id)
+		d.SetId("")
+		return nil
 	}
 
 	d.SetId(sddc.Id)
@@ -271,6 +282,10 @@ func resourceSddcDelete(d *schema.ResourceData, m interface{}) error {
 
 	task, err := sddcClient.Delete(orgID, sddcID, nil, nil, nil)
 	if err != nil {
+		if err.Error() == errors.NewInvalidRequest().Error() {
+			log.Printf("Can't Delete : SDDC with ID %s not found or already deleted %v", sddcID, err)
+			return nil
+		}
 		return fmt.Errorf("Error while deleting sddc %s: %v", sddcID, err)
 	}
 	tasksClient := tasks.NewTasksClientImpl(connector)
@@ -371,4 +386,10 @@ func expandAccountLinkSddcConfig(l []interface{}) []model.AccountLinkSddcConfig 
 		configs = append(configs, con)
 	}
 	return configs
+}
+
+func getSDDC(connector client.Connector, orgID string, sddcID string) (model.Sddc, error) {
+	sddcClient := sddcs.NewSddcsClientImpl(connector)
+	sddc, err := sddcClient.Get(orgID, sddcID)
+	return sddc, err
 }
