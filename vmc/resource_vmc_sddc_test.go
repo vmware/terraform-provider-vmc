@@ -9,12 +9,14 @@ import (
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
 	"gitlab.eng.vmware.com/het/vmware-vmc-sdk/vapi/bindings/vapi/std/errors"
+	"gitlab.eng.vmware.com/het/vmware-vmc-sdk/vapi/bindings/vmc/model"
 	"gitlab.eng.vmware.com/het/vmware-vmc-sdk/vapi/bindings/vmc/orgs/sddcs"
 	"os"
 	"testing"
 )
 
 func TestAccResourceVmcSddc_basic(t *testing.T) {
+	var sddcResource model.Sddc
 	sddcName := "terraform_test_sddc_" + acctest.RandStringFromCharSet(10, acctest.CharSetAlphaNum)
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -24,14 +26,19 @@ func TestAccResourceVmcSddc_basic(t *testing.T) {
 			resource.TestStep{
 				Config: testAccVmcSddcConfigBasic(sddcName),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckVmcSddcExists("vmc_sddc.sddc_1"),
+					testCheckVmcSddcExists("vmc_sddc.sddc_1", &sddcResource),
+					testCheckSddcAttributes(&sddcResource),
+					resource.TestCheckResourceAttr("vmc_sddc.sddc_1", "sddc_state", "READY"),
+					resource.TestCheckResourceAttrSet("vmc_sddc.sddc_1", "vc_url"),
+					resource.TestCheckResourceAttrSet("vmc_sddc.sddc_1", "cloud_username"),
+					resource.TestCheckResourceAttrSet("vmc_sddc.sddc_1", "cloud_password"),
 				),
 			},
 		},
 	})
 }
 
-func testCheckVmcSddcExists(name string) resource.TestCheckFunc {
+func testCheckVmcSddcExists(name string, sddcResource *model.Sddc) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		rs, ok := s.RootModule().Resources[name]
 		if !ok {
@@ -54,6 +61,17 @@ func testCheckVmcSddcExists(name string) resource.TestCheckFunc {
 		}
 
 		fmt.Printf("SDDC %s created successfully with id %s \n", sddcName, sddcID)
+		*sddcResource = sddc
+		return nil
+	}
+}
+
+func testCheckSddcAttributes(sddcResource *model.Sddc) resource.TestCheckFunc {
+	return func(s *terraform.State) error {
+		sddcState := sddcResource.SddcState
+		if *sddcState != "READY" {
+			return fmt.Errorf("The SDDC %s with ID %s is not in ready state", *sddcResource.Name, sddcResource.Id)
+		}
 		return nil
 	}
 }
