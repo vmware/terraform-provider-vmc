@@ -7,10 +7,12 @@ import (
 	"fmt"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/helper/schema"
+	"gitlab.eng.vmware.com/het/vmware-vmc-sdk/vapi/bindings/vapi/std/errors"
 	"gitlab.eng.vmware.com/het/vmware-vmc-sdk/vapi/bindings/vmc/model"
 	"gitlab.eng.vmware.com/het/vmware-vmc-sdk/vapi/bindings/vmc/orgs/sddcs/publicips"
 	"gitlab.eng.vmware.com/het/vmware-vmc-sdk/vapi/bindings/vmc/orgs/tasks"
 	"log"
+	"strings"
 	"time"
 )
 
@@ -138,9 +140,31 @@ func resourcePublicIPRead(d *schema.ResourceData, m interface{}) error {
 	orgID := d.Get("org_id").(string)
 	sddcID := d.Get("sddc_id").(string)
 	allocationID := d.Id()
+	//check if the SDDC exists
+	sddc, err := getSDDC(connector, orgID, sddcID)
+	if err != nil {
+		if err.Error() == errors.NewNotFound().Error() {
+			log.Printf("Can't get Public IP: The associated SDDC with ID %s not found", sddcID)
+			d.SetId("")
+			return nil
+		}
+		return fmt.Errorf("Can't get Public IP: Error while getting the associated SDDC with ID %s,%v", sddcID, err)
+	}
+
+	if *sddc.SddcState == "DELETED" {
+		log.Printf("Can't get public IP: the associated SDDC with ID %s is already deleted", sddc.Id)
+		d.SetId("")
+		return nil
+	}
+
 	publicIP, err := publicIPClient.Get(orgID, sddcID, allocationID)
 	if err != nil {
-		return fmt.Errorf("error while getting public IP details for %s: %v", allocationID, err)
+		if err.Error() == errors.NewNotFound().Error() {
+			log.Printf("Public IP with allocation ID %s not found", allocationID)
+			d.SetId("")
+			return nil
+		}
+		return fmt.Errorf("Error while getting public IP details for %s: %v", allocationID, err)
 	}
 
 	d.SetId(*publicIP.AllocationId)
@@ -162,8 +186,13 @@ func resourcePublicIPDelete(d *schema.ResourceData, m interface{}) error {
 	orgID := d.Get("org_id").(string)
 	sddcID := d.Get("sddc_id").(string)
 	publicIP := d.Get("public_ip").(string)
+
 	task, err := publicIPClient.Delete(orgID, sddcID, allocationID)
 	if err != nil {
+		if err.Error() == errors.NewInvalidRequest().Error() {
+			log.Printf("Can't Delete : Public IP  %s not found or already deleted %v", publicIP, err)
+			return nil
+		}
 		return fmt.Errorf("Error while deleting public IP %s: %v", publicIP, err)
 	}
 	tasksClient := tasks.NewTasksClientImpl(connector)
@@ -172,10 +201,13 @@ func resourcePublicIPDelete(d *schema.ResourceData, m interface{}) error {
 		if err != nil {
 			return resource.NonRetryableError(fmt.Errorf("Error while deleting public IP %s: %v", publicIP, err))
 		}
+		if task.ErrorMessage != nil && strings.Contains(*task.ErrorMessage, "Entity is not found for Id "+allocationID) {
+			log.Printf("Can't Delete : Public IP  %s not found or already deleted %v", publicIP, *task.ErrorMessage)
+			return resource.NonRetryableError(nil)
+		}
 		if *task.Status != "FINISHED" {
 			return resource.RetryableError(fmt.Errorf("Expected instance to be deleted but was in state %s", *task.Status))
 		}
-		d.SetId("")
 		return resource.NonRetryableError(nil)
 	})
 }
