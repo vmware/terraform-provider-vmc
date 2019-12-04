@@ -50,18 +50,17 @@ func testCheckVmcSddcExists(name string, sddcResource *model.Sddc) resource.Test
 		connectorWrapper := testAccProvider.Meta().(*ConnectorWrapper)
 		connector := connectorWrapper.Connector
 		sddcClient := sddcs.NewSddcsClientImpl(connector)
-
-		sddc, err := sddcClient.Get(orgID, sddcID)
+		var err error
+		*sddcResource, err = sddcClient.Get(orgID, sddcID)
 		if err != nil {
 			return fmt.Errorf("Bad: Get on sddcApi: %s", err)
 		}
 
-		if sddc.Id != sddcID {
+		if sddcResource.Id != sddcID {
 			return fmt.Errorf("Bad: Sddc %q does not exist", sddcName)
 		}
 
 		fmt.Printf("SDDC %s created successfully with id %s \n", sddcName, sddcID)
-		*sddcResource = sddc
 		return nil
 	}
 }
