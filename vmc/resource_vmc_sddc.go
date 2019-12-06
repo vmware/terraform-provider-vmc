@@ -140,6 +140,22 @@ func resourceSddc() *schema.Resource {
 				Optional: true,
 				Default:  "I3_METAL",
 			},
+			"sddc_state": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+			"vc_url": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+			"cloud_username": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+			"cloud_password": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
 		},
 	}
 }
@@ -263,13 +279,18 @@ func resourceSddcRead(d *schema.ResourceData, m interface{}) error {
 	d.Set("version", sddc.Version)
 	d.Set("updated_by_user_name", sddc.UpdatedByUserName)
 	d.Set("user_name", sddc.UserName)
-	d.Set("sddc_state", sddc.SddcState)
 	d.Set("org_id", sddc.OrgId)
 	d.Set("sddc_type", sddc.SddcType)
 	d.Set("provider", sddc.Provider)
 	d.Set("account_link_state", sddc.AccountLinkState)
 	d.Set("sddc_access_state", sddc.SddcAccessState)
 	d.Set("sddc_type", sddc.SddcType)
+	d.Set("sddc_state", sddc.SddcState)
+	if sddc.ResourceConfig != nil {
+		d.Set("vc_url", sddc.ResourceConfig.VcUrl)
+		d.Set("cloud_username", sddc.ResourceConfig.CloudUsername)
+		d.Set("cloud_password", sddc.ResourceConfig.CloudPassword)
+	}
 
 	return nil
 }

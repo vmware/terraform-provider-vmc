@@ -8,12 +8,15 @@ import (
 	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
+	"gitlab.eng.vmware.com/het/vmware-vmc-sdk/vapi/bindings/vmc/model"
 	"gitlab.eng.vmware.com/het/vmware-vmc-sdk/vapi/bindings/vmc/orgs/sddcs/publicips"
+	"net"
 	"os"
 	"testing"
 )
 
 func TestAccResourceVmcPublicIP_basic(t *testing.T) {
+	var publicIPResource model.SddcPublicIp
 	VMName := "terraform_test_vm_" + acctest.RandStringFromCharSet(10, acctest.CharSetAlphaNum)
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -23,14 +26,16 @@ func TestAccResourceVmcPublicIP_basic(t *testing.T) {
 			resource.TestStep{
 				Config: testAccVmcPublicIPConfigBasic(VMName),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckVmcPublicIPExists("vmc_publicips.publicip_1"),
+					testCheckVmcPublicIPExists("vmc_publicips.publicip_1", &publicIPResource),
+					testCheckPublicIPAttributes(&publicIPResource),
+					resource.TestCheckResourceAttrSet("vmc_publicips.publicip_1", "public_ip"),
 				),
 			},
 		},
 	})
 }
 
-func testCheckVmcPublicIPExists(name string) resource.TestCheckFunc {
+func testCheckVmcPublicIPExists(name string, publicIPResource *model.SddcPublicIp) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		rs, ok := s.RootModule().Resources[name]
 		if !ok {
@@ -41,21 +46,32 @@ func testCheckVmcPublicIPExists(name string) resource.TestCheckFunc {
 		orgID := rs.Primary.Attributes["org_id"]
 		vmName := rs.Primary.Attributes["name"]
 		allocationID := rs.Primary.Attributes["id"]
-
+		if allocationID == "" {
+			return fmt.Errorf("allocation ID of the Public IP Resource is not set")
+		}
 		connectorWrapper := testAccProvider.Meta().(*ConnectorWrapper)
 		connector := connectorWrapper.Connector
 		publicIPClient := publicips.NewPublicipsClientImpl(connector)
-
-		publicIP, err := publicIPClient.Get(orgID, sddcID, allocationID)
+		var err error
+		*publicIPResource, err = publicIPClient.Get(orgID, sddcID, allocationID)
 		if err != nil {
 			return fmt.Errorf("Bad: Get on publicIP API: %s", err)
 		}
 
-		if *publicIP.Name != vmName {
+		if *publicIPResource.Name != vmName {
 			return fmt.Errorf("Bad: Public IP %q does not exist", allocationID)
 		}
-
 		fmt.Printf("Public IP created successfully with id %s \n", allocationID)
+		return nil
+	}
+}
+
+func testCheckPublicIPAttributes(publicIPResource *model.SddcPublicIp) resource.TestCheckFunc {
+	return func(s *terraform.State) error {
+		addr := net.ParseIP(publicIPResource.PublicIp)
+		if addr == nil {
+			return fmt.Errorf("The alloted Public IP %s is not valid", publicIPResource.PublicIp)
+		}
 		return nil
 	}
 }
