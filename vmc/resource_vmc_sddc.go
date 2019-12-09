@@ -1,4 +1,4 @@
-/* Copyright © 2019 VMware, Inc.
+/* Copyright 2019 VMware, Inc.
    SPDX-License-Identifier: MPL-2.0 */
 
 package vmc
