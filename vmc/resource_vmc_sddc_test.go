@@ -23,7 +23,7 @@ func TestAccResourceVmcSddc_basic(t *testing.T) {
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckVmcSddcDestroy,
 		Steps: []resource.TestStep{
-			resource.TestStep{
+			{
 				Config: testAccVmcSddcConfigBasic(sddcName),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckVmcSddcExists("vmc_sddc.sddc_1", &sddcResource),
