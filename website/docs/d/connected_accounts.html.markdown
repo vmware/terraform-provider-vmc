@@ -1,3 +1,4 @@
+---
 layout: "vmc"
 page_title: "VMC: connected_accounts"
 sidebar_current: "docs-vmc-datasource-connected-accounts"

@@ -23,7 +23,7 @@ func TestAccResourceVmcPublicIP_basic(t *testing.T) {
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckVmcPublicIPDestroy,
 		Steps: []resource.TestStep{
-			resource.TestStep{
+			{
 				Config: testAccVmcPublicIPConfigBasic(VMName),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckVmcPublicIPExists("vmc_publicips.publicip_1", &publicIPResource),
