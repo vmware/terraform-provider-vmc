@@ -3,12 +3,12 @@ layout: "vmc"
 page_title: "Provider: VMC"
 sidebar_current: "docs-vmc-index"
 description: |-
-  The VMware VMC Terraform Provider
+  The Terraform Provider for VMware Cloud
 ---
 
-# The VMC Terraform Provider
+# terraform-provider-vmware-cloud
 
-The VMC Terraform provider gives the VMC administrator a way to automate features
+The terraform-provider-vmware-cloud gives the VMC administrator a way to automate features
 of VMware Cloud on AWS using the VMC API.
 
 More information on VMC can be found on the [VMC Product
@@ -17,12 +17,12 @@ Page](https://cloud.vmware.com/vmc-aws)
 Please use the navigation to the left to read about available data sources and
 resources.
 
-## Basic Configuration of the VMC Terraform Provider
+## Basic Configuration of the terraform-provider-vmware-cloud
 
-In order to use the VMC Terraform provider you need to obtain the authentication
+In order to use the terraform-provider-vmware-cloud you need to obtain the authentication
 token from the Cloud Service Provider by providing the org scoped refresh token. 
 The Terraform provider client uses Cloud Service Provider CSP API 
-to exchange this org scoped refresh token to user access token. 
+to exchange this org scoped refresh token for user access token. 
 
 
 There are also a number of other parameters that can be set to tune how the
