@@ -7,10 +7,10 @@ import (
 	"fmt"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/helper/schema"
-	"gitlab.eng.vmware.com/het/vmware-vmc-sdk/vapi/bindings/vapi/std/errors"
-	"gitlab.eng.vmware.com/het/vmware-vmc-sdk/vapi/bindings/vmc/model"
-	"gitlab.eng.vmware.com/het/vmware-vmc-sdk/vapi/bindings/vmc/orgs/sddcs/publicips"
-	"gitlab.eng.vmware.com/het/vmware-vmc-sdk/vapi/bindings/vmc/orgs/tasks"
+	"github.com/vmware/vsphere-automation-sdk-go/lib/vapi/std/errors"
+	"github.com/vmware/vsphere-automation-sdk-go/services/vmc/model"
+	"github.com/vmware/vsphere-automation-sdk-go/services/vmc/orgs"
+	"github.com/vmware/vsphere-automation-sdk-go/services/vmc/orgs/sddcs"
 	"log"
 	"strings"
 	"time"
@@ -86,7 +86,7 @@ func resourcePublicIPCreate(d *schema.ResourceData, m interface{}) error {
 
 	privateIP := d.Get("private_ip").(string)
 	workloadName := d.Get("name").(string)
-	publicIPsClient := publicips.NewPublicipsClientImpl(connector)
+	publicIPsClient := sddcs.NewDefaultPublicipsClient(connector)
 
 	var sddcAllocatePublicIpSpec = &model.SddcAllocatePublicIpSpec{
 		Count:      1,
@@ -100,7 +100,7 @@ func resourcePublicIPCreate(d *schema.ResourceData, m interface{}) error {
 		return fmt.Errorf("error while creating public IP : %v", err)
 	}
 
-	tasksClient := tasks.NewTasksClientImpl(connector)
+	tasksClient := orgs.NewDefaultTasksClient(connector)
 
 	return resource.Retry(d.Timeout(schema.TimeoutCreate), func() *resource.RetryError {
 		task, err := tasksClient.Get(orgID, task.Id)
@@ -112,7 +112,7 @@ func resourcePublicIPCreate(d *schema.ResourceData, m interface{}) error {
 			log.Print("Task not finished yet")
 			return resource.RetryableError(fmt.Errorf("expected instance to be created but was in state %s", *task.Status))
 		} else {
-			publicIPClient := publicips.NewPublicipsClientImpl(connector)
+			publicIPClient := sddcs.NewDefaultPublicipsClient(connector)
 			publicIPs, err := publicIPClient.List(orgID, sddcID)
 			if err != nil {
 				return resource.NonRetryableError(fmt.Errorf("error while getting list of public IPs for SDDC %s: %v", d.Get("sddc_id").(string), err))
@@ -135,7 +135,7 @@ func resourcePublicIPCreate(d *schema.ResourceData, m interface{}) error {
 func resourcePublicIPRead(d *schema.ResourceData, m interface{}) error {
 
 	connector := (m.(*ConnectorWrapper)).Connector
-	publicIPClient := publicips.NewPublicipsClientImpl(connector)
+	publicIPClient := sddcs.NewDefaultPublicipsClient(connector)
 
 	orgID := d.Get("org_id").(string)
 	sddcID := d.Get("sddc_id").(string)
@@ -180,7 +180,7 @@ func resourcePublicIPRead(d *schema.ResourceData, m interface{}) error {
 func resourcePublicIPDelete(d *schema.ResourceData, m interface{}) error {
 
 	connector := (m.(*ConnectorWrapper)).Connector
-	publicIPClient := publicips.NewPublicipsClientImpl(connector)
+	publicIPClient := sddcs.NewDefaultPublicipsClient(connector)
 
 	allocationID := d.Id()
 	orgID := d.Get("org_id").(string)
@@ -195,7 +195,7 @@ func resourcePublicIPDelete(d *schema.ResourceData, m interface{}) error {
 		}
 		return fmt.Errorf("Error while deleting public IP %s: %v", publicIP, err)
 	}
-	tasksClient := tasks.NewTasksClientImpl(connector)
+	tasksClient := orgs.NewDefaultTasksClient(connector)
 	return resource.Retry(d.Timeout(schema.TimeoutDelete), func() *resource.RetryError {
 		task, err := tasksClient.Get(orgID, task.Id)
 		if err != nil {
@@ -214,7 +214,7 @@ func resourcePublicIPDelete(d *schema.ResourceData, m interface{}) error {
 
 func resourcePublicIPUpdate(d *schema.ResourceData, m interface{}) error {
 	connector := (m.(*ConnectorWrapper)).Connector
-	publicIPClient := publicips.NewPublicipsClientImpl(connector)
+	publicIPClient := sddcs.NewDefaultPublicipsClient(connector)
 	allocationID := d.Id()
 	orgID := d.Get("org_id").(string)
 	sddcID := d.Get("sddc_id").(string)
@@ -234,7 +234,7 @@ func resourcePublicIPUpdate(d *schema.ResourceData, m interface{}) error {
 			if err != nil {
 				return fmt.Errorf("error while detaching the public ip: %v", err)
 			}
-			tasksClient := tasks.NewTasksClientImpl(connector)
+			tasksClient := orgs.NewDefaultTasksClient(connector)
 			err = resource.Retry(d.Timeout(schema.TimeoutUpdate), func() *resource.RetryError {
 				task, err := tasksClient.Get(orgID, task.Id)
 				if err != nil {
@@ -260,7 +260,7 @@ func resourcePublicIPUpdate(d *schema.ResourceData, m interface{}) error {
 			if err != nil {
 				return fmt.Errorf("error while reattaching the public IP : %v", err)
 			}
-			tasksClient := tasks.NewTasksClientImpl(connector)
+			tasksClient := orgs.NewDefaultTasksClient(connector)
 			err = resource.Retry(d.Timeout(schema.TimeoutUpdate), func() *resource.RetryError {
 				task, err := tasksClient.Get(orgID, task.Id)
 				if err != nil {
@@ -288,7 +288,7 @@ func resourcePublicIPUpdate(d *schema.ResourceData, m interface{}) error {
 			return fmt.Errorf("error while updating public IP for rename action type  : %v", err)
 		}
 
-		tasksClient := tasks.NewTasksClientImpl(connector)
+		tasksClient := orgs.NewDefaultTasksClient(connector)
 		err = resource.Retry(d.Timeout(schema.TimeoutUpdate), func() *resource.RetryError {
 			task, err := tasksClient.Get(orgID, task.Id)
 			if err != nil {

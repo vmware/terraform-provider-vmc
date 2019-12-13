@@ -7,12 +7,11 @@ import (
 	"fmt"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/helper/schema"
-	"gitlab.eng.vmware.com/het/vmware-vmc-sdk/vapi/bindings/vapi/std/errors"
-	"gitlab.eng.vmware.com/het/vmware-vmc-sdk/vapi/bindings/vmc/model"
-	"gitlab.eng.vmware.com/het/vmware-vmc-sdk/vapi/bindings/vmc/orgs/sddcs"
-	"gitlab.eng.vmware.com/het/vmware-vmc-sdk/vapi/bindings/vmc/orgs/sddcs/esxs"
-	"gitlab.eng.vmware.com/het/vmware-vmc-sdk/vapi/bindings/vmc/orgs/tasks"
-	"gitlab.eng.vmware.com/het/vmware-vmc-sdk/vapi/runtime/protocol/client"
+	"github.com/vmware/vsphere-automation-sdk-go/lib/vapi/std/errors"
+	"github.com/vmware/vsphere-automation-sdk-go/runtime/protocol/client"
+	"github.com/vmware/vsphere-automation-sdk-go/services/vmc/model"
+	"github.com/vmware/vsphere-automation-sdk-go/services/vmc/orgs"
+	"github.com/vmware/vsphere-automation-sdk-go/services/vmc/orgs/sddcs"
 	"log"
 	"time"
 )
@@ -162,7 +161,7 @@ func resourceSddc() *schema.Resource {
 
 func resourceSddcCreate(d *schema.ResourceData, m interface{}) error {
 	connectorWrapper := m.(*ConnectorWrapper)
-	sddcClient := sddcs.NewSddcsClientImpl(connectorWrapper.Connector)
+	sddcClient := orgs.NewDefaultSddcsClient(connectorWrapper)
 
 	orgID := d.Get("org_id").(string)
 	storageCapacity := d.Get("storage_capacity").(int)
@@ -228,7 +227,7 @@ func resourceSddcCreate(d *schema.ResourceData, m interface{}) error {
 	sddcID := task.ResourceId
 	d.SetId(*sddcID)
 	return resource.Retry(d.Timeout(schema.TimeoutCreate), func() *resource.RetryError {
-		tasksClient := tasks.NewTasksClientImpl(connectorWrapper.Connector)
+		tasksClient := orgs.NewDefaultTasksClient(connectorWrapper)
 		task, err := tasksClient.Get(orgID, task.Id)
 		if err != nil {
 			if err.Error() == (errors.Unauthenticated{}.Error()) {
@@ -247,6 +246,7 @@ func resourceSddcCreate(d *schema.ResourceData, m interface{}) error {
 		}
 		return resource.NonRetryableError(resourceSddcRead(d, m))
 	})
+	return nil
 }
 
 func resourceSddcRead(d *schema.ResourceData, m interface{}) error {
@@ -297,7 +297,7 @@ func resourceSddcRead(d *schema.ResourceData, m interface{}) error {
 
 func resourceSddcDelete(d *schema.ResourceData, m interface{}) error {
 	connector := (m.(*ConnectorWrapper)).Connector
-	sddcClient := sddcs.NewSddcsClientImpl(connector)
+	sddcClient := orgs.NewDefaultSddcsClient(connector)
 	sddcID := d.Id()
 	orgID := d.Get("org_id").(string)
 
@@ -309,7 +309,7 @@ func resourceSddcDelete(d *schema.ResourceData, m interface{}) error {
 		}
 		return fmt.Errorf("Error while deleting sddc %s: %v", sddcID, err)
 	}
-	tasksClient := tasks.NewTasksClientImpl(connector)
+	tasksClient := orgs.NewDefaultTasksClient(connector)
 	return resource.Retry(d.Timeout(schema.TimeoutDelete), func() *resource.RetryError {
 		task, err := tasksClient.Get(orgID, task.Id)
 		if err != nil {
@@ -325,7 +325,7 @@ func resourceSddcDelete(d *schema.ResourceData, m interface{}) error {
 
 func resourceSddcUpdate(d *schema.ResourceData, m interface{}) error {
 	connector := (m.(*ConnectorWrapper)).Connector
-	esxsClient := esxs.NewEsxsClientImpl(connector)
+	esxsClient := sddcs.NewDefaultEsxsClient(connector)
 	sddcID := d.Id()
 	orgID := d.Get("org_id").(string)
 
@@ -352,7 +352,7 @@ func resourceSddcUpdate(d *schema.ResourceData, m interface{}) error {
 		if err != nil {
 			return fmt.Errorf("Error while updating number of host for SDDC %s: %v", sddcID, err)
 		}
-		tasksClient := tasks.NewTasksClientImpl(connector)
+		tasksClient := orgs.NewDefaultTasksClient(connector)
 		err = resource.Retry(d.Timeout(schema.TimeoutUpdate), func() *resource.RetryError {
 			task, err := tasksClient.Get(orgID, task.Id)
 			if err != nil {
@@ -369,7 +369,7 @@ func resourceSddcUpdate(d *schema.ResourceData, m interface{}) error {
 	}
 	// Update sddc name
 	if d.HasChange("sddc_name") {
-		sddcClient := sddcs.NewSddcsClientImpl(connector)
+		sddcClient := orgs.NewDefaultSddcsClient(connector)
 		newSDDCName := d.Get("sddc_name").(string)
 		sddcPatchRequest := model.SddcPatchRequest{
 			Name: &newSDDCName,
@@ -410,7 +410,7 @@ func expandAccountLinkSddcConfig(l []interface{}) []model.AccountLinkSddcConfig 
 }
 
 func getSDDC(connector client.Connector, orgID string, sddcID string) (model.Sddc, error) {
-	sddcClient := sddcs.NewSddcsClientImpl(connector)
+	sddcClient := orgs.NewDefaultSddcsClient(connector)
 	sddc, err := sddcClient.Get(orgID, sddcID)
 	return sddc, err
 }

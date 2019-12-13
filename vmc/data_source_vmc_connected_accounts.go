@@ -6,7 +6,7 @@ package vmc
 import (
 	"fmt"
 	"github.com/hashicorp/terraform/helper/schema"
-	"gitlab.eng.vmware.com/het/vmware-vmc-sdk/vapi/bindings/vmc/orgs/account_link/connectedAccounts"
+	"github.com/vmware/vsphere-automation-sdk-go/services/vmc/orgs/account_link"
 )
 
 func dataSourceVmcConnectedAccounts() *schema.Resource {
@@ -45,8 +45,8 @@ func dataSourceVmcConnectedAccountsRead(d *schema.ResourceData, m interface{}) e
 	}
 
 	connector := (m.(*ConnectorWrapper)).Connector
-	connectedAccountsClient := connectedAccounts.NewConnectedAccountsClientImpl(connector)
-	accounts, err := connectedAccountsClient.Get(orgID, &providerType)
+	defaultConnectedAccountsClient := account_link.NewDefaultConnectedAccountsClient(connector)
+	accounts, err := defaultConnectedAccountsClient.Get(orgID, &providerType)
 
 	ids := []string{}
 	for _, account := range accounts {

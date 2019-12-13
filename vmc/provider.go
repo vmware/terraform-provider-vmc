@@ -7,8 +7,7 @@ import (
 	"fmt"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/terraform"
-	"gitlab.eng.vmware.com/het/vmware-vmc-sdk/utils"
-	"gitlab.eng.vmware.com/het/vmware-vmc-sdk/vapi/runtime/protocol/client"
+	"github.com/vmware/vsphere-automation-sdk-go/runtime/protocol/client"
 )
 
 type ConnectorWrapper struct {
@@ -20,7 +19,8 @@ type ConnectorWrapper struct {
 
 func (c *ConnectorWrapper) authenticate() error {
 	var err error
-	c.Connector, err = utils.NewVmcConnector(c.RefreshToken, c.VmcURL, c.CspURL)
+	httpClient := HTTPClientNoServerVerificaiton()
+	c.Connector , err = NewVmcConnectorByRefreshToken(c.RefreshToken, c.VmcURL, c.CspURL,httpClient)
 	if err != nil {
 		return err
 	}
@@ -66,9 +66,11 @@ func providerConfigure(d *schema.ResourceData) (interface{}, error) {
 	refreshToken := d.Get("refresh_token").(string)
 	vmcURL := d.Get("vmc_url").(string)
 	cspURL := d.Get("csp_url").(string)
-	connector, err := utils.NewVmcConnector(refreshToken, vmcURL, cspURL)
+	httpClient := HTTPClientNoServerVerificaiton()
+	connector , err := NewVmcConnectorByRefreshToken(refreshToken,vmcURL,cspURL,httpClient)
 	if err != nil {
 		return nil, fmt.Errorf("Error creating connector : %v ", err)
 	}
+
 	return &ConnectorWrapper{connector, refreshToken, vmcURL, cspURL}, nil
 }

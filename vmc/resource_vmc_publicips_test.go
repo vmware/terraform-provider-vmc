@@ -8,8 +8,8 @@ import (
 	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
-	"gitlab.eng.vmware.com/het/vmware-vmc-sdk/vapi/bindings/vmc/model"
-	"gitlab.eng.vmware.com/het/vmware-vmc-sdk/vapi/bindings/vmc/orgs/sddcs/publicips"
+	"github.com/vmware/vsphere-automation-sdk-go/services/vmc/model"
+	"github.com/vmware/vsphere-automation-sdk-go/services/vmc/orgs/sddcs"
 	"net"
 	"os"
 	"testing"
@@ -51,7 +51,7 @@ func testCheckVmcPublicIPExists(name string, publicIPResource *model.SddcPublicI
 		}
 		connectorWrapper := testAccProvider.Meta().(*ConnectorWrapper)
 		connector := connectorWrapper.Connector
-		publicIPClient := publicips.NewPublicipsClientImpl(connector)
+		publicIPClient := sddcs.NewDefaultPublicipsClient(connector)
 		var err error
 		*publicIPResource, err = publicIPClient.Get(orgID, sddcID, allocationID)
 		if err != nil {
@@ -80,7 +80,7 @@ func testCheckVmcPublicIPDestroy(s *terraform.State) error {
 
 	connectorWrapper := testAccProvider.Meta().(*ConnectorWrapper)
 	connector := connectorWrapper.Connector
-	publicIPClient := publicips.NewPublicipsClientImpl(connector)
+	publicIPClient := sddcs.NewDefaultPublicipsClient(connector)
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "vmc_publicips" {

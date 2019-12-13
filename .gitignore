@@ -4,3 +4,4 @@ crash.log
 .terraform*
 terraform-provider-vmc
 vender/*
+*/.DS_Store

@@ -6,7 +6,7 @@ package vmc
 import (
 	"fmt"
 	"github.com/hashicorp/terraform/helper/schema"
-	"gitlab.eng.vmware.com/het/vmware-vmc-sdk/vapi/bindings/vmc/orgs/account_link/compatibleSubnets"
+	"github.com/vmware/vsphere-automation-sdk-go/services/vmc/orgs/account_link"
 	"log"
 )
 
@@ -95,7 +95,7 @@ func dataSourceVmcCustomerSubnetsRead(d *schema.ResourceData, m interface{}) err
 	}
 
 	connector := (m.(*ConnectorWrapper)).Connector
-	compatibleSubnetsClient := compatibleSubnets.NewCompatibleSubnetsClientImpl(connector)
+	compatibleSubnetsClient := account_link.NewDefaultCompatibleSubnetsClient(connector)
 	compatibleSubnets, err := compatibleSubnetsClient.Get(orgID, &accountID, &region, &sddcID, &forceRefresh, &instanceType, &sddcType, &numHosts)
 	ids := []string{}
 	for _, value := range compatibleSubnets.VpcMap {

@@ -6,7 +6,7 @@ package vmc
 import (
 	"fmt"
 	"github.com/hashicorp/terraform/helper/schema"
-	"gitlab.eng.vmware.com/het/vmware-vmc-sdk/vapi/bindings/vmc/orgs"
+	"github.com/vmware/vsphere-automation-sdk-go/services/vmc"
 )
 
 func dataSourceVmcOrg() *schema.Resource {
@@ -40,7 +40,7 @@ func dataSourceVmcOrgRead(d *schema.ResourceData, m interface{}) error {
 	}
 
 	connector := (m.(*ConnectorWrapper)).Connector
-	orgClient := orgs.NewOrgsClientImpl(connector)
+	orgClient := vmc.NewDefaultOrgsClient(connector)
 	org, err := orgClient.Get(orgID)
 
 	if err != nil {
