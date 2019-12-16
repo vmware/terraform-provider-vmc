@@ -47,8 +47,4 @@ $ make testacc
 
 Copyright 2019 VMware, Inc.
 
-<<<<<<< HEAD
-The VMC Terraform provider is available under [MPL2.0 license](https://github.com/vmware/terraform-provider-for-vmc/blob/master/LICENSE.txt).
-=======
 The terraform-provider-vmware-cloud is available under [MPL2.0 license](https://github.com/vmware/terraform-provider-vmc/blob/master/LICENSE.txt).
->>>>>>> ead904331fb85b8b7ca8914e91198a9b723dcc56
