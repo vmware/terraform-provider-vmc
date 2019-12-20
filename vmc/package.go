@@ -1,5 +1,5 @@
-/* Copyright © 2019 VMware, Inc. All Rights Reserved.
-   SPDX-License-Identifier: BSD-2-Clause */
+/* Copyright 2019 VMware, Inc.
+   SPDX-License-Identifier: MPL-2.0 */
 
 // Package vmc provides helper methods that provides client.Connector, required to call VMC APIs.
 package vmc
