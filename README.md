@@ -1,4 +1,4 @@
-# Terraform provider for VMware Cloud
+# Terraform provider for VMware Cloud on AWS
 
 This is the repository for the Terraform provider for VMware Cloud, which one can use with
 Terraform to work with [VMware Cloud on AWS](https://vmc.vmware.com/).
@@ -47,4 +47,4 @@ $ make testacc
 
 Copyright 2019 VMware, Inc.
 
-The Terraform provider for VMware Cloud is available under [MPL2.0 license](https://github.com/vmware/terraform-provider-vmc/blob/master/LICENSE.txt).
+The Terraform provider for VMware Cloud on AWS is available under [MPL2.0 license](https://github.com/vmware/terraform-provider-vmc/blob/master/LICENSE.txt).
