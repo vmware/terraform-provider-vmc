@@ -1,9 +1,5 @@
 provider "vmc" {
   refresh_token = ""
-
-  # for staging environment only
-  # vmc_url       = "https://stg.skyscraper.vmware.com"
-  # csp_url       = "https://console-stg.cloud.vmware.com"
 }
 
 data "vmc_org" "my_org" {
