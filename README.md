@@ -27,7 +27,7 @@ $ git clone git@github.com:vmware/terraform-provider-vmc.git
 Enter the provider directory and build the provider
 
 ```sh
-cd $GOPATH/src/github.com/terraform-provider-vmc
+cd $HOME/src/github.com/terraform-provider-vmc
 go get
 go build -o terraform-provider-vmc
 ```
