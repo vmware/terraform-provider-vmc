@@ -19,8 +19,9 @@ If you wish to work on the provider, you'll first need [Go](http://www.golang.or
 Clone repository to: `$HOME/development/terraform-providers/`
 
 ```sh
-$ mkdir -p $HOME/development/terraform-providers/; cd $HOME/development/terraform-providers/
-$ git clone git@github.com:vmware/terraform-provider-vmc.git
+$ mkdir -p $HOME/development/terraform-providers/
+$ cd $HOME/development/terraform-providers/
+$ git clone https://github.com/vmware/terraform-provider-vmc.git
 ...
 ```
 
