@@ -22,7 +22,7 @@ resource "vmc_sddc" "sddc_1" {
   # storage_capacity    = 100
   sddc_name           = ""
   vpc_cidr            = "10.2.0.0/16"
-  num_host            = 1
+  num_host            = 3
   provider_type       = "AWS"
   region              = data.vmc_customer_subnets.my_subnets.region
   vxlan_subnet        = "192.168.1.0/24"
