@@ -3,7 +3,7 @@
 This is the repository for the Terraform provider for VMware Cloud, which one can use with
 Terraform to work with [VMware Cloud on AWS](https://vmc.vmware.com/).
 
-**This repository is Work in Progress and has been made public only for review purpose.**
+**This repository is Work in Progress and has been made public only for review purposes.**
 
 Requirements
 ------------
