@@ -16,7 +16,7 @@ If you wish to work on the provider, you'll first need [Go](http://www.golang.or
 
 *Note:* This project uses [Go Modules](https://blog.golang.org/using-go-modules) making it safe to work with it outside of your existing [GOPATH](http://golang.org/doc/code.html#GOPATH). The instructions that follow assume a directory in your home directory outside of the standard GOPATH (i.e `$HOME/development/terraform-providers/`).
 
-*Note* This provider has a dependency on another go module (https://github.com/vmware/vsphere-automation-sdk-go) which is not public yet. The provider will not be usable without that module.  We are working on it and will update this README when the is resolved.
+*Note:* This project has a dependency on another go module (https://github.com/vmware/vsphere-automation-sdk-go) which is not public yet. This provider will not be usable without that module.  We are working on it and will update this README when the is resolved.
 
 Clone repository to: `$HOME/development/terraform-providers/`
 
