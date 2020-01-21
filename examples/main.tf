@@ -13,7 +13,7 @@ data "vmc_connected_accounts" "my_accounts" {
 data "vmc_customer_subnets" "my_subnets" {
   org_id               = data.vmc_org.my_org.id
   connected_account_id = data.vmc_connected_accounts.my_accounts.ids[0]
-  region               = "US_WEST_2"
+  region               = var.sddc_region
 }
 
 resource "vmc_sddc" "sddc_1" {
@@ -21,11 +21,11 @@ resource "vmc_sddc" "sddc_1" {
 
   # storage_capacity    = 100
   sddc_name           = ""
-  vpc_cidr            = "10.2.0.0/16"
-  num_host            = 1
+  vpc_cidr            = var.vpc_cidr
+  num_host            = 3
   provider_type       = "AWS"
   region              = data.vmc_customer_subnets.my_subnets.region
-  vxlan_subnet        = "192.168.1.0/24"
+  vxlan_subnet        = var.vxlan_subnet
   delay_account_link  = false
   skip_creating_vxlan = false
   sso_domain          = "vmc.local"
@@ -47,7 +47,6 @@ resource "vmc_sddc" "sddc_1" {
 resource "vmc_publicips" "IP1" {
   org_id     = data.vmc_org.my_org.id
   sddc_id    = vmc_sddc.sddc_1.id
-  private_ip = "10.2.33.45"
+  private_ip = var.private_ip
   name       = "vm1"
 }
-
