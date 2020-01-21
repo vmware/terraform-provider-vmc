@@ -57,7 +57,7 @@ func dataSourceVmcCustomerSubnets() *schema.Resource {
 			},
 			"customer_available_zones": {
 				Type:        schema.TypeList,
-				Description: "A list of AWS subnet IDs to create links to in the customer's account.",
+				Description: "A list of AWS availability zones.",
 				Computed:    true,
 				Elem:        &schema.Schema{Type: schema.TypeString},
 			},
