@@ -19,7 +19,6 @@ data "vmc_customer_subnets" "my_subnets" {
 resource "vmc_sddc" "sddc_1" {
   org_id = data.vmc_org.my_org.id
 
-  # storage_capacity    = 100
   sddc_name           = ""
   vpc_cidr            = var.vpc_cidr
   num_host            = 3
@@ -30,7 +29,6 @@ resource "vmc_sddc" "sddc_1" {
   skip_creating_vxlan = false
   sso_domain          = "vmc.local"
 
-  # sddc_template_id = ""
   deployment_type = "SingleAZ"
 
   account_link_sddc_config {
