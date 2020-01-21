@@ -288,14 +288,12 @@ github.com/ulikunitz/xz v0.5.5/go.mod h1:2bypXElzHzzJZwzH67Y6wb67pO62Rzfn7BSiF4A
 github.com/vmihailenco/msgpack v3.3.3+incompatible/go.mod h1:fy3FlTQTDXWkZ7Bh6AcGMlsjHatGryHQYUTf1ShIgkk=
 github.com/vmihailenco/msgpack v4.0.1+incompatible h1:RMF1enSPeKTlXrXdOcqjFUElywVZjjC6pqse21bKbEU=
 github.com/vmihailenco/msgpack v4.0.1+incompatible/go.mod h1:fy3FlTQTDXWkZ7Bh6AcGMlsjHatGryHQYUTf1ShIgkk=
-github.com/vmware/vsphere-automation-sdk-go v0.0.0-20191212134102-0a09f71a6a3f h1:mr2ukufTClpKcWOtL5CvkF39wUuag52TN2KOpPJ1fAg=
-github.com/vmware/vsphere-automation-sdk-go v0.0.0-20191212134102-0a09f71a6a3f/go.mod h1:0K2wcoMfpVvvkHQMtkc6Ptvld433PzR9uKZQAXZ3dAY=
-github.com/vmware/vsphere-automation-sdk-go/lib v0.1.0 h1:WLXeJGsea5R93/eSyJCGBqDzEQQpWAdw0a1juhB4kts=
-github.com/vmware/vsphere-automation-sdk-go/lib v0.1.0/go.mod h1:3HIFAPBx1M0PJN2bv4JLjhAXjvodwWvAzmKWXVby8fE=
-github.com/vmware/vsphere-automation-sdk-go/runtime v0.1.0 h1:5VKxqt7ESLexGZ2uiHpmrpc3C7P/e3yeM2YymSRVobQ=
-github.com/vmware/vsphere-automation-sdk-go/runtime v0.1.0/go.mod h1:ebCGmnpU29tqsfQ+Asyoj7+D/WGbTVjzKghhMqGWrsY=
-github.com/vmware/vsphere-automation-sdk-go/services/vmc v0.1.0 h1:JWrIQM6IQ63Npxg/3n5JMVpKX8iCUJ5cNIOcfttD8Is=
-github.com/vmware/vsphere-automation-sdk-go/services/vmc v0.1.0/go.mod h1:G5bcFcTWlo5P7wSK+cDGcvY6APE9z3wOnLu2rh6cgUw=
+github.com/vmware/vsphere-automation-sdk-go/lib v0.1.1 h1:PmDaeuToX1QKKe9VWRJztAp2/IyjbbGZp6fEiff4Dr8=
+github.com/vmware/vsphere-automation-sdk-go/lib v0.1.1/go.mod h1:BkjnHZykqeKKYDZEhyT4pxrEWprYqp4yC0xoCky6wjA=
+github.com/vmware/vsphere-automation-sdk-go/runtime v0.1.1 h1:gsbyhqLBiYZQRs0EBPNijKkJNSGcvs1IlRmRi790o84=
+github.com/vmware/vsphere-automation-sdk-go/runtime v0.1.1/go.mod h1:SRcvjNB5LycQEoeuwdwf9tSZ/glCmIBPfclZyk/+GLc=
+github.com/vmware/vsphere-automation-sdk-go/services/vmc v0.1.1 h1:mwUVz4BOamdhcKtID4S23f28o/pud7SiwsYoRXsxBJA=
+github.com/vmware/vsphere-automation-sdk-go/services/vmc v0.1.1/go.mod h1:GhS9EqlsMX0L4JJm0JKYWOyfcZhsc7SYKFwH/NzOd5A=
 github.com/xanzy/ssh-agent v0.2.1/go.mod h1:mLlQY/MoOhWBj+gOGMQkOeiEvkx+8pJSI+0Bx9h2kr4=
 github.com/xiang90/probing v0.0.0-20160813154853-07dd2e8dfe18/go.mod h1:UETIi67q53MR2AWcXfiuqkDkRtnGDLqkBTpCHuJHxtU=
 github.com/xlab/treeprint v0.0.0-20161029104018-1d6e34225557/go.mod h1:ce1O1j6UtZfjr22oyGxGLbauSBp2YVXpARAosm7dHBg=
@@ -346,8 +344,8 @@ golang.org/x/net v0.0.0-20190603091049-60506f45cf65/go.mod h1:HSz+uSET+XFnRR8LxR
 golang.org/x/net v0.0.0-20190620200207-3b0461eec859/go.mod h1:z5CRVTTTmAJ677TzLLGU+0bjPO0LkuOLi4/5GtJWs/s=
 golang.org/x/net v0.0.0-20191009170851-d66e71096ffb h1:TR699M2v0qoKTOHxeLgp6zPqaQNs74f01a/ob9W0qko=
 golang.org/x/net v0.0.0-20191009170851-d66e71096ffb/go.mod h1:z5CRVTTTmAJ677TzLLGU+0bjPO0LkuOLi4/5GtJWs/s=
-golang.org/x/net v0.0.0-20191119073136-fc4aabc6c914 h1:MlY3mEfbnWGmUi4rtHOtNnnnN4UJRGSyLPx+DXA5Sq4=
-golang.org/x/net v0.0.0-20191119073136-fc4aabc6c914/go.mod h1:z5CRVTTTmAJ677TzLLGU+0bjPO0LkuOLi4/5GtJWs/s=
+golang.org/x/net v0.0.0-20200114155413-6afb5195e5aa h1:F+8P+gmewFQYRk6JoLQLwjBCTu3mcIURZfNkVweuRKA=
+golang.org/x/net v0.0.0-20200114155413-6afb5195e5aa/go.mod h1:z5CRVTTTmAJ677TzLLGU+0bjPO0LkuOLi4/5GtJWs/s=
 golang.org/x/oauth2 v0.0.0-20180821212333-d2e6202438be/go.mod h1:N/0e6XlmueqKjAGxoOufVs8QHGRruUQn6yWY3a++T0U=
 golang.org/x/oauth2 v0.0.0-20190226205417-e64efc72b421/go.mod h1:gOpvHmFTYa4IltrdGE7lF6nIHvwfUNPOp7c8zoXwtLw=
 golang.org/x/oauth2 v0.0.0-20190604053449-0f29369cfe45 h1:SVwTIAaPC2U/AvvLNZ2a7OVsmBpC8L5BlwK1whH3hm0=
@@ -374,6 +372,7 @@ golang.org/x/sys v0.0.0-20190502175342-a43fa875dd82/go.mod h1:h1NjWce9XRLGQEsW7w
 golang.org/x/sys v0.0.0-20190507160741-ecd444e8653b/go.mod h1:h1NjWce9XRLGQEsW7wpKNCjG9DtNlClVuFLEZdDNbEs=
 golang.org/x/sys v0.0.0-20190606165138-5da285871e9c/go.mod h1:h1NjWce9XRLGQEsW7wpKNCjG9DtNlClVuFLEZdDNbEs=
 golang.org/x/sys v0.0.0-20190624142023-c5567b49c5d0/go.mod h1:h1NjWce9XRLGQEsW7wpKNCjG9DtNlClVuFLEZdDNbEs=
+golang.org/x/sys v0.0.0-20190804053845-51ab0e2deafa h1:KIDDMLT1O0Nr7TSxp8xM5tJcdn8tgyAONntO829og1M=
 golang.org/x/sys v0.0.0-20190804053845-51ab0e2deafa/go.mod h1:h1NjWce9XRLGQEsW7wpKNCjG9DtNlClVuFLEZdDNbEs=
 golang.org/x/text v0.3.0/go.mod h1:NqM8EUOU14njkJ3fqMW+pc6Ldnwhi/IjpwHt7yyuwOQ=
 golang.org/x/text v0.3.1-0.20180807135948-17ff2d5776d2/go.mod h1:NqM8EUOU14njkJ3fqMW+pc6Ldnwhi/IjpwHt7yyuwOQ=
@@ -399,6 +398,7 @@ google.golang.org/api v0.9.0/go.mod h1:o4eAsZoiT+ibD93RtjEohWalFOjRDx6CVaqeizhEn
 google.golang.org/appengine v1.1.0/go.mod h1:EbEs0AVv82hx2wNQdGPgUI5lhzA/G0D9YwlJXL52JkM=
 google.golang.org/appengine v1.4.0/go.mod h1:xpcJRLb0r/rnEns0DIKYYv+WjYCduHsrkT7/EB5XEv4=
 google.golang.org/appengine v1.5.0/go.mod h1:xpcJRLb0r/rnEns0DIKYYv+WjYCduHsrkT7/EB5XEv4=
+google.golang.org/appengine v1.6.1 h1:QzqyMA1tlu6CgqCDUtU9V+ZKhLFT2dkJuANu5QaxI3I=
 google.golang.org/appengine v1.6.1/go.mod h1:i06prIuMbXzDqacNJfV5OdTW448YApPu5ww/cMBSeb0=
 google.golang.org/genproto v0.0.0-20180817151627-c66870c02cf8/go.mod h1:JiN7NxoALGmiZfu7CAH4rXhgtRTLTxftemlI0sWmxmc=
 google.golang.org/genproto v0.0.0-20190307195333-5fe7a883aa19/go.mod h1:VzzqZJRnGkLBvHegQrXjBqPurQTc5/KpmUdxsrq26oE=
