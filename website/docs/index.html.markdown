@@ -140,13 +140,6 @@ resource "vmc_sddc" "sddc_1" {
   }
 }
 
-# This shows the settings required to allocate public IPs for a SDDC
-resource "vmc_publicips" "public_ip1" {
-  org_id = "${data.vmc_org.my_org.id}"
-  sddc_id = "${vmc_sddc.sddc_1.id}"
-  private_ip = "10.2.33.45"
-  name = "vm1"
-}
 ```
 
 

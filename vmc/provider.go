@@ -49,7 +49,6 @@ func Provider() terraform.ResourceProvider {
 
 		ResourcesMap: map[string]*schema.Resource{
 			"vmc_sddc":      resourceSddc(),
-			"vmc_publicips": resourcePublicIP(),
 		},
 
 		DataSourcesMap: map[string]*schema.Resource{

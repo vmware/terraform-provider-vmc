@@ -41,10 +41,3 @@ resource "vmc_sddc" "sddc_1" {
     delete = "180m"
   }
 }
-
-resource "vmc_publicips" "IP1" {
-  org_id     = data.vmc_org.my_org.id
-  sddc_id    = vmc_sddc.sddc_1.id
-  private_ip = var.private_ip
-  name       = "vm1"
-}
