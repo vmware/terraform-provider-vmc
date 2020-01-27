@@ -30,7 +30,7 @@ func testAccDataSourceVmcConnectedAccountsConfig() string {
 provider "vmc" {
 	refresh_token = %q
 }
-	
+
 data "vmc_org" "my_org" {
 	id = %q
 }
