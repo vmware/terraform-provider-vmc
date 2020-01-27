@@ -37,6 +37,6 @@ data "vmc_customer_subnets" "my_subnets" {
 
 In addition to arguments listed above, the following attributes are exported:
 
-* `customer_available_zones` - A list of AWS subnet IDs to create links to in the customer's account.
+* `customer_available_zones` - A list of AWS availability zones.
 
 * `ids` - A list of AWS subnet IDs to create links to in the customer's account.

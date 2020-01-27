@@ -12,8 +12,3 @@ variable "vxlan_subnet" {
   description = "VXLAN IP subnet in CIDR for compute gateway."
   default     = "192.168.1.0/24"
 }
-
-variable "private_ip" {
-  description = "The private IP of SDDC."
-  default     = "10.2.33.45"
-}
