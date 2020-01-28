@@ -20,7 +20,7 @@ type ConnectorWrapper struct {
 func (c *ConnectorWrapper) authenticate() error {
 	var err error
 	httpClient := HTTPClientNoServerVerificaiton()
-	c.Connector , err = NewVmcConnectorByRefreshToken(c.RefreshToken, c.VmcURL, c.CspURL,httpClient)
+	c.Connector, err = NewVmcConnectorByRefreshToken(c.RefreshToken, c.VmcURL, c.CspURL, httpClient)
 	if err != nil {
 		return err
 	}
@@ -32,8 +32,9 @@ func Provider() terraform.ResourceProvider {
 	return &schema.Provider{
 		Schema: map[string]*schema.Schema{
 			"refresh_token": {
-				Type:     schema.TypeString,
-				Required: true,
+				Type:        schema.TypeString,
+				Required:    true,
+				DefaultFunc: schema.EnvDefaultFunc("REFRESH_TOKEN", nil),
 			},
 			"vmc_url": {
 				Type:     schema.TypeString,
@@ -48,7 +49,7 @@ func Provider() terraform.ResourceProvider {
 		},
 
 		ResourcesMap: map[string]*schema.Resource{
-			"vmc_sddc":      resourceSddc(),
+			"vmc_sddc": resourceSddc(),
 		},
 
 		DataSourcesMap: map[string]*schema.Resource{
@@ -66,7 +67,7 @@ func providerConfigure(d *schema.ResourceData) (interface{}, error) {
 	vmcURL := d.Get("vmc_url").(string)
 	cspURL := d.Get("csp_url").(string)
 	httpClient := HTTPClientNoServerVerificaiton()
-	connector , err := NewVmcConnectorByRefreshToken(refreshToken,vmcURL,cspURL,httpClient)
+	connector, err := NewVmcConnectorByRefreshToken(refreshToken, vmcURL, cspURL, httpClient)
 	if err != nil {
 		return nil, fmt.Errorf("Error creating connector : %v ", err)
 	}

@@ -31,9 +31,6 @@ func TestAccDataSourceVmcCustomerSubnets_basic(t *testing.T) {
 
 func testAccDataSourceVmcCustomerSubnetsConfig() string {
 	return fmt.Sprintf(`
-provider "vmc" {
-	refresh_token = %q
-}
 data "vmc_org" "my_org" {
 	id = %q
 }
@@ -48,7 +45,6 @@ data "vmc_customer_subnets" "my_subnets" {
 	region = "US_WEST_2"
 }
 `,
-		os.Getenv("REFRESH_TOKEN"),
 		os.Getenv("ORG_ID"),
 	)
 }
