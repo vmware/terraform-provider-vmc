@@ -1,3 +1,18 @@
+variable "api_token"{
+  description = "API token used to authenticate when calling the VMware Cloud Services API."
+  default = ""
+}
+
+variable "org_id"{
+  description = "Organization Identifier."
+  default = ""
+}
+
+variable "sddc_name"{
+  description = "Name of SDDC."
+  default = "sddc-test"
+}
+
 variable "sddc_region" {
   description = "The AWS region."
   default     = "US_WEST_2"
