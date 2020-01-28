@@ -32,6 +32,7 @@ func TestAccResourceVmcSddc_basic(t *testing.T) {
 					resource.TestCheckResourceAttrSet("vmc_sddc.sddc_1", "vc_url"),
 					resource.TestCheckResourceAttrSet("vmc_sddc.sddc_1", "cloud_username"),
 					resource.TestCheckResourceAttrSet("vmc_sddc.sddc_1", "cloud_password"),
+					resource.TestCheckResourceAttrSet("vmc_sddc.sddc_1", "nsxt_reverse_proxy_url"),
 				),
 			},
 		},
@@ -107,10 +108,6 @@ func testCheckVmcSddcDestroy(s *terraform.State) error {
 
 func testAccVmcSddcConfigBasic(sddcName string) string {
 	return fmt.Sprintf(`
-provider "vmc" {
-	refresh_token = %q
-}
-	
 data "vmc_org" "my_org" {
 	id = %q
 }
@@ -148,7 +145,6 @@ resource "vmc_sddc" "sddc_1" {
 	#  ]
 }
 `,
-		os.Getenv("REFRESH_TOKEN"),
 		os.Getenv("ORG_ID"),
 		sddcName,
 	)
