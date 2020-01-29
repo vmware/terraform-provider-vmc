@@ -1,11 +1,16 @@
-variable "api_token"{
+variable "api_token" {
   description = "API token used to authenticate when calling the VMware Cloud Services API."
   default = ""
 }
 
-variable "org_id"{
+variable "org_id" {
   description = "Organization Identifier."
   default = ""
+}
+
+variable "aws_account_number" {
+  description = "The AWS account number."
+  default     = ""
 }
 
 variable "sddc_name"{

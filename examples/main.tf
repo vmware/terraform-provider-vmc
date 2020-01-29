@@ -8,6 +8,7 @@ data "vmc_org" "my_org" {
 
 data "vmc_connected_accounts" "my_accounts" {
   org_id = data.vmc_org.my_org.id
+  account_number = var.aws_account_number
 }
 
 data "vmc_customer_subnets" "my_subnets" {
