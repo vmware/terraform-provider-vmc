@@ -56,8 +56,8 @@ func dataSourceVmcConnectedAccountsRead(d *schema.ResourceData, m interface{}) e
 
 	ids := []string{}
 	for _, account := range accounts {
-		if(accountNumber != "") {
-			if(*account.AccountNumber == accountNumber) {
+		if accountNumber != "" {
+			if *account.AccountNumber == accountNumber {
 				ids = append(ids, account.Id)
 			}
 		} else {
