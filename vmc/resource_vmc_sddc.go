@@ -294,7 +294,7 @@ func resourceSddcRead(d *schema.ResourceData, m interface{}) error {
 		d.Set("vc_url", sddc.ResourceConfig.VcUrl)
 		d.Set("cloud_username", sddc.ResourceConfig.CloudUsername)
 		d.Set("cloud_password", sddc.ResourceConfig.CloudPassword)
-		d.Set("nsxt_reverse_proxy_url",sddc.ResourceConfig.NsxApiPublicEndpointUrl)
+		d.Set("nsxt_reverse_proxy_url", sddc.ResourceConfig.NsxApiPublicEndpointUrl)
 	}
 
 	return nil

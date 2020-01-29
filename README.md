@@ -58,4 +58,4 @@ $ make testacc
 
 Copyright 2019 VMware, Inc.
 
-The Terraform provider for VMware Cloud on AWS is available under [MPL2.0 license](https://github.com/vmware/terraform-provider-vmc/blob/master/LICENSE.txt).
+The Terraform provider for VMware Cloud on AWS is available under [MPL2.0 license](https://github.com/vmware/terraform-provider-vmc/blob/master/LICENSE).
