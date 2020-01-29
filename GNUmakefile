@@ -44,9 +44,6 @@ fmt:
 fmtcheck:
 	@sh -c "'$(CURDIR)/scripts/gofmtcheck.sh'"
 
-errcheck:
-	@sh -c "'$(CURDIR)/scripts/errcheck.sh'"
-
 test-compile:
 	@if [ "$(TEST)" = "./..." ]; then \
 		echo "ERROR: Set TEST to a specific package. For example,"; \
@@ -54,13 +51,6 @@ test-compile:
 		exit 1; \
 	fi
 	go test -c $(TEST) $(TESTARGS)
-
-
-websitefmtcheck:
-	@sh -c "'$(CURDIR)/scripts/websitefmtcheck.sh'"
-
-docscheck:
-	@sh -c "'$(CURDIR)/scripts/docscheck.sh'"
 
 lint:
 	@echo "==> Checking source code against linters..."
@@ -89,7 +79,7 @@ website-lint:
 	@echo "==> Checking website against linters..."
 	@misspell -error -source=text website/
 
-.PHONY: build  init plan apply test testacc debugacc fmt fmtcheck vet lint tools test-compile websitefmtcheck website website-lint website-test docscheck test-compile errcheck
+.PHONY: build  init plan apply test testacc debugacc fmt fmtcheck vet lint tools test-compile website website-lint website-test test-compile
 
 
 
