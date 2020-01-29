@@ -25,6 +25,11 @@ func dataSourceVmcConnectedAccounts() *schema.Resource {
 				Optional:    true,
 				Default:     "AWS",
 			},
+			"account_number": {
+				Type:        schema.TypeString,
+				Description: "AWS account number.",
+				Optional:    true,
+			},
 			"ids": {
 				Type:        schema.TypeList,
 				Description: "The corresponding connected (customer) account UUID this connection is attached to.",
@@ -39,6 +44,7 @@ func dataSourceVmcConnectedAccountsRead(d *schema.ResourceData, m interface{}) e
 
 	orgID := d.Get("org_id").(string)
 	providerType := d.Get("provider_type").(string)
+	accountNumber := d.Get("account_number").(string)
 
 	if orgID == "" {
 		return fmt.Errorf("org ID is a required parameter and cannot be empty")
@@ -50,7 +56,13 @@ func dataSourceVmcConnectedAccountsRead(d *schema.ResourceData, m interface{}) e
 
 	ids := []string{}
 	for _, account := range accounts {
-		ids = append(ids, account.Id)
+		if(accountNumber != "") {
+			if(*account.AccountNumber == accountNumber) {
+				ids = append(ids, account.Id)
+			}
+		} else {
+			ids = append(ids, account.Id)
+		}
 	}
 
 	if err != nil {
