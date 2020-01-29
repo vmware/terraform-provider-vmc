@@ -13,11 +13,10 @@ This data source provides information about an organization.
 
 ```hcl
 data "vmc_org" "my_org" {
-	id = ""
-
+  id =  var.org_id
 }
 ```
 
 ## Argument Reference
 
-* `id` - (Required) ID of the organization
+* `id` - (Required) ID of the organization.

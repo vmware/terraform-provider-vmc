@@ -16,30 +16,49 @@ Provides a resource to provision SDDC.
 
 ```hcl
 
-data "vmc_org" "my_org" {
-	id = ""
+provider "vmc" {
+  refresh_token = var.api_token
 }
 
-data "vmc_connected_accounts" "accounts" {
-	org_id = "${data.vmc_org.my_org.id}"
+data "vmc_org" "my_org" {
+  id =  var.org_id
+}
+
+data "vmc_connected_accounts" "my_accounts" {
+  org_id = data.vmc_org.my_org.id
+  account_number = var.aws_account_number
+}
+
+data "vmc_customer_subnets" "my_subnets" {
+  org_id               = data.vmc_org.my_org.id
+  connected_account_id = data.vmc_connected_accounts.my_accounts.ids[0]
+  region               = var.sddc_region
 }
 
 resource "vmc_sddc" "sddc_1" {
-	org_id = "${data.vmc_org.my_org.id}"
-	sddc_name = "SDDC_Name"
+  org_id = data.vmc_org.my_org.id
 
-	vpc_cidr      = "10.2.0.0/16"
-	num_host      = 3
-	provider_type = "Provider_type"
+  sddc_name           = var.sddc_name
+  vpc_cidr            = var.vpc_cidr
+  num_host            = 3
+  provider_type       = "AWS"
+  region              = data.vmc_customer_subnets.my_subnets.region
+  vxlan_subnet        = var.vxlan_subnet
+  delay_account_link  = false
+  skip_creating_vxlan = false
+  sso_domain          = "vmc.local"
 
-	region = "US_WEST_2"
-	vxlan_subnet = "192.168.1.0/24"
+  deployment_type = "SingleAZ"
 
-	delay_account_link  = false
-	skip_creating_vxlan = false
-	sso_domain          = "vmc.local"
-
-	deployment_type = "SingleAZ"
+  account_link_sddc_config {
+    customer_subnet_ids  = [data.vmc_customer_subnets.my_subnets.ids[0]]
+    connected_account_id = data.vmc_connected_accounts.my_accounts.ids[0]
+  }
+  timeouts {
+    create = "300m"
+    update = "300m"
+    delete = "180m"
+  }
 }
 ```
 
