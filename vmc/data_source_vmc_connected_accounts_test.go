@@ -30,11 +30,13 @@ func testAccDataSourceVmcConnectedAccountsConfig() string {
 data "vmc_org" "my_org" {
 	id = %q
 }
-	
+
 data "vmc_connected_accounts" "my_accounts" {
 	org_id = "${data.vmc_org.my_org.id}"
+	account_number = %q
 }
 `,
 		os.Getenv("ORG_ID"),
+		os.Getenv("AWS_ACCOUNT_NUMBER"),
 	)
 }
