@@ -22,7 +22,7 @@ import (
 func NewVmcConnectorByRefreshToken(refreshToken, vmcURL, cspURL string,
 	httpClient http.Client) (client.Connector, error) {
 	if len(refreshToken) <= 0 {
-		return nil, fmt.Errorf("Refresh Token cannot be empty")
+		return nil, fmt.Errorf("refresh token cannot be empty")
 	}
 
 	if len(vmcURL) <= 0 {
@@ -48,7 +48,7 @@ func NewVmcConnectorByRefreshToken(refreshToken, vmcURL, cspURL string,
 	return connector, nil
 }
 
-// SecurityContextByRefreshToken returns Security Context with access token that is recieved from CSP using Refresh Token by OAuth authenticaiton scheme.
+// SecurityContextByRefreshToken returns Security Context with access token that is received from CSP using Refresh Token by OAuth authentication scheme.
 func SecurityContextByRefreshToken(refreshToken string, cspURL string) (core.SecurityContext, error) {
 	payload := strings.NewReader("refresh_token=" + refreshToken)
 
@@ -84,7 +84,6 @@ func SecurityContextByRefreshToken(refreshToken string, cspURL string) (core.Sec
 		return nil, errors.New("CSP auth response doesn't contain access token")
 	}
 
-	// log.Info("CSP Access token is " + accessToken)
 	securityCtx := security.NewOauthSecurityContext(accessToken)
 	return securityCtx, nil
 }
