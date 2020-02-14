@@ -35,7 +35,7 @@ func Provider() terraform.ResourceProvider {
 			"refresh_token": {
 				Type:        schema.TypeString,
 				Required:    true,
-				DefaultFunc: schema.EnvDefaultFunc("REFRESH_TOKEN", nil),
+				DefaultFunc: schema.EnvDefaultFunc("API_TOKEN", nil),
 			},
 			"vmc_url": {
 				Type:     schema.TypeString,
