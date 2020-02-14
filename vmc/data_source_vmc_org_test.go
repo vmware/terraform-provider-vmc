@@ -18,8 +18,7 @@ func TestAccDataSourceVmcOrg_basic(t *testing.T) {
 			{
 				Config: testAccDataSourceVmcOrgConfig(),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("data.vmc_org.my_org", "display_name", "DX AUTO Core Team"),
-					resource.TestCheckResourceAttr("data.vmc_org.my_org", "name", "k0byp9w7"),
+					resource.TestCheckResourceAttr("data.vmc_org.my_org", "display_name", os.Getenv("ORG_DISPLAY_NAME")),
 				),
 			},
 		},

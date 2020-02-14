@@ -34,11 +34,14 @@ func TestProvider_impl(t *testing.T) {
 }
 
 func testAccPreCheck(t *testing.T) {
-	if v := os.Getenv("REFRESH_TOKEN"); v == "" {
-		t.Fatal("REFRESH_TOKEN must be set for acceptance tests")
+	if v := os.Getenv("API_TOKEN"); v == "" {
+		t.Fatal("API_TOKEN must be set for acceptance tests")
 	}
 	if v := os.Getenv("ORG_ID"); v == "" {
 		t.Fatal("ORG_ID must be set for acceptance tests")
+	}
+	if v := os.Getenv("ORG_DISPLAY_NAME"); v == "" {
+		t.Fatal("ORG_DISPLAY_NAME must be set for acceptance tests")
 	}
 	if v := os.Getenv("TEST_SDDC_ID"); v == "" {
 		t.Fatal("TEST_SDDC_ID must be set for acceptance tests")
