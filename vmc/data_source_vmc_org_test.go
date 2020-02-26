@@ -28,10 +28,7 @@ func TestAccDataSourceVmcOrg_basic(t *testing.T) {
 func testAccDataSourceVmcOrgConfig() string {
 	return fmt.Sprintf(`
 data "vmc_org" "my_org" {
-	id = %q
-
 }
 `,
-		os.Getenv("ORG_ID"),
 	)
 }

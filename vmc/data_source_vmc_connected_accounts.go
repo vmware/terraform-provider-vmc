@@ -14,11 +14,6 @@ func dataSourceVmcConnectedAccounts() *schema.Resource {
 		Read: dataSourceVmcConnectedAccountsRead,
 
 		Schema: map[string]*schema.Schema{
-			"org_id": {
-				Type:        schema.TypeString,
-				Description: "Organization identifier.",
-				Required:    true,
-			},
 			"provider_type": {
 				Type:        schema.TypeString,
 				Description: "The cloud provider of the SDDC (AWS or ZeroCloud).",
@@ -41,14 +36,9 @@ func dataSourceVmcConnectedAccounts() *schema.Resource {
 }
 
 func dataSourceVmcConnectedAccountsRead(d *schema.ResourceData, m interface{}) error {
-
-	orgID := d.Get("org_id").(string)
+	orgID := (m.(*ConnectorWrapper)).OrgID
 	providerType := d.Get("provider_type").(string)
 	accountNumber := d.Get("account_number").(string)
-
-	if orgID == "" {
-		return fmt.Errorf("org ID is a required parameter and cannot be empty")
-	}
 
 	connector := (m.(*ConnectorWrapper)).Connector
 	defaultConnectedAccountsClient := account_link.NewDefaultConnectedAccountsClient(connector)

@@ -16,8 +16,8 @@ func dataSourceVmcOrg() *schema.Resource {
 		Schema: map[string]*schema.Schema{
 			"id": {
 				Type:        schema.TypeString,
-				Description: "Unique ID of this resource",
-				Required:    true,
+				Description: "Organization identifier.",
+				Computed:    true,
 			},
 			"display_name": {
 				Type:        schema.TypeString,
@@ -34,19 +34,14 @@ func dataSourceVmcOrg() *schema.Resource {
 }
 
 func dataSourceVmcOrgRead(d *schema.ResourceData, m interface{}) error {
-	orgID := d.Get("id").(string)
-	if orgID == "" {
-		return fmt.Errorf("org ID is a required parameter and cannot be empty")
-	}
-
+	orgID := (m.(*ConnectorWrapper)).OrgID
 	connector := (m.(*ConnectorWrapper)).Connector
 	orgClient := vmc.NewDefaultOrgsClient(connector)
 	org, err := orgClient.Get(orgID)
-
 	if err != nil {
 		return fmt.Errorf("Error while reading org information for %s: %v", orgID, err)
 	}
-	d.SetId(org.Id)
+	d.SetId(orgID)
 	d.Set("display_name", org.DisplayName)
 	d.Set("name", org.Name)
 

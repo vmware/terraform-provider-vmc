@@ -31,20 +31,15 @@ func TestAccDataSourceVmcCustomerSubnets_basic(t *testing.T) {
 
 func testAccDataSourceVmcCustomerSubnetsConfig() string {
 	return fmt.Sprintf(`
-data "vmc_org" "my_org" {
-	id = %q
-}
 	
 data "vmc_connected_accounts" "my_accounts" {
-	org_id = "${data.vmc_org.my_org.id}"
+    account_number = %q
 }
 
 data "vmc_customer_subnets" "my_subnets" {
-	org_id = "${data.vmc_org.my_org.id}"
 	connected_account_id = "${data.vmc_connected_accounts.my_accounts.ids.0}"
 	region = "US_WEST_2"
 }
 `,
-		os.Getenv("ORG_ID"),
-	)
+		os.Getenv("AWS_ACCOUNT_NUMBER"))
 }

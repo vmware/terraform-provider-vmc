@@ -46,4 +46,7 @@ func testAccPreCheck(t *testing.T) {
 	if v := os.Getenv("TEST_SDDC_ID"); v == "" {
 		t.Fatal("TEST_SDDC_ID must be set for acceptance tests")
 	}
+	if v := os.Getenv("AWS_ACCOUNT_NUMBER"); v == "" {
+		t.Fatal("AWS_ACCOUNT_NUMBER must be set for acceptance tests")
+	}
 }

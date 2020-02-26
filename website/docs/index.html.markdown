@@ -53,26 +53,19 @@ create in VMC.
 
 provider "vmc" {
   refresh_token = var.api_token
-}
-
-data "vmc_org" "my_org" {
-  id =  var.org_id
+  org_id = var.org_id
 }
 
 data "vmc_connected_accounts" "my_accounts" {
-  org_id = data.vmc_org.my_org.id
   account_number = var.aws_account_number
 }
 
 data "vmc_customer_subnets" "my_subnets" {
-  org_id               = data.vmc_org.my_org.id
   connected_account_id = data.vmc_connected_accounts.my_accounts.ids[0]
   region               = var.sddc_region
 }
 
 resource "vmc_sddc" "sddc_1" {
-  org_id = data.vmc_org.my_org.id
-
   sddc_name           = var.sddc_name
   vpc_cidr            = var.vpc_cidr
   num_host            = 3
@@ -95,6 +88,7 @@ resource "vmc_sddc" "sddc_1" {
     delete = "180m"
   }
 }
+
 ```
 
 
