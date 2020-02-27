@@ -42,3 +42,9 @@ resource "vmc_sddc" "sddc_1" {
     delete = "180m"
   }
 }
+
+resource "vmc_publicip" "public_ip" {
+  nsxt_reverse_proxy_url = "vmc_sddc.sddc_1.nsxt_reverse_proxy_url"
+  display_name = "test-ip"
+  ip_id = "1ad34"
+}

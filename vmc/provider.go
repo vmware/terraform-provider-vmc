@@ -5,10 +5,11 @@ package vmc
 
 import (
 	"fmt"
+	"net/http"
+
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/terraform"
-	"github.com/vmware/vsphere-automation-sdk-go/runtime/protocol/client"
-	"net/http"
+	"gitlab.eng.vmware.com/golangsdk/vsphere-automation-sdk-go/runtime/protocol/client"
 )
 
 type ConnectorWrapper struct {
@@ -40,7 +41,8 @@ func Provider() terraform.ResourceProvider {
 			"vmc_url": {
 				Type:     schema.TypeString,
 				Optional: true,
-				Default:  "https://vmc.vmware.com",
+				// Default:  "https://vmc.vmware.com",
+				Default: "https://nsx-3-219-173-255.rp.vmwarevmc.com/vmc/reverse-proxy/api/orgs/54937bce-8119-4fae-84f5-e5e066ee90e6/sddcs/9f5f1fc4-b6a7-471b-b614-45f416fcaca7/cloud-service/api/v1/infra/public-ips/1ad34",
 			},
 			"csp_url": {
 				Type:     schema.TypeString,
@@ -50,7 +52,8 @@ func Provider() terraform.ResourceProvider {
 		},
 
 		ResourcesMap: map[string]*schema.Resource{
-			"vmc_sddc": resourceSddc(),
+			"vmc_sddc":     resourceSddc(),
+			"vmc_publicip": resourcePublicIp(),
 		},
 
 		DataSourcesMap: map[string]*schema.Resource{
