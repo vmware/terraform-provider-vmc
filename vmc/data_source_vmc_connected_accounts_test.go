@@ -18,7 +18,7 @@ func TestAccDataSourceVmcConnectedAccounts_basic(t *testing.T) {
 			{
 				Config: testAccDataSourceVmcConnectedAccountsConfig(),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("data.vmc_connected_accounts.my_accounts", "ids.#", "1"),
+					resource.TestCheckResourceAttrSet("data.vmc_connected_accounts.my_accounts", "id"),
 				),
 			},
 		},

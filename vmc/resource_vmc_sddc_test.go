@@ -114,7 +114,7 @@ data "vmc_connected_accounts" "my_accounts" {
 }
 
 data "vmc_customer_subnets" "my_subnets" {
-  connected_account_id = data.vmc_connected_accounts.my_accounts.ids[0]
+  connected_account_id = data.vmc_connected_accounts.my_accounts.id
   region               = "US_WEST_2"
 }
 
@@ -135,7 +135,7 @@ resource "vmc_sddc" "sddc_1" {
 	deployment_type = "SingleAZ"
     account_link_sddc_config {
     customer_subnet_ids  = [data.vmc_customer_subnets.my_subnets.ids[0]]
-    connected_account_id = data.vmc_connected_accounts.my_accounts.ids[0]
+    connected_account_id = data.vmc_connected_accounts.my_accounts.id
     }
     timeouts {
       create = "300m"

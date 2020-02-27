@@ -23,13 +23,12 @@ func dataSourceVmcConnectedAccounts() *schema.Resource {
 			"account_number": {
 				Type:        schema.TypeString,
 				Description: "AWS account number.",
-				Optional:    true,
+				Required:    true,
 			},
-			"ids": {
-				Type:        schema.TypeList,
+			"id": {
+				Type:        schema.TypeString,
 				Description: "The corresponding connected (customer) account UUID this connection is attached to.",
 				Computed:    true,
-				Elem:        &schema.Schema{Type: schema.TypeString},
 			},
 		},
 	}
@@ -44,22 +43,24 @@ func dataSourceVmcConnectedAccountsRead(d *schema.ResourceData, m interface{}) e
 	defaultConnectedAccountsClient := account_link.NewDefaultConnectedAccountsClient(connector)
 	accounts, err := defaultConnectedAccountsClient.Get(orgID, &providerType)
 
-	ids := []string{}
+	if accountNumber == "" {
+		return fmt.Errorf("account number is a required parameter and cannot be empty")
+	}
+	id := ""
 	for _, account := range accounts {
-		if accountNumber != "" {
-			if *account.AccountNumber == accountNumber {
-				ids = append(ids, account.Id)
-			}
-		} else {
-			ids = append(ids, account.Id)
+		if *account.AccountNumber == accountNumber {
+			id = account.Id
 		}
 	}
 
 	if err != nil {
-		return fmt.Errorf("Error while reading accounts from org %q: %v", orgID, err)
+		return fmt.Errorf("error while reading accounts from org %q: %v", orgID, err)
 	}
 
-	d.SetId(fmt.Sprintf("%s-%s", orgID, providerType))
-	d.Set("ids", ids)
+	if id == "" {
+		return fmt.Errorf("no connected account found with the account number : %q ", accountNumber)
+	}
+
+	d.SetId(id)
 	return nil
 }
