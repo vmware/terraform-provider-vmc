@@ -22,7 +22,7 @@ func dataSourceVmcCustomerSubnets() *schema.Resource {
 			},
 			"region": {
 				Type:        schema.TypeString,
-				Description: "The region of the cloud resources to work in.",
+				Description: "The VMC region of the cloud resources to work in. (e.g. US_WEST_2)",
 				Required:    true,
 			},
 			"num_hosts": {
