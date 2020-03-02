@@ -12,7 +12,6 @@ The customer subnets data source provides information about customer's compatibl
 
 ```hcl
 data "vmc_customer_subnets" "my_subnets" {
-  org_id               = data.vmc_org.my_org.id
   connected_account_id = data.vmc_connected_accounts.my_accounts.ids[0]
   region               = var.sddc_region
 }
@@ -20,9 +19,9 @@ data "vmc_customer_subnets" "my_subnets" {
 
 ## Argument Reference
 
-* `org_id` - (Required) Organization identifier.
+* `org_id` - (Computed) Organization identifier.
 
-* `region` - (Required) The region of the cloud resources to work in.
+* `region` - (Required) The VMC region (e.g US_WEST_2) of the cloud resources to work in.
 
 * `num_hosts` - (Optional) The number of hosts.
 

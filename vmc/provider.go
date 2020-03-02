@@ -15,6 +15,7 @@ import (
 type ConnectorWrapper struct {
 	client.Connector
 	RefreshToken string
+	OrgID        string
 	VmcURL       string
 	CspURL       string
 }
@@ -37,6 +38,11 @@ func Provider() terraform.ResourceProvider {
 				Type:        schema.TypeString,
 				Required:    true,
 				DefaultFunc: schema.EnvDefaultFunc("API_TOKEN", nil),
+			},
+			"org_id": {
+				Type:        schema.TypeString,
+				Required:    true,
+				DefaultFunc: schema.EnvDefaultFunc("ORG_ID", nil),
 			},
 			"vmc_url": {
 				Type:     schema.TypeString,
@@ -69,11 +75,12 @@ func providerConfigure(d *schema.ResourceData) (interface{}, error) {
 	refreshToken := d.Get("refresh_token").(string)
 	vmcURL := d.Get("vmc_url").(string)
 	cspURL := d.Get("csp_url").(string)
+	orgID := d.Get("org_id").(string)
 	httpClient := http.Client{}
 	connector, err := NewClientConnectorByRefreshToken(refreshToken, vmcURL, cspURL, httpClient)
 	if err != nil {
 		return nil, fmt.Errorf("Error creating connector : %v ", err)
 	}
 
-	return &ConnectorWrapper{connector, refreshToken, vmcURL, cspURL}, nil
+	return &ConnectorWrapper{connector, refreshToken, orgID, vmcURL, cspURL}, nil
 }

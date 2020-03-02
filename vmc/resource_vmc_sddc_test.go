@@ -108,23 +108,21 @@ func testCheckVmcSddcDestroy(s *terraform.State) error {
 
 func testAccVmcSddcConfigBasic(sddcName string) string {
 	return fmt.Sprintf(`
-data "vmc_org" "my_org" {
-	id = %q
+
+data "vmc_connected_accounts" "my_accounts" {
+      account_number = %q
 }
 
-data "vmc_connected_accounts" "accounts" {
-	org_id = "${data.vmc_org.my_org.id}"
+data "vmc_customer_subnets" "my_subnets" {
+  connected_account_id = data.vmc_connected_accounts.my_accounts.id
+  region               = "US_WEST_2"
 }
 
 resource "vmc_sddc" "sddc_1" {
-	org_id = "${data.vmc_org.my_org.id}"
-
-	# storage_capacity    = 100
 	sddc_name = %q
-
 	vpc_cidr      = "10.2.0.0/16"
-	num_host      = 1
-	provider_type = "ZEROCLOUD"
+	num_host      = 3
+	provider_type = "AWS"
 
 	region = "US_WEST_2"
 
@@ -135,17 +133,18 @@ resource "vmc_sddc" "sddc_1" {
 	sso_domain          = "vmc.local"
 
 	deployment_type = "SingleAZ"
-
-	# TODO raise exception here need to debug
-	#account_link_sddc_config = [
-	#	{
-	#	  customer_subnet_ids  = ["subnet-13a0c249"]
-	#	  connected_account_id = "${data.vmc_connected_accounts.accounts.ids.0}"
-	#	},
-	#  ]
+    account_link_sddc_config {
+    customer_subnet_ids  = [data.vmc_customer_subnets.my_subnets.ids[0]]
+    connected_account_id = data.vmc_connected_accounts.my_accounts.id
+    }
+    timeouts {
+      create = "300m"
+      update = "300m"
+      delete = "180m"
+  }
 }
 `,
-		os.Getenv("ORG_ID"),
+		os.Getenv("AWS_ACCOUNT_NUMBER"),
 		sddcName,
 	)
 }

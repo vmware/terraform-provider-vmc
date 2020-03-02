@@ -18,7 +18,7 @@ func TestAccDataSourceVmcConnectedAccounts_basic(t *testing.T) {
 			{
 				Config: testAccDataSourceVmcConnectedAccountsConfig(),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("data.vmc_connected_accounts.my_accounts", "ids.#", "1"),
+					resource.TestCheckResourceAttrSet("data.vmc_connected_accounts.my_accounts", "id"),
 				),
 			},
 		},
@@ -27,16 +27,10 @@ func TestAccDataSourceVmcConnectedAccounts_basic(t *testing.T) {
 
 func testAccDataSourceVmcConnectedAccountsConfig() string {
 	return fmt.Sprintf(`
-data "vmc_org" "my_org" {
-	id = %q
-}
-
 data "vmc_connected_accounts" "my_accounts" {
-	org_id = "${data.vmc_org.my_org.id}"
 	account_number = %q
 }
 `,
-		os.Getenv("ORG_ID"),
 		os.Getenv("AWS_ACCOUNT_NUMBER"),
 	)
 }

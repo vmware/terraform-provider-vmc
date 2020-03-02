@@ -9,14 +9,6 @@ description: A organization data source.
 
 This data source provides information about an organization.
 
-## Example Usage
-
-```hcl
-data "vmc_org" "my_org" {
-  id =  var.org_id
-}
-```
-
 ## Argument Reference
 
-* `id` - (Required) ID of the organization.
+* `id` - (Computed) ID of the organization.

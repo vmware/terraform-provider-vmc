@@ -15,11 +15,6 @@ func dataSourceVmcCustomerSubnets() *schema.Resource {
 		Read: dataSourceVmcCustomerSubnetsRead,
 
 		Schema: map[string]*schema.Schema{
-			"org_id": {
-				Type:        schema.TypeString,
-				Description: "Organization identifier.",
-				Required:    true,
-			},
 			"connected_account_id": {
 				Type:        schema.TypeString,
 				Description: "The linked connected account identifier.",
@@ -27,7 +22,7 @@ func dataSourceVmcCustomerSubnets() *schema.Resource {
 			},
 			"region": {
 				Type:        schema.TypeString,
-				Description: "The region of the cloud resources to work in.",
+				Description: "The VMC region of the cloud resources to work in. (e.g. US_WEST_2)",
 				Required:    true,
 			},
 			"num_hosts": {
@@ -77,7 +72,7 @@ func dataSourceVmcCustomerSubnets() *schema.Resource {
 
 func dataSourceVmcCustomerSubnetsRead(d *schema.ResourceData, m interface{}) error {
 
-	orgID := d.Get("org_id").(string)
+	orgID := m.(*ConnectorWrapper).OrgID
 	accountID := d.Get("connected_account_id").(string)
 	sddcID := d.Get("sddc_id").(string)
 	region := d.Get("region").(string)
@@ -85,10 +80,6 @@ func dataSourceVmcCustomerSubnetsRead(d *schema.ResourceData, m interface{}) err
 	sddcType := d.Get("sddc_type").(string)
 	forceRefresh := d.Get("force_refresh").(bool)
 	instanceType := d.Get("instance_type").(string)
-
-	if orgID == "" {
-		return fmt.Errorf("org ID is a required parameter and cannot be empty")
-	}
 
 	if region == "" {
 		return fmt.Errorf("region is a required parameter and cannot be empty")
@@ -103,10 +94,6 @@ func dataSourceVmcCustomerSubnetsRead(d *schema.ResourceData, m interface{}) err
 			ids = append(ids, *subnet.SubnetId)
 		}
 	}
-
-	// for _, subnet := range subnets.VpcMap["VpcInfoSubnets"].Subnets {
-	// 	ids = append(ids, subnet.SubnetId)
-	// }
 	log.Printf("[DEBUG] Subnet IDs are %v\n", ids)
 
 	if err != nil {

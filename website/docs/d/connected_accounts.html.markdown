@@ -13,18 +13,18 @@ The connected accounts data source get a list of connected accounts.
 
 ```hcl
 data "vmc_connected_accounts" "my_accounts" {
-  org_id = data.vmc_org.my_org.id
   account_number = var.aws_account_number
 }
 ```
 
 ## Argument Reference
 
-* `org_id` - (Required) Organization identifier.
-* `account_number` - (Optional) AWS account number.
+* `org_id` - (Computed) Organization identifier.
+
+* `account_number` - (Required) AWS account number.
 
 ## Attributes Reference
 
 In addition to arguments listed above, the following attributes are exported:
 
-* `ids` - The corresponding connected (customer) account UUID this connection is attached to.
+* `id` - The corresponding connected (customer) account UUID this connection is attached to.

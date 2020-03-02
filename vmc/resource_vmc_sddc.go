@@ -33,11 +33,6 @@ func resourceSddc() *schema.Resource {
 		},
 
 		Schema: map[string]*schema.Schema{
-			"org_id": {
-				Type:        schema.TypeString,
-				Required:    true,
-				Description: "ID of this resource",
-			},
 			"storage_capacity": {
 				Type:     schema.TypeInt,
 				Optional: true,
@@ -166,8 +161,7 @@ func resourceSddc() *schema.Resource {
 func resourceSddcCreate(d *schema.ResourceData, m interface{}) error {
 	connectorWrapper := m.(*ConnectorWrapper)
 	sddcClient := orgs.NewDefaultSddcsClient(connectorWrapper)
-
-	orgID := d.Get("org_id").(string)
+	orgID := connectorWrapper.OrgID
 	storageCapacity := d.Get("storage_capacity").(int)
 	storageCapacityConverted := int64(storageCapacity)
 	sddcName := d.Get("sddc_name").(string)
@@ -175,14 +169,12 @@ func resourceSddcCreate(d *schema.ResourceData, m interface{}) error {
 	numHost := d.Get("num_host").(int)
 	sddcType := d.Get("sddc_type").(string)
 
-	if orgID == "" {
-		return fmt.Errorf("org ID is a required parameter and cannot be empty")
-	}
 	if sddcName == "" {
 		return fmt.Errorf("SDDC Name is a required parameter and cannot be empty")
 	}
+
 	if numHost == 0 {
-		return fmt.Errorf("number of hosts is a required parameter and cannot be 0")
+		return fmt.Errorf("number of hosts cannot be 0")
 	}
 
 	var sddcTypePtr *string
@@ -256,7 +248,7 @@ func resourceSddcCreate(d *schema.ResourceData, m interface{}) error {
 func resourceSddcRead(d *schema.ResourceData, m interface{}) error {
 	connector := (m.(*ConnectorWrapper)).Connector
 	sddcID := d.Id()
-	orgID := d.Get("org_id").(string)
+	orgID := (m.(*ConnectorWrapper)).OrgID
 	sddc, err := getSDDC(connector, orgID, sddcID)
 	if err != nil {
 		if err.Error() == errors.NewNotFound().Error() {
@@ -304,7 +296,7 @@ func resourceSddcDelete(d *schema.ResourceData, m interface{}) error {
 	connector := (m.(*ConnectorWrapper)).Connector
 	sddcClient := orgs.NewDefaultSddcsClient(connector)
 	sddcID := d.Id()
-	orgID := d.Get("org_id").(string)
+	orgID := (m.(*ConnectorWrapper)).OrgID
 
 	task, err := sddcClient.Delete(orgID, sddcID, nil, nil, nil)
 	if err != nil {
@@ -332,7 +324,7 @@ func resourceSddcUpdate(d *schema.ResourceData, m interface{}) error {
 	connector := (m.(*ConnectorWrapper)).Connector
 	esxsClient := sddcs.NewDefaultEsxsClient(connector)
 	sddcID := d.Id()
-	orgID := d.Get("org_id").(string)
+	orgID := (m.(*ConnectorWrapper)).OrgID
 
 	// Add,remove hosts
 	if d.HasChange("num_host") {

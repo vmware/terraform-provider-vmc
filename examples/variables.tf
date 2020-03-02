@@ -19,7 +19,7 @@ variable "sddc_name"{
 }
 
 variable "sddc_region" {
-  description = "The AWS region."
+  description = "The VMC region."
   default     = "US_WEST_2"
 }
 
