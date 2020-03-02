@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/hashicorp/terraform/helper/validation"
 	"github.com/vmware/vsphere-automation-sdk-go/lib/vapi/std/errors"
 	"github.com/vmware/vsphere-automation-sdk-go/runtime/protocol/client"
 	"github.com/vmware/vsphere-automation-sdk-go/services/vmc/model"
@@ -39,8 +40,9 @@ func resourceSddc() *schema.Resource {
 				ForceNew: true,
 			},
 			"sddc_name": {
-				Type:     schema.TypeString,
-				Required: true,
+				Type:         schema.TypeString,
+				Required:     true,
+				ValidateFunc: validation.NoZeroValues,
 			},
 			"account_link_sddc_config": {
 				Type: schema.TypeList,
@@ -69,8 +71,9 @@ func resourceSddc() *schema.Resource {
 				ForceNew: true,
 			},
 			"num_host": {
-				Type:     schema.TypeInt,
-				Required: true,
+				Type:         schema.TypeInt,
+				Required:     true,
+				ValidateFunc: validation.IntAtLeast(1),
 			},
 			"sddc_type": {
 				Type:     schema.TypeString,
@@ -89,12 +92,13 @@ func resourceSddc() *schema.Resource {
 				Default:  false,
 				ForceNew: true,
 			},
-			// TODO change default to AWS
 			"provider_type": {
 				Type:     schema.TypeString,
 				Optional: true,
 				ForceNew: true,
-				Default:  "ZEROCLOUD",
+				Default:  "AWS",
+				ValidateFunc: validation.StringInSlice([]string{
+					"AWS", "ZEROCLOUD"}, false),
 			},
 			"skip_creating_vxlan": {
 				Type:     schema.TypeBool,
@@ -118,12 +122,17 @@ func resourceSddc() *schema.Resource {
 				Optional: true,
 				ForceNew: true,
 				Default:  "SingleAZ",
+				ValidateFunc: validation.StringInSlice([]string{
+					"SingleAZ", "MultiAZ",
+				}, false),
 			},
 			"region": {
 				Type:     schema.TypeString,
-				Optional: true,
+				Required: true,
 				ForceNew: true,
-				Default:  "us-west-2",
+				ValidateFunc: validation.All(
+					validation.NoZeroValues,
+				),
 			},
 			"cluster_id": {
 				Type:     schema.TypeString,
@@ -168,14 +177,6 @@ func resourceSddcCreate(d *schema.ResourceData, m interface{}) error {
 	vpcCidr := d.Get("vpc_cidr").(string)
 	numHost := d.Get("num_host").(int)
 	sddcType := d.Get("sddc_type").(string)
-
-	if sddcName == "" {
-		return fmt.Errorf("SDDC Name is a required parameter and cannot be empty")
-	}
-
-	if numHost == 0 {
-		return fmt.Errorf("number of hosts cannot be 0")
-	}
 
 	var sddcTypePtr *string
 	if sddcType != "" {

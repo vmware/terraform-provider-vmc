@@ -6,6 +6,7 @@ package vmc
 import (
 	"fmt"
 	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/hashicorp/terraform/helper/validation"
 	"github.com/vmware/vsphere-automation-sdk-go/services/vmc/orgs/account_link"
 	"log"
 )
@@ -24,6 +25,9 @@ func dataSourceVmcCustomerSubnets() *schema.Resource {
 				Type:        schema.TypeString,
 				Description: "The VMC region of the cloud resources to work in. (e.g. US_WEST_2)",
 				Required:    true,
+				ValidateFunc: validation.All(
+					validation.NoZeroValues,
+				),
 			},
 			"num_hosts": {
 				Type:        schema.TypeInt,
@@ -80,10 +84,6 @@ func dataSourceVmcCustomerSubnetsRead(d *schema.ResourceData, m interface{}) err
 	sddcType := d.Get("sddc_type").(string)
 	forceRefresh := d.Get("force_refresh").(bool)
 	instanceType := d.Get("instance_type").(string)
-
-	if region == "" {
-		return fmt.Errorf("region is a required parameter and cannot be empty")
-	}
 
 	connector := (m.(*ConnectorWrapper)).Connector
 	compatibleSubnetsClient := account_link.NewDefaultCompatibleSubnetsClient(connector)
