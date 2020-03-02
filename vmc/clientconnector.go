@@ -13,13 +13,13 @@ import (
 	"reflect"
 	"strings"
 
-	"github.com/vmware/vsphere-automation-sdk-go/runtime/core"
-	"github.com/vmware/vsphere-automation-sdk-go/runtime/protocol/client"
 	"github.com/vmware/vsphere-automation-sdk-go/runtime/security"
+	"gitlab.eng.vmware.com/golangsdk/vsphere-automation-sdk-go/runtime/core"
+	"gitlab.eng.vmware.com/golangsdk/vsphere-automation-sdk-go/runtime/protocol/client"
 )
 
-// NewVmcConnectorByRefreshToken returns client connector by using OAuth authentication using Refresh Token.
-func NewVmcConnectorByRefreshToken(refreshToken, vmcURL, cspURL string,
+// NewClientConnectorByRefreshToken returns client connector by using OAuth authentication using Refresh Token.
+func NewClientConnectorByRefreshToken(refreshToken, vmcURL, cspURL string,
 	httpClient http.Client) (client.Connector, error) {
 	if len(refreshToken) <= 0 {
 		return nil, fmt.Errorf("refresh token cannot be empty")

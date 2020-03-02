@@ -44,7 +44,7 @@ resource "vmc_sddc" "sddc_1" {
 }
 
 resource "vmc_publicip" "public_ip" {
+  refresh_token = var.api_token
   nsxt_reverse_proxy_url = "vmc_sddc.sddc_1.nsxt_reverse_proxy_url"
-  display_name = "test-ip"
-  ip_id = "1ad34"
+  display_name = var.publicip_displayname
 }

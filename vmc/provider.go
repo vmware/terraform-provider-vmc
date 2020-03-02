@@ -22,7 +22,7 @@ type ConnectorWrapper struct {
 func (c *ConnectorWrapper) authenticate() error {
 	var err error
 	httpClient := http.Client{}
-	c.Connector, err = NewVmcConnectorByRefreshToken(c.RefreshToken, c.VmcURL, c.CspURL, httpClient)
+	c.Connector, err = NewClientConnectorByRefreshToken(c.RefreshToken, c.VmcURL, c.CspURL, httpClient)
 	if err != nil {
 		return err
 	}
@@ -41,8 +41,7 @@ func Provider() terraform.ResourceProvider {
 			"vmc_url": {
 				Type:     schema.TypeString,
 				Optional: true,
-				// Default:  "https://vmc.vmware.com",
-				Default: "https://nsx-3-219-173-255.rp.vmwarevmc.com/vmc/reverse-proxy/api/orgs/54937bce-8119-4fae-84f5-e5e066ee90e6/sddcs/9f5f1fc4-b6a7-471b-b614-45f416fcaca7/cloud-service/api/v1/infra/public-ips/1ad34",
+				Default:  "https://vmc.vmware.com",
 			},
 			"csp_url": {
 				Type:     schema.TypeString,
@@ -71,7 +70,7 @@ func providerConfigure(d *schema.ResourceData) (interface{}, error) {
 	vmcURL := d.Get("vmc_url").(string)
 	cspURL := d.Get("csp_url").(string)
 	httpClient := http.Client{}
-	connector, err := NewVmcConnectorByRefreshToken(refreshToken, vmcURL, cspURL, httpClient)
+	connector, err := NewClientConnectorByRefreshToken(refreshToken, vmcURL, cspURL, httpClient)
 	if err != nil {
 		return nil, fmt.Errorf("Error creating connector : %v ", err)
 	}
