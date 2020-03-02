@@ -21,9 +21,6 @@ import (
 // NewClientConnectorByRefreshToken returns client connector by using OAuth authentication using Refresh Token.
 func NewClientConnectorByRefreshToken(refreshToken, vmcURL, cspURL string,
 	httpClient http.Client) (client.Connector, error) {
-	if len(refreshToken) <= 0 {
-		return nil, fmt.Errorf("refresh token cannot be empty")
-	}
 
 	if len(vmcURL) <= 0 {
 		vmcURL = DefaultVMCServer

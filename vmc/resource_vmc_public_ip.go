@@ -6,6 +6,7 @@ package vmc
 import (
 	"fmt"
 	"net/http"
+	"os"
 	"strings"
 
 	"github.com/hashicorp/terraform/helper/schema"
@@ -26,11 +27,6 @@ func resourcePublicIp() *schema.Resource {
 		},
 
 		Schema: map[string]*schema.Schema{
-			"refresh_token": {
-				Type:        schema.TypeString,
-				Required:    true,
-				DefaultFunc: schema.EnvDefaultFunc("API_TOKEN", nil),
-			},
 			"nsxt_reverse_proxy_url": {
 				Type:     schema.TypeString,
 				Required: true,
@@ -163,17 +159,16 @@ func resourcePublicIpDelete(d *schema.ResourceData, m interface{}) error {
 }
 
 func getNSXTReverseProxyConnector(d *schema.ResourceData) (client.Connector, error) {
-	refreshToken := d.Get("refresh_token").(string)
+	apiToken := os.Getenv(APIToken)
 	nsxtReverseProxyURL := d.Get("nsxt_reverse_proxy_url").(string)
-	sksNSXTManager := "/sks-nsxt-manager"
 	if len(nsxtReverseProxyURL) == 0 {
 		return nil, fmt.Errorf("NSXT reverse proxy url is a required parameter for Public IP resource creation.")
 	}
-	if strings.Contains(nsxtReverseProxyURL, sksNSXTManager) {
-		nsxtReverseProxyURL = strings.Replace(nsxtReverseProxyURL, sksNSXTManager, "", -1)
+	if strings.Contains(nsxtReverseProxyURL, SksNSXTManager) {
+		nsxtReverseProxyURL = strings.Replace(nsxtReverseProxyURL, SksNSXTManager, "", -1)
 	}
 	httpClient := http.Client{}
-	connector, err := NewClientConnectorByRefreshToken(refreshToken, nsxtReverseProxyURL, DefaultCSPUrl, httpClient)
+	connector, err := NewClientConnectorByRefreshToken(apiToken, nsxtReverseProxyURL, DefaultCSPUrl, httpClient)
 	if err != nil {
 		return nil, fmt.Errorf("Error creating connector : %v ", err)
 	}
