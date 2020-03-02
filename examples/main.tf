@@ -12,7 +12,7 @@ data "vmc_connected_accounts" "my_accounts" {
 
 data "vmc_customer_subnets" "my_subnets" {
   connected_account_id = data.vmc_connected_accounts.my_accounts.id
-  region               = var.sddc_region
+  region               = replace(upper(var.sddc_region), "-", "_")
 }
 
 resource "vmc_sddc" "sddc_1" {

@@ -62,7 +62,7 @@ The following arguments are supported:
 
 * `org_id` - (Required) Organization identifier.
 
-* `region` - (Required)  The region of the cloud resources to work in.
+* `region` - (Required)  The AWS specific (e.g us-west-2) or VMC specific region (e.g US_WEST_2) of the cloud resources to work in.
 
 * `sddc_name` - (Required) Name of the SDDC.
 
