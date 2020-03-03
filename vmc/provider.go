@@ -6,10 +6,11 @@ package vmc
 import (
 	"fmt"
 	"net/http"
+	"os"
 
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/terraform"
-	"gitlab.eng.vmware.com/golangsdk/vsphere-automation-sdk-go/runtime/protocol/client"
+	"github.com/vmware/vsphere-automation-sdk-go/runtime/protocol/client"
 )
 
 type ConnectorWrapper struct {
@@ -37,7 +38,7 @@ func Provider() terraform.ResourceProvider {
 			"refresh_token": {
 				Type:        schema.TypeString,
 				Required:    true,
-				DefaultFunc: schema.EnvDefaultFunc("API_TOKEN", nil),
+				DefaultFunc: schema.EnvDefaultFunc(APIToken, nil),
 			},
 			"org_id": {
 				Type:        schema.TypeString,
@@ -73,6 +74,11 @@ func Provider() terraform.ResourceProvider {
 
 func providerConfigure(d *schema.ResourceData) (interface{}, error) {
 	refreshToken := d.Get("refresh_token").(string)
+	if len(refreshToken) <= 0 {
+		return nil, fmt.Errorf("refresh token cannot be empty")
+	}
+	// set refresh token to env variable so that it can be used by other connectors
+	os.Setenv(APIToken, refreshToken)
 	vmcURL := d.Get("vmc_url").(string)
 	cspURL := d.Get("csp_url").(string)
 	orgID := d.Get("org_id").(string)

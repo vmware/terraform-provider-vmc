@@ -5,14 +5,15 @@ package vmc
 
 import (
 	"fmt"
+	"os"
+	"testing"
+
 	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
 	"github.com/vmware/vsphere-automation-sdk-go/lib/vapi/std/errors"
 	"github.com/vmware/vsphere-automation-sdk-go/services/vmc/model"
 	"github.com/vmware/vsphere-automation-sdk-go/services/vmc/orgs"
-	"os"
-	"testing"
 )
 
 func TestAccResourceVmcSddc_basic(t *testing.T) {
@@ -144,7 +145,7 @@ resource "vmc_sddc" "sddc_1" {
   }
 }
 `,
-		os.Getenv("AWS_ACCOUNT_NUMBER"),
+		os.Getenv(AWSAccountNumber),
 		sddcName,
 	)
 }

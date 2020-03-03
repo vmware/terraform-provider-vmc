@@ -11,9 +11,9 @@ import (
 
 	"github.com/hashicorp/terraform/helper/schema"
 	uuid "github.com/satori/go.uuid"
-	"gitlab.eng.vmware.com/golangsdk/vsphere-automation-sdk-go/runtime/protocol/client"
-	"gitlab.eng.vmware.com/golangsdk/vsphere-automation-sdk-go/services/nsxt/vmc-aws-integration/api"
-	"gitlab.eng.vmware.com/golangsdk/vsphere-automation-sdk-go/services/nsxt/vmc-aws-integration/model"
+	"github.com/vmware/vsphere-automation-sdk-go/runtime/protocol/client"
+	"github.com/vmware/vsphere-automation-sdk-go/services/nsxt-vmc-aws-integration/api"
+	"github.com/vmware/vsphere-automation-sdk-go/services/nsxt-vmc-aws-integration/model"
 )
 
 func resourcePublicIp() *schema.Resource {
@@ -27,13 +27,9 @@ func resourcePublicIp() *schema.Resource {
 		},
 
 		Schema: map[string]*schema.Schema{
-			"nsxt_reverse_proxy_url": {
-				Type:     schema.TypeString,
-				Required: true,
-			},
 			"ip": {
 				Type:        schema.TypeString,
-				Optional:    true,
+				Computed:    true,
 				Description: "Public IP associated with the SDDC",
 			},
 			"display_name": {
@@ -46,7 +42,7 @@ func resourcePublicIp() *schema.Resource {
 }
 
 func resourcePublicIpCreate(d *schema.ResourceData, m interface{}) error {
-	connector, err := getNSXTReverseProxyConnector(d)
+	connector, err := getNSXTReverseProxyConnector()
 	if err != nil {
 		return fmt.Errorf("Error getting connector for reverse proxy url : %v", err)
 	}
@@ -69,14 +65,11 @@ func resourcePublicIpCreate(d *schema.ResourceData, m interface{}) error {
 	}
 
 	d.SetId(*publicIp.Id)
-	d.Set("ip", publicIp.Ip)
-	d.Set("display_name", publicIp.DisplayName)
-
 	return resourcePublicIpRead(d, m)
 }
 
 func resourcePublicIpRead(d *schema.ResourceData, m interface{}) error {
-	connector, err := getNSXTReverseProxyConnector(d)
+	connector, err := getNSXTReverseProxyConnector()
 	if err != nil {
 		return fmt.Errorf("Error getting connector for reverse proxy url : %v", err)
 	}
@@ -114,7 +107,7 @@ func resourcePublicIpRead(d *schema.ResourceData, m interface{}) error {
 }
 
 func resourcePublicIpUpdate(d *schema.ResourceData, m interface{}) error {
-	connector, err := getNSXTReverseProxyConnector(d)
+	connector, err := getNSXTReverseProxyConnector()
 	if err != nil {
 		return fmt.Errorf("Error getting connector for reverse proxy url : %v", err)
 	}
@@ -143,7 +136,7 @@ func resourcePublicIpUpdate(d *schema.ResourceData, m interface{}) error {
 }
 
 func resourcePublicIpDelete(d *schema.ResourceData, m interface{}) error {
-	connector, err := getNSXTReverseProxyConnector(d)
+	connector, err := getNSXTReverseProxyConnector()
 	if err != nil {
 		return fmt.Errorf("Error getting connector for reverse proxy url : %v", err)
 	}
@@ -158,11 +151,11 @@ func resourcePublicIpDelete(d *schema.ResourceData, m interface{}) error {
 	return nil
 }
 
-func getNSXTReverseProxyConnector(d *schema.ResourceData) (client.Connector, error) {
+func getNSXTReverseProxyConnector() (client.Connector, error) {
 	apiToken := os.Getenv(APIToken)
-	nsxtReverseProxyURL := d.Get("nsxt_reverse_proxy_url").(string)
+	nsxtReverseProxyURL := os.Getenv(NSXTReverseProxyUrl)
 	if len(nsxtReverseProxyURL) == 0 {
-		return nil, fmt.Errorf("NSXT reverse proxy url is a required parameter for Public IP resource creation.")
+		return nil, fmt.Errorf("NSXT reverse proxy url is required for Public IP resource creation.")
 	}
 	if strings.Contains(nsxtReverseProxyURL, SksNSXTManager) {
 		nsxtReverseProxyURL = strings.Replace(nsxtReverseProxyURL, SksNSXTManager, "", -1)
