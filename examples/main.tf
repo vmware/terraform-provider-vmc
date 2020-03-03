@@ -39,7 +39,7 @@ resource "vmc_sddc" "sddc_1" {
   }
 }
 
-resource "vmc_publicip" "public_ip_1" {
+resource "vmc_public_ip" "public_ip_1" {
   display_name = var.publicip_displayname
   depends_on = [vmc_sddc.sddc_1]
 }

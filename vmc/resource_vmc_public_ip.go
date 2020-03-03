@@ -59,9 +59,9 @@ func resourcePublicIpCreate(d *schema.ResourceData, m interface{}) error {
 	}
 
 	// API call to create public IP
-	publicIp, createErr := nsxVmcAwsClient.CreatePublicIp(uuid, *publicIpModel)
-	if createErr != nil {
-		return fmt.Errorf("Error creating public IP : %v", createErr)
+	publicIp, err := nsxVmcAwsClient.CreatePublicIp(uuid, *publicIpModel)
+	if err != nil {
+		return fmt.Errorf("Error creating public IP : %v", err)
 	}
 
 	d.SetId(*publicIp.Id)
@@ -124,9 +124,9 @@ func resourcePublicIpUpdate(d *schema.ResourceData, m interface{}) error {
 		}
 
 		// API call to update public IP
-		publicIp, updateErr := nsxVmcAwsClient.CreatePublicIp(uuid, *publicIpModel)
-		if updateErr != nil {
-			return fmt.Errorf("Error while updating public IP's display name : %v", updateErr)
+		publicIp, err := nsxVmcAwsClient.CreatePublicIp(uuid, *publicIpModel)
+		if err != nil {
+			return fmt.Errorf("Error while updating public IP's display name : %v", err)
 		}
 
 		d.Set("display_name", publicIp.DisplayName)
