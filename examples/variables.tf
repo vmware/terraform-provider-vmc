@@ -33,7 +33,7 @@ variable "vxlan_subnet" {
   default     = "192.168.1.0/24"
 }
 
-variable "publicip_displayname" {
+variable "public_ip_displayname" {
   description = "Display name for public IP."
   default     = "public-ip-test"
 }
