@@ -19,8 +19,8 @@ variable "sddc_name"{
 }
 
 variable "sddc_region" {
-  description = "The VMC region."
-  default     = "US_WEST_2"
+  description = "The AWS  or VMC specific region."
+  default     = "us-west-2"
 }
 
 variable "vpc_cidr" {
