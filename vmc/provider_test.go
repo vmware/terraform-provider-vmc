@@ -34,19 +34,19 @@ func TestProvider_impl(t *testing.T) {
 }
 
 func testAccPreCheck(t *testing.T) {
-	if v := os.Getenv("API_TOKEN"); v == "" {
-		t.Fatal("API_TOKEN must be set for acceptance tests")
+	if v := os.Getenv(APIToken); v == "" {
+		t.Fatal(APIToken + " must be set for acceptance tests")
 	}
-	if v := os.Getenv("ORG_ID"); v == "" {
-		t.Fatal("ORG_ID must be set for acceptance tests")
+	if v := os.Getenv(OrgID); v == "" {
+		t.Fatal(OrgID + " must be set for acceptance tests")
 	}
-	if v := os.Getenv("ORG_DISPLAY_NAME"); v == "" {
-		t.Fatal("ORG_DISPLAY_NAME must be set for acceptance tests")
+	if v := os.Getenv(OrgDisplayName); v == "" {
+		t.Fatal(OrgDisplayName + " must be set for acceptance tests")
 	}
-	if v := os.Getenv("TEST_SDDC_ID"); v == "" {
-		t.Fatal("TEST_SDDC_ID must be set for acceptance tests")
+	if v := os.Getenv(TestSDDCId); v == "" {
+		t.Fatal(TestSDDCId + " must be set for acceptance tests")
 	}
-	if v := os.Getenv("AWS_ACCOUNT_NUMBER"); v == "" {
-		t.Fatal("AWS_ACCOUNT_NUMBER must be set for acceptance tests")
+	if v := os.Getenv(AWSAccountNumber); v == "" {
+		t.Fatal(AWSAccountNumber + " must be set for acceptance tests")
 	}
 }

@@ -5,10 +5,12 @@ package vmc
 
 import (
 	"fmt"
+	"net/http"
+	"os"
+
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/terraform"
 	"github.com/vmware/vsphere-automation-sdk-go/runtime/protocol/client"
-	"net/http"
 )
 
 type ConnectorWrapper struct {
@@ -22,7 +24,7 @@ type ConnectorWrapper struct {
 func (c *ConnectorWrapper) authenticate() error {
 	var err error
 	httpClient := http.Client{}
-	c.Connector, err = NewVmcConnectorByRefreshToken(c.RefreshToken, c.VmcURL, c.CspURL, httpClient)
+	c.Connector, err = NewClientConnectorByRefreshToken(c.RefreshToken, c.VmcURL, c.CspURL, httpClient)
 	if err != nil {
 		return err
 	}
@@ -36,7 +38,7 @@ func Provider() terraform.ResourceProvider {
 			"refresh_token": {
 				Type:        schema.TypeString,
 				Required:    true,
-				DefaultFunc: schema.EnvDefaultFunc("API_TOKEN", nil),
+				DefaultFunc: schema.EnvDefaultFunc(APIToken, nil),
 			},
 			"org_id": {
 				Type:        schema.TypeString,
@@ -56,7 +58,8 @@ func Provider() terraform.ResourceProvider {
 		},
 
 		ResourcesMap: map[string]*schema.Resource{
-			"vmc_sddc": resourceSddc(),
+			"vmc_sddc":     resourceSddc(),
+			"vmc_publicip": resourcePublicIp(),
 		},
 
 		DataSourcesMap: map[string]*schema.Resource{
@@ -71,11 +74,16 @@ func Provider() terraform.ResourceProvider {
 
 func providerConfigure(d *schema.ResourceData) (interface{}, error) {
 	refreshToken := d.Get("refresh_token").(string)
+	if len(refreshToken) <= 0 {
+		return nil, fmt.Errorf("refresh token cannot be empty")
+	}
+	// set refresh token to env variable so that it can be used by other connectors
+	os.Setenv(APIToken, refreshToken)
 	vmcURL := d.Get("vmc_url").(string)
 	cspURL := d.Get("csp_url").(string)
 	orgID := d.Get("org_id").(string)
 	httpClient := http.Client{}
-	connector, err := NewVmcConnectorByRefreshToken(refreshToken, vmcURL, cspURL, httpClient)
+	connector, err := NewClientConnectorByRefreshToken(refreshToken, vmcURL, cspURL, httpClient)
 	if err != nil {
 		return nil, fmt.Errorf("Error creating connector : %v ", err)
 	}

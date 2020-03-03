@@ -5,9 +5,10 @@ package vmc
 
 import (
 	"fmt"
-	"github.com/hashicorp/terraform/helper/resource"
 	"os"
 	"testing"
+
+	"github.com/hashicorp/terraform/helper/resource"
 )
 
 func TestAccDataSourceVmcOrg_basic(t *testing.T) {
@@ -18,7 +19,7 @@ func TestAccDataSourceVmcOrg_basic(t *testing.T) {
 			{
 				Config: testAccDataSourceVmcOrgConfig(),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("data.vmc_org.my_org", "display_name", os.Getenv("ORG_DISPLAY_NAME")),
+					resource.TestCheckResourceAttr("data.vmc_org.my_org", "display_name", os.Getenv(OrgDisplayName)),
 				),
 			},
 		},

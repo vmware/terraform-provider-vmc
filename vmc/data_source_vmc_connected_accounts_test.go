@@ -5,9 +5,10 @@ package vmc
 
 import (
 	"fmt"
-	"github.com/hashicorp/terraform/helper/resource"
 	"os"
 	"testing"
+
+	"github.com/hashicorp/terraform/helper/resource"
 )
 
 func TestAccDataSourceVmcConnectedAccounts_basic(t *testing.T) {
@@ -31,6 +32,6 @@ data "vmc_connected_accounts" "my_accounts" {
 	account_number = %q
 }
 `,
-		os.Getenv("AWS_ACCOUNT_NUMBER"),
+		os.Getenv(AWSAccountNumber),
 	)
 }
