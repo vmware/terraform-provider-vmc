@@ -33,7 +33,7 @@ func TestAccResourceVmcSddc_basic(t *testing.T) {
 					resource.TestCheckResourceAttrSet("vmc_sddc.sddc_1", "vc_url"),
 					resource.TestCheckResourceAttrSet("vmc_sddc.sddc_1", "cloud_username"),
 					resource.TestCheckResourceAttrSet("vmc_sddc.sddc_1", "cloud_password"),
-					resource.TestCheckResourceAttrSet("vmc_sddc.sddc_1", "nsxt_reverse_proxy_url"),
+					resource.TestCheckResourceAttrSet("vmc_sddc.sddc_1", "nsx_api_public_endpoint_url"),
 				),
 			},
 		},

@@ -49,4 +49,7 @@ func testAccPreCheck(t *testing.T) {
 	if v := os.Getenv(AWSAccountNumber); v == "" {
 		t.Fatal(AWSAccountNumber + " must be set for acceptance tests")
 	}
+	if v := os.Getenv(NSXApiPublicEndpointUrl); v == "" {
+		t.Fatal(NSXApiPublicEndpointUrl + " must be set for acceptance tests")
+	}
 }

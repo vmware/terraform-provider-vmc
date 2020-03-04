@@ -6,7 +6,6 @@ package vmc
 import (
 	"fmt"
 	"log"
-	"os"
 	"time"
 
 	"github.com/hashicorp/terraform/helper/resource"
@@ -161,7 +160,7 @@ func resourceSddc() *schema.Resource {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
-			"nsxt_reverse_proxy_url": {
+			"nsx_api_public_endpoint_url": {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
@@ -289,9 +288,7 @@ func resourceSddcRead(d *schema.ResourceData, m interface{}) error {
 		d.Set("vc_url", sddc.ResourceConfig.VcUrl)
 		d.Set("cloud_username", sddc.ResourceConfig.CloudUsername)
 		d.Set("cloud_password", sddc.ResourceConfig.CloudPassword)
-		d.Set("nsxt_reverse_proxy_url", sddc.ResourceConfig.NsxApiPublicEndpointUrl)
-		// set nsxt reverse proxy url to env variable so that it can be used by public IP resource
-		os.Setenv(NSXTReverseProxyUrl, *sddc.ResourceConfig.NsxApiPublicEndpointUrl)
+		d.Set("nsx_api_public_endpoint_url", sddc.ResourceConfig.NsxApiPublicEndpointUrl)
 	}
 
 	return nil
