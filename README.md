@@ -54,6 +54,12 @@ In order to run the full suite of Acceptance tests, run `make testacc`.
 $ make testacc
 ```
 
+If you want to run against a specific set of tests, run make testacc with the TESTARGS parameter containing the run mask as per below:
+
+```sh
+$ make testacc TESTARGS="-run=TestAccResourceVmcSddc_basic"
+```
+
 # License
 
 Copyright 2019 VMware, Inc.
