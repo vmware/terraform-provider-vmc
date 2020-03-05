@@ -66,8 +66,8 @@ The following arguments are supported:
 
 * `sddc_name` - (Required) Name of the SDDC.
 
-* `storage_capacity` - (Optional) The storage capacity value to be requested for the sddc primary cluster, 
-   in GiBs. If provided, instead of using the direct-attached storage, a capacity value amount of 
+* `storage_capacity` - (Optional) The storage capacity value to be requested for the sddc primary cluster,
+   in GiBs. If provided, instead of using the direct-attached storage, a capacity value amount of
    separable storage will be used.
 
 * `num_host` - (Required) The number of hosts.
@@ -78,15 +78,15 @@ The following arguments are supported:
 
 * `vpc_cidr` - (Optional) AWS VPC IP range. Only prefix of 16 or 20 is currently supported.
 
-* `sddc_type` - (Optional) Denotes the sddc type , if the value is null or empty, the type is considered 
+* `sddc_type` - (Optional) Denotes the sddc type , if the value is null or empty, the type is considered
    as default.
 
 * `vxlan_subnet` - (Optional) VXLAN IP subnet in CIDR for compute gateway.
 
-* `delay_account_link` - (Optional)  Boolean flag identifying whether account linking should be delayed 
+* `delay_account_link` - (Optional)  Boolean flag identifying whether account linking should be delayed
    or not for the SDDC.
 
-* `provider_type` - (Optional)  Determines what additional properties are available based on cloud 
+* `provider_type` - (Optional)  Determines what additional properties are available based on cloud
    provider. Acceptable values are "ZEROCLOUD" and "AWS" with AWS as the default value.
 
 * `skip_creating_vxlan` - (Optional) Boolean value to skip creating vxlan for compute gateway for SDDC provisioning.
@@ -104,3 +104,5 @@ The following arguments are supported:
 In addition to arguments listed above, the following attributes are exported:
 
 * `id` - SDDC identifier.
+
+* `nsxt_reverse_proxy_url` - NSXT reverse proxy url for managing public IP.

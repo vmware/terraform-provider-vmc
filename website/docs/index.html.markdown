@@ -24,9 +24,6 @@ token from the Cloud Service Provider by providing the org scoped API token.
 The Terraform provider client uses Cloud Service Provider CSP API
 to exchange this org scoped API token for user access token.
 
-There are also a number of other parameters that can be set to tune how the
-provider connects to the VMC Console API.
-
 Note that in all of the examples you will need to update the `api_token` and `org_id` settings
 in the variables.tf file to match those configured in your VMC environment.
 
