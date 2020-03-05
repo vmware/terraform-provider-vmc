@@ -14,10 +14,10 @@ const (
 	SksNSXTManager string = "/sks-nsxt-manager"
 
 	// Env variables used in acceptance tests
-	APIToken                string = "API_TOKEN"
-	OrgID                   string = "ORG_ID"
-	OrgDisplayName          string = "ORG_DISPLAY_NAME"
-	TestSDDCId              string = "TEST_SDDC_ID"
-	AWSAccountNumber        string = "AWS_ACCOUNT_NUMBER"
-	NSXApiPublicEndpointUrl string = "NSX_API_PUBLIC_ENDPOINT_URL"
+	APIToken            string = "API_TOKEN"
+	OrgID               string = "ORG_ID"
+	OrgDisplayName      string = "ORG_DISPLAY_NAME"
+	TestSDDCId          string = "TEST_SDDC_ID"
+	AWSAccountNumber    string = "AWS_ACCOUNT_NUMBER"
+	NsxtReverseProxyUrl string = "NSXT_REVERSE_PROXY_URL"
 )

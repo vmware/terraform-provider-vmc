@@ -18,12 +18,12 @@ import (
 	"github.com/vmware/vsphere-automation-sdk-go/runtime/security"
 )
 
-// NewClientConnectorByRefreshToken returns client connector by using OAuth authentication using Refresh Token.
-func NewClientConnectorByRefreshToken(refreshToken, vmcURL, cspURL string,
+// NewClientConnectorByRefreshToken returns client connector to any VMC service by using OAuth authentication using Refresh Token.
+func NewClientConnectorByRefreshToken(refreshToken, serviceUrl, cspURL string,
 	httpClient http.Client) (client.Connector, error) {
 
-	if len(vmcURL) <= 0 {
-		vmcURL = DefaultVMCServer
+	if len(serviceUrl) <= 0 {
+		serviceUrl = DefaultVMCServer
 	}
 
 	if len(cspURL) <= 0 {
@@ -39,7 +39,7 @@ func NewClientConnectorByRefreshToken(refreshToken, vmcURL, cspURL string,
 		return nil, err
 	}
 
-	connector := client.NewRestConnector(vmcURL, httpClient)
+	connector := client.NewRestConnector(serviceUrl, httpClient)
 	connector.SetSecurityContext(securityCtx)
 
 	return connector, nil

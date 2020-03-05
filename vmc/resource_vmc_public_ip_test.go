@@ -43,7 +43,7 @@ func testAccCheckVmcPublicIpExists(name string, publicIpResource *model.PublicIp
 		}
 		uuid := rs.Primary.Attributes["id"]
 		displayName := rs.Primary.Attributes["display_name"]
-		connector, err := getNsxApiPublicEndpointConnector(os.Getenv(NSXApiPublicEndpointUrl))
+		connector, err := getNsxtReverseProxyUrlConnector(os.Getenv(NsxtReverseProxyUrl))
 		if err != nil {
 			return fmt.Errorf("Bad: creating connector : %v ", err)
 		}
@@ -62,7 +62,7 @@ func testAccCheckVmcPublicIpExists(name string, publicIpResource *model.PublicIp
 }
 
 func testCheckVmcPublicIpDestroy(s *terraform.State) error {
-	connector, err := getNsxApiPublicEndpointConnector(os.Getenv(NSXApiPublicEndpointUrl))
+	connector, err := getNsxtReverseProxyUrlConnector(os.Getenv(NsxtReverseProxyUrl))
 	if err != nil {
 		return fmt.Errorf("Bad: creating connector : %v ", err)
 	}
@@ -94,11 +94,11 @@ func testAccVmcPublicIpConfigBasic(displayName string) string {
 	return fmt.Sprintf(`
 resource "vmc_public_ip" "public_ip_1" {
 	display_name = %q
-	nsx_api_public_endpoint_url = %q
+	nsxt_reverse_proxy_url = %q
 
 }
 `,
 		displayName,
-		os.Getenv(NSXApiPublicEndpointUrl),
+		os.Getenv(NsxtReverseProxyUrl),
 	)
 }
