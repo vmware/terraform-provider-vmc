@@ -49,4 +49,7 @@ func testAccPreCheck(t *testing.T) {
 	if v := os.Getenv(AWSAccountNumber); v == "" {
 		t.Fatal(AWSAccountNumber + " must be set for acceptance tests")
 	}
+	if v := os.Getenv(NsxtReverseProxyUrl); v == "" {
+		t.Fatal(NsxtReverseProxyUrl + " must be set for acceptance tests")
+	}
 }

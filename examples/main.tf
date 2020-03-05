@@ -40,6 +40,6 @@ resource "vmc_sddc" "sddc_1" {
 }
 
 resource "vmc_public_ip" "public_ip_1" {
+  nsxt_reverse_proxy_url = vmc_sddc.sddc_1.nsxt_reverse_proxy_url
   display_name = var.public_ip_displayname
-  depends_on = [vmc_sddc.sddc_1]
 }

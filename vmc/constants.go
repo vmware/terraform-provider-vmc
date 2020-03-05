@@ -19,5 +19,5 @@ const (
 	OrgDisplayName      string = "ORG_DISPLAY_NAME"
 	TestSDDCId          string = "TEST_SDDC_ID"
 	AWSAccountNumber    string = "AWS_ACCOUNT_NUMBER"
-	NSXTReverseProxyUrl string = "NSXT_REVERSE_PROXY_URL"
+	NsxtReverseProxyUrl string = "NSXT_REVERSE_PROXY_URL"
 )
