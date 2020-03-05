@@ -20,14 +20,11 @@ resources.
 ## Basic Configuration of the terraform-provider-vmc
 
 In order to use the terraform-provider-vmc you need to obtain the authentication
-token from the Cloud Service Provider by providing the org scoped API token. 
-The Terraform provider client uses Cloud Service Provider CSP API 
-to exchange this org scoped API token for user access token. 
+token from the Cloud Service Provider by providing the org scoped API token.
+The Terraform provider client uses Cloud Service Provider CSP API
+to exchange this org scoped API token for user access token.
 
-There are also a number of other parameters that can be set to tune how the
-provider connects to the VMC Console API. 
-
-Note that in all of the examples you will need to update the `api_token` and `org_id` settings 
+Note that in all of the examples you will need to update the `api_token` and `org_id` settings
 in the variables.tf file to match those configured in your VMC environment.
 
 
@@ -35,7 +32,7 @@ in the variables.tf file to match those configured in your VMC environment.
 
 The following arguments are used to configure the VMware VMC Provider:
 
-* `api_token` - (Required) API token is used to authenticate when calling VMware Cloud Services APIs. 
+* `api_token` - (Required) API token is used to authenticate when calling VMware Cloud Services APIs.
    This token is scoped within the organization.
 *  `org_id` - (Required) Organization Identifier.
 *  `vmc_url` - (Required) VMware Cloud on AWS URL.
@@ -48,8 +45,8 @@ create in VMC.
 
 ```hcl
 #
-# The first step is to configure the provider to connect to Cloud Service 
-# Provider. 
+# The first step is to configure the provider to connect to Cloud Service
+# Provider.
 
 provider "vmc" {
   refresh_token = var.api_token
@@ -89,7 +86,9 @@ resource "vmc_sddc" "sddc_1" {
   }
 }
 
+resource "vmc_public_ip" "public_ip_1" {
+  nsxt_reverse_proxy_url = vmc_sddc.sddc_1.nsxt_reverse_proxy_url
+  display_name = var.public_ip_displayname
+}
+
 ```
-
-
-
