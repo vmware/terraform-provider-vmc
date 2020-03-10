@@ -1,5 +1,5 @@
 
-## 1.1.0 (Unreleased)
+## 1.1.0 (March 10, 2020)
 
 FEATURES:
 
