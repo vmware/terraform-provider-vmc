@@ -18,7 +18,7 @@ Clone repository to: `$GOPATH/src/github.com/provider/`
 ```sh
 mkdir -p $GOPATH/src/github.com/provider/
 cd $GOPATH/src/github.com/provider/
-git clone https://github.com/vmware/terraform-provider-vmc.git
+git clone https://github.com/terraform-providers/terraform-provider-vmc.git
 ```
 
 Enter the provider directory and build the provider
@@ -32,7 +32,7 @@ go build -o terraform-provider-vmc
 Using the Provider
 ----------------------
 
-The instructions and configuration details to run the provider can be found in [examples/README.md](https://github.com/vmware/terraform-provider-vmc/blob/master/examples/README.md)
+The instructions and configuration details to run the provider can be found in [examples/README.md](https://github.com/terraform-providers/terraform-provider-vmc/blob/master/examples/README.md)
 
 
 Testing the Provider
@@ -64,4 +64,4 @@ $ make testacc TESTARGS="-run=TestAccResourceVmcSddc_basic"
 
 Copyright 2019 VMware, Inc.
 
-The Terraform provider for VMware Cloud on AWS is available under [MPL2.0 license](https://github.com/vmware/terraform-provider-vmc/blob/master/LICENSE).
+The Terraform provider for VMware Cloud on AWS is available under [MPL2.0 license](https://github.com/terraform-providers/terraform-provider-vmc/blob/master/LICENSE).
