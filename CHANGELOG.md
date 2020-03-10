@@ -1,6 +1,8 @@
 # Changelog
 
-## [1.0.0 (Unreleased)](https://github.com/vmware/terraform-provider-vmc/tree/HEAD)
+## [1.0.0 (Unreleased)]
+
+(https://github.com/vmware/terraform-provider-vmc/tree/HEAD)
 
 [Full Changelog](https://github.com/vmware/terraform-provider-vmc/compare/87cfcf8f21600ef6198389c569d1e988ca30b5a9...HEAD)
 
