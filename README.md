@@ -106,7 +106,7 @@ new issue.
 [gh-issues]: https://github.com/terraform-providers/terraform-provider-vmc/issues
 [gh-prs]: https://github.com/terraform-providers/terraform-provider-vmc/pulls
 
-See [Manual Installation](#manual-installation) for details on building the
+See [the section above](#building-the-provider) for details on building the
 provider.
 
 
