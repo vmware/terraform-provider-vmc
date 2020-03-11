@@ -44,7 +44,7 @@ To instead use a custom-built provider in your Terraform environment (e.g. the p
 For either installation method, documentation about the provider specific configuration options can be found on the [provider's website](https://www.terraform.io/docs/providers/vmc/index.html).
 
 
-### Controlling the provider version
+## Controlling the provider version
 
 Note that you can also control the provider version. This requires the use of a
 `provider` block in your Terraform configuration if you have not added one
@@ -105,14 +105,6 @@ new issue.
 
 [gh-issues]: https://github.com/terraform-providers/terraform-provider-vmc/issues
 [gh-prs]: https://github.com/terraform-providers/terraform-provider-vmc/pulls
-
-If you wish to work on the provider, you'll first need [Go][go-website]
-installed on your machine (version 1.13+ is **required**). You'll also need to
-correctly setup a [GOPATH][gopath], as well as adding `$GOPATH/bin` to your
-`$PATH`.
-
-[go-website]: https://golang.org/
-[gopath]: http://golang.org/doc/code.html#GOPATH
 
 See [Manual Installation](#manual-installation) for details on building the
 provider.
