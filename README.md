@@ -14,7 +14,7 @@ Requirements
 
 The instructions outlined below are specific to Mac OS or Linux OS only.
 
-If you wish to work on the provider, you'll first need [Go](http://www.golang.org) installed on your machine (please check the [requirements](https://github.com/terraform-providers/terraform-provider-aws#requirements) before proceeding).
+If you wish to work on the provider, you'll first need [Go](http://www.golang.org) installed on your machine (please check the [requirements](https://github.com/terraform-providers/terraform-provider-vmc#requirements) before proceeding).
 
 First, you will want to clone the repository to : `$GOPATH/src/github.com/terraform-providers/terraform-provider-vmc`
 
@@ -109,7 +109,7 @@ new issue.
 [gh-prs]: https://github.com/terraform-providers/terraform-provider-vmc/pulls
 
 If you wish to work on the provider, you'll first need [Go][go-website]
-installed on your machine (version 1.11+ is **required**). You'll also need to
+installed on your machine (version 1.13+ is **required**). You'll also need to
 correctly setup a [GOPATH][gopath], as well as adding `$GOPATH/bin` to your
 `$PATH`.
 
