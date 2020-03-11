@@ -115,8 +115,7 @@ See [Manual Installation](#manual-installation) for details on building the
 provider.
 
 
-Testing the Provider
-----------------------
+# Testing the Provider
 
 Set required environment variables based as per your infrastructure settings
 
