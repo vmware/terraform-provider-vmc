@@ -12,7 +12,7 @@ Requirements
 
 ## Cloning the Project
 
-The instructions outlined below to build the provider are specific to Mac OS or Linux OS only.
+The instructions outlined below are specific to Mac OS or Linux OS only.
 
 If you wish to work on the provider, you'll first need [Go](http://www.golang.org) installed on your machine (please check the [requirements](https://github.com/terraform-providers/terraform-provider-aws#requirements) before proceeding).
 
