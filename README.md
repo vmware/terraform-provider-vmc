@@ -10,6 +10,33 @@ Requirements
 - [Go](https://golang.org/doc/install) 1.13 (to build the provider plugin)
 
 
+## Cloning the Project
+
+The instructions outlined below to build the provider are specific to Mac OS or Linux OS only.
+
+If you wish to work on the provider, you'll first need [Go](http://www.golang.org) installed on your machine (please check the [requirements](https://github.com/terraform-providers/terraform-provider-aws#requirements) before proceeding).
+
+First, you will want to clone the repository to : `$GOPATH/src/github.com/terraform-providers/terraform-provider-vmc`
+
+```sh
+mkdir -p $GOPATH/src/github.com/terraform-providers
+cd $GOPATH/src/github.com/terraform-providers
+git clone git@github.com:terraform-providers/terraform-provider-vmc.git
+```
+
+## Building the Provider
+
+After the clone has been completed, you can enter the provider directory and build the provider. 
+
+```sh
+cd $GOPATH/src/github.com/terraform-providers/terraform-provider-vmc
+go get
+go build -o terraform-provider-vmc
+```
+
+After the build is complete, if your terraform running folder does not match your GOPATH environment, you need to copy the `terraform-provider-vmc` executable to your running folder and re-run `terraform init` to make terraform aware of your local provider executable.
+
+
 # Using the Provider
 
 To use a released provider in your Terraform environment, run [`terraform init`](https://www.terraform.io/docs/commands/init.html) and Terraform will automatically install the provider. To specify a particular provider version when installing released providers, see the [Terraform documentation on provider versioning](https://www.terraform.io/docs/configuration/providers.html#version-provider-versions).
@@ -69,33 +96,6 @@ Terraform v0.12.20
 
 Since Terraform has no indication of version, it cannot upgrade in a native way, based on the “version” attribute in provider block.
 In addition, this may cause difficulties in housekeeping and issue reporting.
-
-
-## Cloning the Project
-
-The instructions outlined below to build the provider are specific to Mac OS or Linux OS only.
-
-If you wish to work on the provider, you'll first need [Go](http://www.golang.org) installed on your machine (please check the [requirements](https://github.com/terraform-providers/terraform-provider-aws#requirements) before proceeding).
-
-First, you will want to clone the repository to : `$GOPATH/src/github.com/terraform-providers/terraform-provider-vmc`
-
-```sh
-mkdir -p $GOPATH/src/github.com/terraform-providers
-cd $GOPATH/src/github.com/terraform-providers
-git clone git@github.com:terraform-providers/terraform-provider-vmc.git
-```
-
-## Building and Installing the Provider
-
-After the clone has been completed, you can enter the provider directory and build the provider. 
-
-```sh
-cd $GOPATH/src/github.com/terraform-providers/terraform-provider-vmc
-go get
-go build -o terraform-provider-vmc
-```
-
-After the build is complete, if your terraform running folder does not match your GOPATH environment, you need to copy the `terraform-provider-vmc` executable to your running folder and re-run `terraform init` to make terraform aware of your local provider executable.
 
 
 # Developing the Provider
