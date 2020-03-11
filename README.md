@@ -3,14 +3,14 @@
 This is the repository for the Terraform provider for VMware Cloud, which one can use with
 Terraform to work with [VMware Cloud on AWS](https://vmc.vmware.com/).
 
-Requirements
-------------
+# Requirements
+
 
 - [Terraform](https://www.terraform.io/downloads.html) 0.12+
 - [Go](https://golang.org/doc/install) 1.13 (to build the provider plugin)
 
 
-## Cloning the Project
+# Building the Provider
 
 The instructions outlined below are specific to Mac OS or Linux OS only.
 
@@ -23,8 +23,6 @@ mkdir -p $GOPATH/src/github.com/terraform-providers
 cd $GOPATH/src/github.com/terraform-providers
 git clone git@github.com:terraform-providers/terraform-provider-vmc.git
 ```
-
-## Building the Provider
 
 After the clone has been completed, you can enter the provider directory and build the provider. 
 
