@@ -68,7 +68,7 @@ The following arguments are supported:
 
 * `storage_capacity` - (Optional) The storage capacity value to be requested for the sddc primary cluster,
    in GiBs. If provided, instead of using the direct-attached storage, a capacity value amount of
-   separable storage will be used.
+   separable storage will be used. Possible values for R5 metal are 15TB, 20TB, 25TB, 30TB, 35TB.
 
 * `num_host` - (Required) The number of hosts.
 
