@@ -47,3 +47,8 @@ resource "vmc_public_ip" "public_ip_1" {
   nsxt_reverse_proxy_url = vmc_sddc.sddc_1.nsxt_reverse_proxy_url
   display_name = var.public_ip_displayname
 }
+
+resource "vmc_site_recovery" "site_recovery_1" {
+  sddc_id = vmc_sddc.sddc_1.id
+  srm_extension_key_suffix = var.srm_extension_key_suffix
+}

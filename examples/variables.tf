@@ -60,6 +60,11 @@ variable provider_type {
 }
 
 variable sddc_type {
-  description = "Denotes the sddc type, if the value is null or empty, the type is considered as default. Possible values : '1NODE', 'DEFAULT'. "
-  default = "1NODE"
+description = "Denotes the sddc type, if the value is null or empty, the type is considered as default. Possible values : '1NODE', 'DEFAULT'. "
+default = "1NODE"
+}
+
+variable srm_extension_key_suffix {
+  description = "Customization, for example can specify custom extension key suffix for SRM."
+  default     = ""
 }
