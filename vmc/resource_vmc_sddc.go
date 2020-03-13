@@ -6,6 +6,7 @@ package vmc
 import (
 	"fmt"
 	"log"
+	"strings"
 	"time"
 
 	"github.com/hashicorp/terraform/helper/resource"
@@ -17,6 +18,14 @@ import (
 	"github.com/vmware/vsphere-automation-sdk-go/services/vmc/orgs"
 	"github.com/vmware/vsphere-automation-sdk-go/services/vmc/orgs/sddcs"
 )
+
+var storageCapacityMap = map[string]int{
+	"15TB": 15003,
+	"20TB": 20004,
+	"25TB": 25005,
+	"30TB": 30006,
+	"35TB": 35007,
+}
 
 func resourceSddc() *schema.Resource {
 	return &schema.Resource{
@@ -36,9 +45,11 @@ func resourceSddc() *schema.Resource {
 
 		Schema: map[string]*schema.Schema{
 			"storage_capacity": {
-				Type:     schema.TypeInt,
+				Type:     schema.TypeString,
 				Optional: true,
 				ForceNew: true,
+				ValidateFunc: validation.StringInSlice([]string{
+					"15TB", "20TB", "25TB", "30TB", "35TB"}, false),
 			},
 			"sddc_name": {
 				Type:         schema.TypeString,
@@ -97,7 +108,6 @@ func resourceSddc() *schema.Resource {
 				Type:     schema.TypeString,
 				Optional: true,
 				ForceNew: true,
-				Default:  "AWS",
 				ValidateFunc: validation.StringInSlice([]string{
 					"AWS", "ZEROCLOUD"}, false),
 			},
@@ -142,7 +152,9 @@ func resourceSddc() *schema.Resource {
 			"host_instance_type": {
 				Type:     schema.TypeString,
 				Optional: true,
-				Default:  "I3_METAL",
+				ForceNew: true,
+				ValidateFunc: validation.StringInSlice(
+					[]string{"I3_METAL", "R5_METAL"}, false),
 			},
 			"sddc_state": {
 				Type:     schema.TypeString,
@@ -165,15 +177,52 @@ func resourceSddc() *schema.Resource {
 				Computed: true,
 			},
 		},
+		CustomizeDiff: func(d *schema.ResourceDiff, meta interface{}) error {
+
+			newInstanceType := d.Get("host_instance_type").(string)
+
+			switch newInstanceType {
+
+			case "I3_METAL":
+
+				if d.Get("storage_capacity").(string) != "" {
+
+					return fmt.Errorf("storage_capacity is not supported for host_instance_type %q", newInstanceType)
+
+				}
+			case "R5_METAL":
+
+				if d.Get("storage_capacity").(string) == "" {
+
+					return fmt.Errorf("storage_capacity is required for host_instance_type %q", newInstanceType)
+
+				}
+
+			default:
+
+				// All other types support storage_capacity,
+
+				// so there is nothing to check.
+
+				return nil
+
+			}
+			return nil
+		},
 	}
 }
 
 func resourceSddcCreate(d *schema.ResourceData, m interface{}) error {
+	var storageCapacityConverted int64
 	connectorWrapper := m.(*ConnectorWrapper)
 	sddcClient := orgs.NewDefaultSddcsClient(connectorWrapper)
 	orgID := connectorWrapper.OrgID
-	storageCapacity := d.Get("storage_capacity").(int)
-	storageCapacityConverted := int64(storageCapacity)
+
+	storageCapacity := d.Get("storage_capacity").(string)
+	if len(strings.TrimSpace(storageCapacity)) == 0 {
+		storageCapacityConverted = convertStorageCapacitytoInt(storageCapacity)
+	}
+
 	sddcName := d.Get("sddc_name").(string)
 	vpcCidr := d.Get("vpc_cidr").(string)
 	numHost := d.Get("num_host").(int)
@@ -412,4 +461,9 @@ func getSDDC(connector client.Connector, orgID string, sddcID string) (model.Sdd
 	sddcClient := orgs.NewDefaultSddcsClient(connector)
 	sddc, err := sddcClient.Get(orgID, sddcID)
 	return sddc, err
+}
+
+func convertStorageCapacitytoInt(s string) int64 {
+	storageCapacity := storageCapacityMap[s]
+	return int64(storageCapacity)
 }

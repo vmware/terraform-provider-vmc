@@ -18,8 +18,8 @@ data "vmc_customer_subnets" "my_subnets" {
 resource "vmc_sddc" "sddc_1" {
   sddc_name           = var.sddc_name
   vpc_cidr            = var.vpc_cidr
-  num_host            = 3
-  provider_type       = "AWS"
+  num_host            = var.num_hosts
+  provider_type       = var.provider_type
   region              = data.vmc_customer_subnets.my_subnets.region
   vxlan_subnet        = var.vxlan_subnet
   delay_account_link  = false
@@ -27,6 +27,10 @@ resource "vmc_sddc" "sddc_1" {
   sso_domain          = "vmc.local"
 
   deployment_type = "SingleAZ"
+
+  host_instance_type = var.host_instance_type
+
+  storage_capacity = var.storage_capacity
 
   account_link_sddc_config {
     customer_subnet_ids  = [data.vmc_customer_subnets.my_subnets.ids[0]]

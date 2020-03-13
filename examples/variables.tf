@@ -37,3 +37,24 @@ variable "public_ip_displayname" {
   description = "Display name for public IP."
   default     = "public-ip-test"
 }
+
+
+variable host_instance_type {
+  description = "The instance type for the ESX hosts in the primary cluster of the SDDC"
+  default     = "I3_METAL"
+}
+
+variable storage_capacity {
+  description = "Storage capacity"
+  default     = ""
+}
+
+variable num_hosts {
+  description = "The number of hosts."
+  default     = "1"
+}
+
+variable provider_type {
+  description = "Determines what additional properties are available based on cloud provider. Acceptable values are ZEROCLOUD and AWS with AWS as the default value."
+  default     = ""
+}
