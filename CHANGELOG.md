@@ -25,4 +25,4 @@ BUG FIXES:
 * Moved main.tf to examples folder. [\#17](https://github.com/vmware/terraform-provider-vmc/pull/17)
 * License statement fixed. [\#8](https://github.com/vmware/terraform-provider-vmc/pull/8)
 * Implemented connected account data source to return a single account ID associated with the account number. [\#40](https://github.com/vmware/terraform-provider-vmc/pull/40)
-* Set ForceNew for host_instance_type to true in order to enforce SDDC redeploy when host_instance_type is changed. [\#5] (https://github.com/terraform-providers/terraform-provider-vmc/pull/5)
+* Set ForceNew for host_instance_type to true in order to enforce SDDC redeploy when host_instance_type is changed. [\#5](https://github.com/terraform-providers/terraform-provider-vmc/pull/5)
