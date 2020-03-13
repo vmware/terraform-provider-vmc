@@ -108,7 +108,7 @@ func resourceSddc() *schema.Resource {
 				Type:     schema.TypeString,
 				Optional: true,
 				ForceNew: true,
-				Default: "AWS",
+				Default:  "AWS",
 				ValidateFunc: validation.StringInSlice([]string{
 					"AWS", "ZEROCLOUD"}, false),
 			},
