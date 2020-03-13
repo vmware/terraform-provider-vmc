@@ -40,21 +40,21 @@ variable "public_ip_displayname" {
 
 
 variable host_instance_type {
-  description = "The instance type for the ESX hosts in the primary cluster of the SDDC"
-  default     = "I3_METAL"
+  description = "The instance type for the ESX hosts in the primary cluster of the SDDC. Possible values: I3_METAL, R5_METAL."
+  default     = ""
 }
 
 variable storage_capacity {
-  description = "The storage capacity value to be requested for the sddc primary cluster, in GiBs. If provided, instead of using the direct-attached storage, a capacity value amount of seperable storage will be used. Possible values for R5 metal are 15TB, 20TB, 25TB ,30TB, 35TB."
+  description = "The storage capacity value to be requested for the sddc primary cluster, in GiBs. If provided, instead of using the direct-attached storage, a capacity value amount of seperable storage will be used. Possible values for R5 metal are 15TB, 20TB, 25TB, 30TB, 35TB."
   default     = ""
 }
 
 variable num_hosts {
   description = "The number of hosts."
-  default     = "1"
+  default     = ""
 }
 
 variable provider_type {
   description = "Determines what additional properties are available based on cloud provider. Acceptable values are ZEROCLOUD and AWS with AWS as the default value."
-  default     = ""
+  default     = "AWS"
 }

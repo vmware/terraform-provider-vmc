@@ -108,6 +108,7 @@ func resourceSddc() *schema.Resource {
 				Type:     schema.TypeString,
 				Optional: true,
 				ForceNew: true,
+				Default: "AWS",
 				ValidateFunc: validation.StringInSlice([]string{
 					"AWS", "ZEROCLOUD"}, false),
 			},
@@ -154,7 +155,7 @@ func resourceSddc() *schema.Resource {
 				Optional: true,
 				ForceNew: true,
 				ValidateFunc: validation.StringInSlice(
-					[]string{"I3_METAL", "R5_METAL"}, false),
+					[]string{HostInstancetypeI3, HostInstancetypeR5}, false),
 			},
 			"sddc_state": {
 				Type:     schema.TypeString,
@@ -183,28 +184,20 @@ func resourceSddc() *schema.Resource {
 
 			switch newInstanceType {
 
-			case "I3_METAL":
+			case HostInstancetypeI3:
 
 				if d.Get("storage_capacity").(string) != "" {
 
 					return fmt.Errorf("storage_capacity is not supported for host_instance_type %q", newInstanceType)
 
 				}
-			case "R5_METAL":
+			case HostInstancetypeR5:
 
 				if d.Get("storage_capacity").(string) == "" {
 
 					return fmt.Errorf("storage_capacity is required for host_instance_type %q", newInstanceType)
 
 				}
-
-			default:
-
-				// All other types support storage_capacity,
-
-				// so there is nothing to check.
-
-				return nil
 
 			}
 			return nil

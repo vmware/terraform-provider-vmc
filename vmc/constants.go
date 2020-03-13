@@ -13,6 +13,10 @@ const (
 	// sksNSXTManager to be stripped from nsxt reverse proxy url for public IP resource
 	SksNSXTManager string = "/sks-nsxt-manager"
 
+	// ESX Host instance types supported for SDDC creation.
+	HostInstancetypeI3  string ="I3_METAL"
+	HostInstancetypeR5  string ="R5_METAL"
+
 	// Env variables used in acceptance tests
 	APIToken            string = "API_TOKEN"
 	OrgID               string = "ORG_ID"
