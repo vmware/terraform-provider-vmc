@@ -95,5 +95,5 @@ func testAccVmcSiteConfigBasic(srmExtensionKeySuffix string) string {
   resource "vmc_site_recovery" "site_recovery_1" {
 	sddc_id = "e4554fb7-a557-407a-b52c-ebb3f36dba91"
   }`,
-)
+	)
 }
