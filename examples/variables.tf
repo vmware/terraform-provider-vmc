@@ -45,7 +45,7 @@ variable host_instance_type {
 }
 
 variable storage_capacity {
-  description = "Storage capacity"
+  description = "The storage capacity value to be requested for the sddc primary cluster, in GiBs. If provided, instead of using the direct-attached storage, a capacity value amount of seperable storage will be used. Possible values for R5 metal are 15TB, 20TB, 25TB ,30TB, 35TB."
   default     = ""
 }
 
