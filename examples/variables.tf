@@ -58,3 +58,8 @@ variable provider_type {
   description = "Determines what additional properties are available based on cloud provider. Acceptable values are ZEROCLOUD and AWS with AWS as the default value."
   default     = "AWS"
 }
+
+variable srm_extension_key_suffix {
+  description = "Customization, for example can specify custom extension key suffix for SRM."
+  default     = ""
+}
