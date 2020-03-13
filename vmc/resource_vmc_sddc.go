@@ -19,7 +19,7 @@ import (
 	"github.com/vmware/vsphere-automation-sdk-go/services/vmc/orgs/sddcs"
 )
 
-var storageCapacityMap = map[string]int{
+var storageCapacityMap = map[string]int64{
 	"15TB": 15003,
 	"20TB": 20004,
 	"25TB": 25005,
@@ -465,5 +465,5 @@ func getSDDC(connector client.Connector, orgID string, sddcID string) (model.Sdd
 
 func convertStorageCapacitytoInt(s string) int64 {
 	storageCapacity := storageCapacityMap[s]
-	return int64(storageCapacity)
+	return storageCapacity
 }
