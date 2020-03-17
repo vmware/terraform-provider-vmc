@@ -47,7 +47,6 @@ func resourceSddc() *schema.Resource {
 			"storage_capacity": {
 				Type:     schema.TypeString,
 				Optional: true,
-				ForceNew: true,
 				ValidateFunc: validation.StringInSlice([]string{
 					"15TB", "20TB", "25TB", "30TB", "35TB"}, false),
 			},
