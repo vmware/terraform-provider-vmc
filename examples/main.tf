@@ -25,7 +25,7 @@ resource "vmc_sddc" "sddc_1" {
   delay_account_link  = false
   skip_creating_vxlan = false
   sso_domain          = "vmc.local"
-
+  sddc_type = var.sddc_type
   deployment_type = "SingleAZ"
 
   host_instance_type = var.host_instance_type

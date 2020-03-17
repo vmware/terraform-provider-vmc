@@ -51,10 +51,15 @@ variable storage_capacity {
 
 variable num_hosts {
   description = "The number of hosts."
-  default     = ""
+  default     = 1
 }
 
 variable provider_type {
   description = "Determines what additional properties are available based on cloud provider. Acceptable values are ZEROCLOUD and AWS with AWS as the default value."
   default     = "AWS"
+}
+
+variable sddc_type {
+  description = "Denotes the sddc type, if the value is null or empty, the type is considered as default. Possible values : '1NODE', 'DEFAULT'. "
+  default = "1NODE"
 }
