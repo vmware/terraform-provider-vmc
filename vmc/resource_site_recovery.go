@@ -64,9 +64,7 @@ func resourceSiteRecoveryCreate(d *schema.ResourceData, m interface{}) error {
 	srmExtensionKeySuffix := d.Get("srm_extension_key_suffix").(string)
 	orgID := (m.(*ConnectorWrapper)).OrgID
 	sddcID := d.Get("sddc_id").(string)
-	if srmExtensionKeySuffix != "" {
 
-	}
 	activateSiteRecoveryConfigParam := &model.ActivateSiteRecoveryConfig{
 		SrmExtensionKeySuffix: &srmExtensionKeySuffix,
 	}
