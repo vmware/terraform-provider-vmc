@@ -5,12 +5,14 @@ package vmc
 
 import (
 	"fmt"
+	"log"
 	"net/http"
 	"os"
 	"strings"
 
 	"github.com/hashicorp/terraform/helper/schema"
 	uuid "github.com/satori/go.uuid"
+	"github.com/vmware/vsphere-automation-sdk-go/lib/vapi/std/errors"
 	"github.com/vmware/vsphere-automation-sdk-go/runtime/protocol/client"
 	"github.com/vmware/vsphere-automation-sdk-go/services/nsxt-vmc-aws-integration/api"
 	"github.com/vmware/vsphere-automation-sdk-go/services/nsxt-vmc-aws-integration/model"
@@ -40,6 +42,7 @@ func resourcePublicIp() *schema.Resource {
 			"display_name": {
 				Type:        schema.TypeString,
 				Optional:    true,
+				ForceNew:    true,
 				Description: "Display name/notes about this resource",
 			},
 		},
@@ -86,6 +89,11 @@ func resourcePublicIpRead(d *schema.ResourceData, m interface{}) error {
 	if len(uuid) > 0 {
 		publicIp, err := nsxVmcAwsClient.GetPublicIp(uuid)
 		if err != nil {
+			if err.Error() == errors.NewNotFound().Error() {
+				log.Printf("Public IP with ID %s not found", uuid)
+				d.SetId("")
+				return nil
+			}
 			return fmt.Errorf("Error getting public IP with ID %s : %v", uuid, err)
 		}
 		d.Set("ip", publicIp.Ip)
