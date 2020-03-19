@@ -6,10 +6,10 @@ description: |-
   The Terraform Provider for VMware Cloud
 ---
 
-# terraform-provider-vmc
+# VMware Cloud on AWS Provider
 
-The terraform-provider-vmc gives the VMC administrator a way to automate features
-of VMware Cloud on AWS using the VMC API.
+The VMware Cloud on AWS provider can be used to configure hybrid cloud infrastructure using the resources supported by VMware Cloud on AWS.
+
 
 More information on VMC can be found on the [VMC Product
 Page](https://cloud.vmware.com/vmc-aws)
@@ -17,11 +17,11 @@ Page](https://cloud.vmware.com/vmc-aws)
 Please use the navigation to the left to read about available data sources and
 resources.
 
-## Basic Configuration of the terraform-provider-vmc
+## Basic Configuration of the VMware Cloud on AWS Provider
 
-In order to use the terraform-provider-vmc you need to obtain the authentication
+In order to use the VMware Cloud on AWS Provider you need to obtain the authentication
 token from the Cloud Service Provider by providing the org scoped API token.
-The Terraform provider client uses Cloud Service Provider CSP API
+The provider client uses Cloud Service Provider CSP API
 to exchange this org scoped API token for user access token.
 
 Note that in all of the examples you will need to update the `api_token` and `org_id` settings
@@ -30,7 +30,7 @@ in the variables.tf file to match those configured in your VMC environment.
 
 ## Argument Reference
 
-The following arguments are used to configure the VMware VMC Provider:
+The following arguments are used to configure the VMware Cloud on AWS Provider:
 
 * `api_token` - (Required) API token is used to authenticate when calling VMware Cloud Services APIs.
    This token is scoped within the organization.

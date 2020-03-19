@@ -76,12 +76,15 @@ The following arguments are supported:
 
 * `host_instance_type` -  (Optional) The instance type for the esx hosts in the primary cluster of the SDDC.
 
-* `vpc_cidr` - (Optional) AWS VPC IP range. Only prefix of 16 or 20 is currently supported.
-
+* `vpc_cidr` - (Optional) SDDC management network CIDR. Only prefix of 16, 20 and 23 are supported. Note : Specify a private subnet range (RFC 1918) to be used for 
+   vCenter Server, NSX Manager, and ESXi hosts. Choose a range that will not conflict with other networks you will connect to this SDDC.
+   Minimum CIDR sizes: /23 for up to 27 hosts, /20 for up to 251 hosts, /16 for up to 4091 hosts.
+   Reserved CIDRs: 10.0.0.0/15, 172.31.0.0/16.
+ 
 * `sddc_type` - (Optional) Denotes the sddc type , if the value is null or empty, the type is considered
    as default.
 
-* `vxlan_subnet` - (Optional) VXLAN IP subnet in CIDR for compute gateway.
+* `vxlan_subnet` - (Optional) A logical segment that will be created with the SDDC under the compute gateway.
 
 * `delay_account_link` - (Optional)  Boolean flag identifying whether account linking should be delayed
    or not for the SDDC.
