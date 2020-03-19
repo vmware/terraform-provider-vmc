@@ -78,11 +78,11 @@ The following arguments are supported:
 
 * `vpc_cidr` - (Optional) SDDC management network CIDR. Only prefix of 16, 20 and 23 are supported. Note : Specify a private subnet range (RFC 1918) to be used for 
    vCenter Server, NSX Manager, and ESXi hosts. Choose a range that will not conflict with other networks you will connect to this SDDC.
-   Minimum CIDR sizes: /23 for up to 27 hosts, /20 for up to 251 hosts, /16 for up to 4091 hosts.
-   Reserved CIDRs: 10.0.0.0/15, 172.31.0.0/16.
+   Minimum CIDR sizes : /23 for up to 27 hosts, /20 for up to 251 hosts, /16 for up to 4091 hosts.
+   Reserved CIDRs : 10.0.0.0/15, 172.31.0.0/16.
  
 * `sddc_type` - (Optional) Denotes the sddc type , if the value is null or empty, the type is considered
-   as default. 
+   as default.
 
 * `vxlan_subnet` - (Optional) A logical network segment that will be created with the SDDC under the compute gateway.
 
@@ -98,7 +98,7 @@ The following arguments are supported:
 
 * `sddc_template_id` - (Optional) If provided, configuration from the template will applied to the provisioned SDDC.
 
-* `deployment_type` - (Optional) Denotes if request is for a SingleAZ or a MultiAZ SDDC. Default is SingleAZ.
+* `deployment_type` - (Optional) Denotes if request is for a SingleAZ or a MultiAZ SDDC. Default : SingleAZ.
 
 * `cluster_id` - (Optional) Cluster identifier.
 
