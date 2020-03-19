@@ -68,13 +68,13 @@ The following arguments are supported:
 
 * `storage_capacity` - (Optional) The storage capacity value to be requested for the sddc primary cluster,
    in GiBs. If provided, instead of using the direct-attached storage, a capacity value amount of
-   separable storage will be used. Possible values for R5 metal are 15TB, 20TB, 25TB, 30TB, 35TB.
+   separable storage will be used. Possible values for R5_METAL are 15TB, 20TB, 25TB, 30TB, 35TB.
 
 * `num_host` - (Required) The number of hosts.
 
 * `account_link_sddc_config` - (Optional) The account linking configuration object.
 
-* `host_instance_type` -  (Optional) The instance type for the esx hosts in the primary cluster of the SDDC.
+* `host_instance_type` -  (Optional) The instance type for the esx hosts in the primary cluster of the SDDC. Possible values : I3_METAL, R5_METAL.
 
 * `vpc_cidr` - (Optional) SDDC management network CIDR. Only prefix of 16, 20 and 23 are supported. Note : Specify a private subnet range (RFC 1918) to be used for 
    vCenter Server, NSX Manager, and ESXi hosts. Choose a range that will not conflict with other networks you will connect to this SDDC.

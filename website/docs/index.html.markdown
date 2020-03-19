@@ -19,9 +19,9 @@ resources.
 
 ## Basic Configuration of the VMware Cloud on AWS Provider
 
-In order to use the VMware Cloud on AWS Provider you need to obtain the authentication
+In order to use the provider you need to obtain the authentication
 token from the Cloud Service Provider by providing the org scoped API token.
-The provider client uses Cloud Service Provider CSP API
+The provider client uses Cloud Service Provider (CSP) API
 to exchange this org scoped API token for user access token.
 
 Note that in all of the examples you will need to update the `api_token` and `org_id` settings
