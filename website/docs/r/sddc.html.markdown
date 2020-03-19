@@ -82,9 +82,9 @@ The following arguments are supported:
    Reserved CIDRs: 10.0.0.0/15, 172.31.0.0/16.
  
 * `sddc_type` - (Optional) Denotes the sddc type , if the value is null or empty, the type is considered
-   as default.
+   as default. 
 
-* `vxlan_subnet` - (Optional) A logical segment that will be created with the SDDC under the compute gateway.
+* `vxlan_subnet` - (Optional) A logical network segment that will be created with the SDDC under the compute gateway.
 
 * `delay_account_link` - (Optional)  Boolean flag identifying whether account linking should be delayed
    or not for the SDDC.
