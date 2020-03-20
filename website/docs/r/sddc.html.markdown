@@ -68,20 +68,23 @@ The following arguments are supported:
 
 * `storage_capacity` - (Optional) The storage capacity value to be requested for the sddc primary cluster,
    in GiBs. If provided, instead of using the direct-attached storage, a capacity value amount of
-   separable storage will be used. Possible values for R5 metal are 15TB, 20TB, 25TB, 30TB, 35TB.
+   separable storage will be used. Possible values for R5_METAL are 15TB, 20TB, 25TB, 30TB, 35TB.
 
 * `num_host` - (Required) The number of hosts.
 
 * `account_link_sddc_config` - (Optional) The account linking configuration object.
 
-* `host_instance_type` -  (Optional) The instance type for the esx hosts in the primary cluster of the SDDC.
+* `host_instance_type` -  (Optional) The instance type for the esx hosts in the primary cluster of the SDDC. Possible values : I3_METAL, R5_METAL.
 
-* `vpc_cidr` - (Optional) AWS VPC IP range. Only prefix of 16 or 20 is currently supported.
-
+* `vpc_cidr` - (Optional) SDDC management network CIDR. Only prefix of 16, 20 and 23 are supported. Note : Specify a private subnet range (RFC 1918) to be used for 
+   vCenter Server, NSX Manager, and ESXi hosts. Choose a range that will not conflict with other networks you will connect to this SDDC.
+   Minimum CIDR sizes : /23 for up to 27 hosts, /20 for up to 251 hosts, /16 for up to 4091 hosts.
+   Reserved CIDRs : 10.0.0.0/15, 172.31.0.0/16.
+ 
 * `sddc_type` - (Optional) Denotes the sddc type , if the value is null or empty, the type is considered
    as default.
 
-* `vxlan_subnet` - (Optional) VXLAN IP subnet in CIDR for compute gateway.
+* `vxlan_subnet` - (Optional) A logical network segment that will be created with the SDDC under the compute gateway.
 
 * `delay_account_link` - (Optional)  Boolean flag identifying whether account linking should be delayed
    or not for the SDDC.
@@ -95,7 +98,7 @@ The following arguments are supported:
 
 * `sddc_template_id` - (Optional) If provided, configuration from the template will applied to the provisioned SDDC.
 
-* `deployment_type` - (Optional) Denotes if request is for a SingleAZ or a MultiAZ SDDC. Default is SingleAZ.
+* `deployment_type` - (Optional) Denotes if request is for a SingleAZ or a MultiAZ SDDC. Default : SingleAZ.
 
 * `cluster_id` - (Optional) Cluster identifier.
 

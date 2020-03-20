@@ -24,13 +24,13 @@ variable "sddc_region" {
 }
 
 variable "vpc_cidr" {
-  description = "AWS VPC IP range. Only prefix of 16 or 20 is currently supported."
-  default     = "10.2.0.0/16"
+  description = "SDDC management network CIDR. Only prefix of 16, 20 and 23 are supported."
+  default     = ""
 }
 
 variable "vxlan_subnet" {
-  description = "VXLAN IP subnet in CIDR for compute gateway."
-  default     = "192.168.1.0/24"
+  description = "A logical network segment that will be created with the SDDC under the compute gateway."
+  default     = ""
 }
 
 variable "public_ip_displayname" {
