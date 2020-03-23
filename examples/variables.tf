@@ -45,7 +45,7 @@ variable host_instance_type {
 }
 
 variable storage_capacity {
-  description = "The storage capacity value to be requested for the sddc primary cluster. This variable is only for R5.METAL. Possible values are 15TB, 20TB, 25TB, 30TB, 35TB per host."
+  description = "The storage capacity value to be requested for the SDDC primary cluster. This variable is only for R5.METAL. Possible values are 15TB, 20TB, 25TB, 30TB, 35TB per host."
   default     = ""
 }
 

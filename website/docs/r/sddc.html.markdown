@@ -66,7 +66,7 @@ The following arguments are supported:
 
 * `sddc_name` - (Required) Name of the SDDC.
 
-* `storage_capacity` - (Optional) The storage capacity value to be requested for the sddc primary cluster. 
+* `storage_capacity` - (Optional) The storage capacity value to be requested for the SDDC primary cluster. 
    This variable is only for R5.METAL. Possible values are 15TB, 20TB, 25TB, 30TB, 35TB per host.
 
 * `num_host` - (Required) The number of hosts.
