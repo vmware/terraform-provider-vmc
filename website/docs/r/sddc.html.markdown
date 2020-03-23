@@ -66,9 +66,8 @@ The following arguments are supported:
 
 * `sddc_name` - (Required) Name of the SDDC.
 
-* `storage_capacity` - (Optional) The storage capacity value to be requested for the sddc primary cluster,
-   in GiBs. If provided, instead of using the direct-attached storage, a capacity value amount of
-   separable storage will be used. Possible values for R5_METAL are 15TB, 20TB, 25TB, 30TB, 35TB.
+* `storage_capacity` - (Optional) The storage capacity value to be requested for the sddc primary cluster. 
+   This variable is only for R5.METAL. Possible values are 15TB, 20TB, 25TB, 30TB, 35TB per host.
 
 * `num_host` - (Required) The number of hosts.
 
@@ -90,7 +89,7 @@ The following arguments are supported:
    or not for the SDDC.
 
 * `provider_type` - (Optional)  Determines what additional properties are available based on cloud
-   provider. Acceptable values are "ZEROCLOUD" and "AWS" with AWS as the default value.
+   provider. Default value : AWS
 
 * `skip_creating_vxlan` - (Optional) Boolean value to skip creating vxlan for compute gateway for SDDC provisioning.
 
