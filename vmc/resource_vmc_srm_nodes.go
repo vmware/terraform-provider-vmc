@@ -39,7 +39,7 @@ func resourceSRMNodes() *schema.Resource {
 				Type:         schema.TypeString,
 				ForceNew:     true,
 				Required:     true,
-				ValidateFunc: validation.StringLenBetween(0, 13),
+				ValidateFunc: validation.StringLenBetween(1, 13),
 				Description:  "Custom extension key suffix for SRM. If not specified, default extension key will be used. The custom extension suffix must contain 13 characters or less, be composed of letters, numbers, ., -, and _ characters. The extension suffix must begin and end with a letter or number. The suffix is appended to com.vmware.vcDr- to form the full extension key",
 			},
 			"srm_nodes": {
