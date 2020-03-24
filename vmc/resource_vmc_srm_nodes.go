@@ -5,7 +5,6 @@ package vmc
 
 import (
 	"fmt"
-	"github.com/hashicorp/terraform/helper/validation"
 	"log"
 	"time"
 
@@ -31,15 +30,15 @@ func resourceSRMNodes() *schema.Resource {
 		Schema: map[string]*schema.Schema{
 			"sddc_id": {
 				Type:        schema.TypeString,
-				ForceNew:    true,
 				Required:    true,
+				ForceNew:    true,
 				Description: "SDDC identifier",
 			},
 			"srm_extension_key_suffix": {
 				Type:         schema.TypeString,
 				ForceNew:     true,
 				Required:     true,
-				ValidateFunc: validation.StringLenBetween(1, 13),
+				//ValidateFunc: validation.StringLenBetween(1, 13),
 				Description:  "Custom extension key suffix for SRM. If not specified, default extension key will be used. The custom extension suffix must contain 13 characters or less, be composed of letters, numbers, ., -, and _ characters. The extension suffix must begin and end with a letter or number. The suffix is appended to com.vmware.vcDr- to form the full extension key",
 			},
 			"srm_nodes": {
@@ -96,11 +95,16 @@ func resourceSRMNodesCreate(d *schema.ResourceData, m interface{}) error {
 }
 
 func resourceSRMNodesRead(d *schema.ResourceData, m interface{}) error {
+
 	connector := (m.(*ConnectorWrapper)).Connector
-	sddcID := d.Get("sddc_id").(string)
+	sddcID := "9d33a884-4fc9-4886-a5ad-60ddf223deec"
+
 	orgID := (m.(*ConnectorWrapper)).OrgID
 	siteRecoveryClient := draas.NewDefaultSiteRecoveryClient(connector)
-	siteRecovery, err := siteRecoveryClient.Get(orgID, sddcID)
+
+	log.Println(sddcID)
+	siteRecovery, err := siteRecoveryClient.Get(orgID,"9d33a884-4fc9-4886-a5ad-60ddf223deec")
+	log.Println(siteRecovery)
 	if err != nil {
 		return fmt.Errorf("Error while getting the SDDC with ID  : %v", err)
 	}
