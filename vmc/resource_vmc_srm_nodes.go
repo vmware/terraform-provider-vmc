@@ -36,16 +36,16 @@ func resourceSRMNodes() *schema.Resource {
 				Description: "SDDC identifier",
 			},
 			"srm_extension_key_suffix": {
-				Type:        schema.TypeString,
-				ForceNew:    true,
-				Required:    true,
+				Type:         schema.TypeString,
+				ForceNew:     true,
+				Required:     true,
 				ValidateFunc: validation.StringLenBetween(0, 13),
-				Description: "Custom extension key suffix for SRM. If not specified, default extension key will be used. The custom extension suffix must contain 13 characters or less, be composed of letters, numbers, ., -, and _ characters. The extension suffix must begin and end with a letter or number. The suffix is appended to com.vmware.vcDr- to form the full extension key",
+				Description:  "Custom extension key suffix for SRM. If not specified, default extension key will be used. The custom extension suffix must contain 13 characters or less, be composed of letters, numbers, ., -, and _ characters. The extension suffix must begin and end with a letter or number. The suffix is appended to com.vmware.vcDr- to form the full extension key",
 			},
 			"srm_nodes": {
-				Type:        schema.TypeList,
-				Computed:    true,
-				Elem:        &schema.Schema{Type: schema.TypeMap},
+				Type:     schema.TypeList,
+				Computed: true,
+				Elem:     &schema.Schema{Type: schema.TypeMap},
 			},
 		},
 	}
