@@ -5,9 +5,10 @@ package vmc
 
 import (
 	"fmt"
-	"github.com/hashicorp/terraform/helper/validation"
 	"log"
 	"time"
+
+	"github.com/hashicorp/terraform/helper/validation"
 
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/helper/schema"
@@ -36,11 +37,11 @@ func resourceSiteRecovery() *schema.Resource {
 				Description: "SDDC identifier",
 			},
 			"srm_extension_key_suffix": {
-				Type:     schema.TypeString,
-				ForceNew: true,
-				Optional: true,
+				Type:         schema.TypeString,
+				ForceNew:     true,
+				Optional:     true,
 				ValidateFunc: validation.StringLenBetween(0, 13),
-				Description: "Custom extension key suffix for SRM. If not specified, default extension key will be used. The custom extension suffix must contain 13 characters or less, be composed of letters, numbers, ., - characters only. The extension suffix must begin and end with a letter or number. The suffix is appended to com.vmware.vcDr- to form the full extension key",
+				Description:  "Custom extension key suffix for SRM. If not specified, default extension key will be used. The custom extension suffix must contain 13 characters or less, be composed of letters, numbers, ., - characters only. The extension suffix must begin and end with a letter or number. The suffix is appended to com.vmware.vcDr- to form the full extension key",
 			},
 			"site_recovery_state": {
 				Type:        schema.TypeString,
@@ -58,13 +59,13 @@ func resourceSiteRecovery() *schema.Resource {
 				Description: "User name that last updated this record.",
 			},
 			"srm_nodes": {
-				Type:        schema.TypeList,
-				Computed:    true,
-				Elem:        &schema.Schema{Type: schema.TypeMap},
+				Type:     schema.TypeList,
+				Computed: true,
+				Elem:     &schema.Schema{Type: schema.TypeMap},
 			},
 			"vr_node": {
-				Type:        schema.TypeMap,
-				Computed:    true,
+				Type:     schema.TypeMap,
+				Computed: true,
 			},
 		},
 	}
@@ -150,11 +151,10 @@ func resourceSiteRecoveryRead(d *schema.ResourceData, m interface{}) error {
 	vr_node["hostname"] = *siteRecovery.VrNode.Hostname
 	vr_node["type"] = *siteRecovery.VrNode.Type_
 	vr_node["state"] = *siteRecovery.VrNode.State
-	vr_node["ip_address"]= *siteRecovery.VrNode.IpAddress
-
+	vr_node["ip_address"] = *siteRecovery.VrNode.IpAddress
 
 	d.Set("srm_nodes", srm_nodes)
-	d.Set("vr_node",vr_node)
+	d.Set("vr_node", vr_node)
 	return nil
 }
 
