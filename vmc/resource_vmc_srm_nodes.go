@@ -16,11 +16,11 @@ import (
 	"github.com/vmware/vsphere-automation-sdk-go/services/vmc/draas/model"
 )
 
-func resourceSiteRecovery() *schema.Resource {
+func resourceSRMNodes() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceSiteRecoveryCreate,
-		Read:   resourceSiteRecoveryRead,
-		Delete: resourceSiteRecoveryDelete,
+		Create: resourceSRMNodesCreate,
+		Read:   resourceSRMNodesRead,
+		Delete: resourceSRMNodesDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -36,63 +36,41 @@ func resourceSiteRecovery() *schema.Resource {
 				Description: "SDDC identifier",
 			},
 			"srm_extension_key_suffix": {
-				Type:     schema.TypeString,
-				ForceNew: true,
-				Optional: true,
+				Type:        schema.TypeString,
+				ForceNew:    true,
+				Required:    true,
 				ValidateFunc: validation.StringLenBetween(0, 13),
-				Description: "Custom extension key suffix for SRM. If not specified, default extension key will be used. The custom extension suffix must contain 13 characters or less, be composed of letters, numbers, ., - characters only. The extension suffix must begin and end with a letter or number. The suffix is appended to com.vmware.vcDr- to form the full extension key",
-			},
-			"site_recovery_state": {
-				Type:        schema.TypeString,
-				Computed:    true,
-				Description: "Site recovery state. Possible values are: ACTIVATED, ACTIVATING, CANCELED, DEACTIVATED, DEACTIVATING, DELETED, FAILED",
-			},
-			"user_id": {
-				Type:        schema.TypeString,
-				Computed:    true,
-				Description: "User id that last updated this record.",
-			},
-			"user_name": {
-				Type:        schema.TypeString,
-				Computed:    true,
-				Description: "User name that last updated this record.",
+				Description: "Custom extension key suffix for SRM. If not specified, default extension key will be used. The custom extension suffix must contain 13 characters or less, be composed of letters, numbers, ., -, and _ characters. The extension suffix must begin and end with a letter or number. The suffix is appended to com.vmware.vcDr- to form the full extension key",
 			},
 			"srm_nodes": {
 				Type:        schema.TypeList,
 				Computed:    true,
 				Elem:        &schema.Schema{Type: schema.TypeMap},
 			},
-			"vr_node": {
-				Type:        schema.TypeMap,
-				Computed:    true,
-			},
 		},
 	}
 }
 
-func resourceSiteRecoveryCreate(d *schema.ResourceData, m interface{}) error {
+func resourceSRMNodesCreate(d *schema.ResourceData, m interface{}) error {
 
 	connector := (m.(*ConnectorWrapper)).Connector
 
-	siteRecoveryClient := draas.NewDefaultSiteRecoveryClient(connector)
+	siteRecoverySrmNodesClient := draas.NewDefaultSiteRecoverySrmNodesClient(connector)
 
 	srmExtensionKeySuffix := d.Get("srm_extension_key_suffix").(string)
 	orgID := (m.(*ConnectorWrapper)).OrgID
 	sddcID := d.Get("sddc_id").(string)
 
-	activateSiteRecoveryConfigParam := &model.ActivateSiteRecoveryConfig{
+	provisionSrmConfigParam := &model.ProvisionSrmConfig{
 		SrmExtensionKeySuffix: &srmExtensionKeySuffix,
 	}
 
-	task, err := siteRecoveryClient.Post(orgID, sddcID, activateSiteRecoveryConfigParam)
+	task, err := siteRecoverySrmNodesClient.Post(orgID, sddcID, provisionSrmConfigParam)
 
 	if err != nil {
 		return fmt.Errorf("Error while activating site recovery for sddc %s: %v", sddcID, err)
 	}
 
-	// Wait until site recover is activated
-	taskID := task.ResourceId
-	d.SetId(*taskID)
 	return resource.Retry(d.Timeout(schema.TimeoutCreate), func() *resource.RetryError {
 		tasksClient := draas.NewDefaultTaskClient(connector)
 		task, err := tasksClient.Get(orgID, task.Id)
@@ -117,20 +95,15 @@ func resourceSiteRecoveryCreate(d *schema.ResourceData, m interface{}) error {
 
 }
 
-func resourceSiteRecoveryRead(d *schema.ResourceData, m interface{}) error {
+func resourceSRMNodesRead(d *schema.ResourceData, m interface{}) error {
 	connector := (m.(*ConnectorWrapper)).Connector
-	sddcID := d.Id()
+	sddcID := d.Get("sddc_id").(string)
 	orgID := (m.(*ConnectorWrapper)).OrgID
 	siteRecoveryClient := draas.NewDefaultSiteRecoveryClient(connector)
 	siteRecovery, err := siteRecoveryClient.Get(orgID, sddcID)
 	if err != nil {
 		return fmt.Errorf("Error while getting the SDDC with ID  : %v", err)
 	}
-	d.SetId(siteRecovery.Id)
-	d.Set("site_recovery_state", siteRecovery.SiteRecoveryState)
-	d.Set("draas_h5_url", siteRecovery.DraasH5Url)
-	d.Set("user_id", siteRecovery.UserId)
-	d.Set("user_name", siteRecovery.UserName)
 
 	srm_nodes := []map[string]string{}
 	for _, srmNode := range siteRecovery.SrmNodes {
@@ -143,29 +116,17 @@ func resourceSiteRecoveryRead(d *schema.ResourceData, m interface{}) error {
 		m["vm_moref_id"] = *srmNode.VmMorefId
 		srm_nodes = append(srm_nodes, m)
 	}
-
-	vr_node := map[string]string{}
-	vr_node["vm_moref_id"] = *siteRecovery.VrNode.VmMorefId
-	vr_node["id"] = *siteRecovery.VrNode.Id
-	vr_node["hostname"] = *siteRecovery.VrNode.Hostname
-	vr_node["type"] = *siteRecovery.VrNode.Type_
-	vr_node["state"] = *siteRecovery.VrNode.State
-	vr_node["ip_address"]= *siteRecovery.VrNode.IpAddress
-
-
-	d.Set("srm_nodes", srm_nodes)
-	d.Set("vr_node",vr_node)
 	return nil
 }
 
-func resourceSiteRecoveryDelete(d *schema.ResourceData, m interface{}) error {
+func resourceSRMNodesDelete(d *schema.ResourceData, m interface{}) error {
 	connector := (m.(*ConnectorWrapper)).Connector
-	siteRecoveryClient := draas.NewDefaultSiteRecoveryClient(connector)
+	siteRecoverySrmNodesClient := draas.NewDefaultSiteRecoverySrmNodesClient(connector)
 
 	orgID := (m.(*ConnectorWrapper)).OrgID
 	sddcID := d.Get("sddc_id").(string)
-
-	task, err := siteRecoveryClient.Delete(orgID, sddcID, nil, nil)
+	srmNodeID := d.Id()
+	task, err := siteRecoverySrmNodesClient.Delete(orgID, sddcID, srmNodeID)
 	if err != nil {
 		return fmt.Errorf("Error while deactivating site recovery for sddc %s: %v", sddcID, err)
 	}
