@@ -1,4 +1,10 @@
-## 1.1.1 (Unreleased)
+## 1.1.1 (March 23, 2020)
+
+BUG FIXES:
+
+* Set ForceNew for host_instance_type to true in order to enforce SDDC redeploy when host_instance_type is changed. [\#5](https://github.com/terraform-providers/terraform-provider-vmc/pull/5)
+* Fix for re-creating public IP if it is accidentally delete via console. [\#11](https://github.com/terraform-providers/terraform-provider-vmc/pull/11)
+* Updated variables.tf for description of fields. [\#10](https://github.com/terraform-providers/terraform-provider-vmc/pull/10)
 
 ## 1.1.0 (March 10, 2020)
 
