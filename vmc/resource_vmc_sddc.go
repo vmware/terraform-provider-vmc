@@ -212,13 +212,13 @@ func resourceSddcCreate(d *schema.ResourceData, m interface{}) error {
 	orgID := connectorWrapper.OrgID
 
 	storageCapacity := d.Get("storage_capacity").(string)
-	if len(strings.TrimSpace(storageCapacity)) == 0 {
+	if len(strings.TrimSpace(storageCapacity)) != 0 {
 		storageCapacityConverted = convertStorageCapacitytoInt(storageCapacity)
 	}
 
 	sddcName := d.Get("sddc_name").(string)
 	vpcCidr := d.Get("vpc_cidr").(string)
-	numHost := d.Get("num_host").(int)
+	numHost := int64(d.Get("num_host").(int))
 	sddcType := d.Get("sddc_type").(string)
 
 	var sddcTypePtr *string
@@ -239,11 +239,13 @@ func resourceSddcCreate(d *schema.ResourceData, m interface{}) error {
 	accountLinkSddcConfig := expandAccountLinkSddcConfig(d.Get("account_link_sddc_config").([]interface{}))
 	hostInstanceType := model.HostInstanceTypes(d.Get("host_instance_type").(string))
 
+    totalStorageCapacity := numHost * storageCapacityConverted
+
 	var awsSddcConfig = &model.AwsSddcConfig{
-		StorageCapacity:       &storageCapacityConverted,
+		StorageCapacity:       &totalStorageCapacity,
 		Name:                  sddcName,
 		VpcCidr:               &vpcCidr,
-		NumHosts:              int64(numHost),
+		NumHosts:              numHost,
 		SddcType:              sddcTypePtr,
 		VxlanSubnet:           &vxlanSubnet,
 		AccountLinkConfig:     accountLinkConfig,
