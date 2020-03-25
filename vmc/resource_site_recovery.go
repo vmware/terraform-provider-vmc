@@ -35,11 +35,11 @@ func resourceSiteRecovery() *schema.Resource {
 				Description: "SDDC identifier",
 			},
 			"srm_extension_key_suffix": {
-				Type:         schema.TypeString,
-				ForceNew:     true,
-				Optional:     true,
+				Type:     schema.TypeString,
+				ForceNew: true,
+				Optional: true,
 				//ValidateFunc: validation.StringLenBetween(0, 13),
-				Description:  "Custom extension key suffix for SRM. If not specified, default extension key will be used. The custom extension suffix must contain 13 characters or less, be composed of letters, numbers, ., - characters only. The extension suffix must begin and end with a letter or number. The suffix is appended to com.vmware.vcDr- to form the full extension key",
+				Description: "Custom extension key suffix for SRM. If not specified, default extension key will be used. The custom extension suffix must contain 13 characters or less, be composed of letters, numbers, ., - characters only. The extension suffix must begin and end with a letter or number. The suffix is appended to com.vmware.vcDr- to form the full extension key",
 			},
 			"site_recovery_state": {
 				Type:        schema.TypeString,
