@@ -119,7 +119,7 @@ func resourceSRMNodesRead(d *schema.ResourceData, m interface{}) error {
 		m["vm_moref_id"] = *srmNode.VmMorefId
 		srm_nodes = append(srm_nodes, m)
 	}
-	d.Set("srm_nodes",srm_nodes)
+	d.Set("srm_nodes", srm_nodes)
 	return nil
 }
 
