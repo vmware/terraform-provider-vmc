@@ -13,6 +13,7 @@ import (
 	"github.com/vmware/vsphere-automation-sdk-go/lib/vapi/std/errors"
 	"github.com/vmware/vsphere-automation-sdk-go/services/vmc/draas"
 	"github.com/vmware/vsphere-automation-sdk-go/services/vmc/draas/model"
+	"github.com/vmware/vsphere-automation-sdk-go/services/vmc/orgs"
 )
 
 func resourceSRMNodes() *schema.Resource {
@@ -45,6 +46,18 @@ func resourceSRMNodes() *schema.Resource {
 				Type:     schema.TypeList,
 				Computed: true,
 				Elem:     &schema.Schema{Type: schema.TypeMap},
+			},
+			"cloud_username": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+			"cloud_password": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+			"nsxt_reverse_proxy_url": {
+				Type:     schema.TypeString,
+				Computed: true,
 			},
 		},
 	}
@@ -102,15 +115,15 @@ func resourceSRMNodesRead(d *schema.ResourceData, m interface{}) error {
 	sddcID := d.Get("sddc_id").(string)
 
 	orgID := (m.(*ConnectorWrapper)).OrgID
-	siteRecoveryClient := draas.NewDefaultSiteRecoveryClient(connector)
+	siteRecoveryClient := orgs.NewDefaultSddcsClient(connector)
 
 	siteRecovery, err := siteRecoveryClient.Get(orgID, sddcID)
 	log.Println(siteRecovery)
 	if err != nil {
-		return fmt.Errorf("Error while getting the SDDC with ID  : %v", err)
+		return fmt.Errorf("Error while getting SRM information  : %v", err)
 	}
 
-	srm_nodes := []map[string]string{}
+	/*srm_nodes := []map[string]string{}
 	for _, srmNode := range siteRecovery.SrmNodes {
 		m := map[string]string{}
 		m["id"] = *srmNode.Id
@@ -120,7 +133,10 @@ func resourceSRMNodesRead(d *schema.ResourceData, m interface{}) error {
 		m["type"] = *srmNode.Type_
 		m["vm_moref_id"] = *srmNode.VmMorefId
 		srm_nodes = append(srm_nodes, m)
-	}
+	}*/
+	d.Set("cloud_password",siteRecovery.ResourceConfig.CloudPassword)
+    d.Set("could_username",siteRecovery.ResourceConfig.CloudUsername)
+	d.Set("nsxt_reverse_proxy_url",siteRecovery.ResourceConfig.NsxApiPublicEndpointUrl)
 	return nil
 }
 
