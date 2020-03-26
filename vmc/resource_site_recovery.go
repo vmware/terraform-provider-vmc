@@ -5,6 +5,7 @@ package vmc
 
 import (
 	"fmt"
+	"github.com/hashicorp/terraform/helper/validation"
 	"log"
 	"time"
 
@@ -35,11 +36,11 @@ func resourceSiteRecovery() *schema.Resource {
 				Description: "SDDC identifier",
 			},
 			"srm_extension_key_suffix": {
-				Type:     schema.TypeString,
-				ForceNew: true,
-				Optional: true,
-				//ValidateFunc: validation.StringLenBetween(0, 13),
-				Description: "Custom extension key suffix for SRM. If not specified, default extension key will be used. The custom extension suffix must contain 13 characters or less, be composed of letters, numbers, ., - characters only. The extension suffix must begin and end with a letter or number. The suffix is appended to com.vmware.vcDr- to form the full extension key",
+				Type:         schema.TypeString,
+				ForceNew:     true,
+				Optional:     true,
+				ValidateFunc: validation.StringLenBetween(0, 13),
+				Description:  "Custom extension key suffix for SRM. If not specified, default extension key will be used. The custom extension suffix must contain 13 characters or less, be composed of letters, numbers, ., - characters only. The extension suffix must begin and end with a letter or number. The suffix is appended to com.vmware.vcDr- to form the full extension key",
 			},
 			"site_recovery_state": {
 				Type:        schema.TypeString,
@@ -123,7 +124,7 @@ func resourceSiteRecoveryRead(d *schema.ResourceData, m interface{}) error {
 	siteRecoveryClient := draas.NewDefaultSiteRecoveryClient(connector)
 	siteRecovery, err := siteRecoveryClient.Get(orgID, sddcID)
 	if err != nil {
-		return fmt.Errorf("Error while getting the SDDC with ID  : %v", err)
+		return fmt.Errorf("Error while site recovery information for SDDC with ID %s : %v", sddcID, err)
 	}
 	d.SetId(siteRecovery.Id)
 	d.Set("site_recovery_state", siteRecovery.SiteRecoveryState)

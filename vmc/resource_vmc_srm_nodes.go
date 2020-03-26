@@ -5,6 +5,7 @@ package vmc
 
 import (
 	"fmt"
+	"github.com/hashicorp/terraform/helper/validation"
 	"log"
 	"time"
 
@@ -13,7 +14,6 @@ import (
 	"github.com/vmware/vsphere-automation-sdk-go/lib/vapi/std/errors"
 	"github.com/vmware/vsphere-automation-sdk-go/services/vmc/draas"
 	"github.com/vmware/vsphere-automation-sdk-go/services/vmc/draas/model"
-	"github.com/vmware/vsphere-automation-sdk-go/services/vmc/orgs"
 )
 
 func resourceSRMNodes() *schema.Resource {
@@ -36,28 +36,16 @@ func resourceSRMNodes() *schema.Resource {
 				Description: "SDDC identifier",
 			},
 			"srm_extension_key_suffix": {
-				Type:     schema.TypeString,
-				ForceNew: true,
-				Required: true,
-				//ValidateFunc: validation.StringLenBetween(1, 13),
-				Description: "Custom extension key suffix for SRM. If not specified, default extension key will be used. The custom extension suffix must contain 13 characters or less, be composed of letters, numbers, ., -, and _ characters. The extension suffix must begin and end with a letter or number. The suffix is appended to com.vmware.vcDr- to form the full extension key",
+				Type:         schema.TypeString,
+				ForceNew:     true,
+				Required:     true,
+				ValidateFunc: validation.StringLenBetween(1, 13),
+				Description:  "Custom extension key suffix for SRM. If not specified, default extension key will be used. The custom extension suffix must contain 13 characters or less, be composed of letters, numbers, ., -, and _ characters. The extension suffix must begin and end with a letter or number. The suffix is appended to com.vmware.vcDr- to form the full extension key",
 			},
 			"srm_nodes": {
 				Type:     schema.TypeList,
 				Computed: true,
 				Elem:     &schema.Schema{Type: schema.TypeMap},
-			},
-			"cloud_username": {
-				Type:     schema.TypeString,
-				Computed: true,
-			},
-			"cloud_password": {
-				Type:     schema.TypeString,
-				Computed: true,
-			},
-			"nsxt_reverse_proxy_url": {
-				Type:     schema.TypeString,
-				Computed: true,
 			},
 		},
 	}
@@ -103,7 +91,7 @@ func resourceSRMNodesCreate(d *schema.ResourceData, m interface{}) error {
 		if *task.Status != "FINISHED" {
 			return resource.RetryableError(fmt.Errorf("Expected instance to be created but was in state %s", *task.Status))
 		}
-		return resource.NonRetryableError(resourceSiteRecoveryRead(d, m))
+		return resource.NonRetryableError(resourceSRMNodesRead(d, m))
 	})
 	return nil
 
@@ -112,18 +100,15 @@ func resourceSRMNodesCreate(d *schema.ResourceData, m interface{}) error {
 func resourceSRMNodesRead(d *schema.ResourceData, m interface{}) error {
 
 	connector := (m.(*ConnectorWrapper)).Connector
+	orgID := (m.(*ConnectorWrapper)).OrgID
 	sddcID := d.Get("sddc_id").(string)
 
-	orgID := (m.(*ConnectorWrapper)).OrgID
-	siteRecoveryClient := orgs.NewDefaultSddcsClient(connector)
-
+	siteRecoveryClient := draas.NewDefaultSiteRecoveryClient(connector)
 	siteRecovery, err := siteRecoveryClient.Get(orgID, sddcID)
-	log.Println(siteRecovery)
 	if err != nil {
-		return fmt.Errorf("Error while getting SRM information  : %v", err)
+		return fmt.Errorf("Error while SRM information for SDDC with ID %s : %v", sddcID, err)
 	}
-
-	/*srm_nodes := []map[string]string{}
+	srm_nodes := []map[string]string{}
 	for _, srmNode := range siteRecovery.SrmNodes {
 		m := map[string]string{}
 		m["id"] = *srmNode.Id
@@ -133,10 +118,7 @@ func resourceSRMNodesRead(d *schema.ResourceData, m interface{}) error {
 		m["type"] = *srmNode.Type_
 		m["vm_moref_id"] = *srmNode.VmMorefId
 		srm_nodes = append(srm_nodes, m)
-	}*/
-	d.Set("cloud_password",siteRecovery.ResourceConfig.CloudPassword)
-    d.Set("could_username",siteRecovery.ResourceConfig.CloudUsername)
-	d.Set("nsxt_reverse_proxy_url",siteRecovery.ResourceConfig.NsxApiPublicEndpointUrl)
+	}
 	return nil
 }
 
