@@ -90,7 +90,7 @@ func resourceSiteRecoveryCreate(d *schema.ResourceData, m interface{}) error {
 		return fmt.Errorf("Error while activating site recovery for sddc %s: %v", sddcID, err)
 	}
 
-	// Wait until site recover is activated
+	// Wait until site recovery is activated
 	taskID := task.ResourceId
 	d.SetId(*taskID)
 	return resource.Retry(d.Timeout(schema.TimeoutCreate), func() *resource.RetryError {
