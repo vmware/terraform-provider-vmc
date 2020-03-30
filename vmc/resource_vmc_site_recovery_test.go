@@ -18,7 +18,7 @@ import (
 
 func TestAccResourceVmcSiteRecovery_basic(t *testing.T) {
 	var siteRecovery model.SiteRecovery
-	srmExtensionKeySuffix :=  acctest.RandStringFromCharSet(10, acctest.CharSetAlphaNum)
+	srmExtensionKeySuffix := acctest.RandStringFromCharSet(10, acctest.CharSetAlphaNum)
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
