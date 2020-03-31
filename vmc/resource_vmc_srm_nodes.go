@@ -41,7 +41,7 @@ func resourceSRMNodes() *schema.Resource {
 				ForceNew:     true,
 				Required:     true,
 				ValidateFunc: validation.StringLenBetween(1, 13),
-				Description:  "Custom extension key suffix for SRM. If not specified, default extension key will be used. The custom extension suffix must contain 13 characters or less, be composed of letters, numbers, ., -, and _ characters. The extension suffix must begin and end with a letter or number. The suffix is appended to com.vmware.vcDr- to form the full extension key",
+				Description:  "The custom extension suffix for SRM must contain 13 characters or less, be composed of letters, numbers, ., - characters only. The suffix is appended to com.vmware.vcDr- to form the full extension key. ",
 			},
 			"srm_nodes": {
 				Type:     schema.TypeList,
@@ -69,7 +69,7 @@ func resourceSRMNodesCreate(d *schema.ResourceData, m interface{}) error {
 	task, err := siteRecoverySrmNodesClient.Post(orgID, sddcID, provisionSrmConfigParam)
 
 	if err != nil {
-		return fmt.Errorf("Error while activating site recovery for sddc %s: %v", sddcID, err)
+		return fmt.Errorf("Error while activating site recovery instance for sddc %s: %v", sddcID, err)
 	}
 
 	taskID := task.ResourceId
@@ -112,7 +112,7 @@ func resourceSRMNodesRead(d *schema.ResourceData, m interface{}) error {
 			d.SetId("")
 			return fmt.Errorf("SRM information for SDDC with ID %s not found", sddcID)
 		}
-		return fmt.Errorf("Error while SRM information for SDDC with ID %s : %v", sddcID, err)
+		return fmt.Errorf("Error while getting SRM instance information for SDDC with ID %s : %v", sddcID, err)
 	}
 	srm_nodes := []map[string]string{}
 	for _, srmNode := range siteRecovery.SrmNodes {
@@ -138,13 +138,13 @@ func resourceSRMNodesDelete(d *schema.ResourceData, m interface{}) error {
 	srmNodeID := d.Id()
 	task, err := siteRecoverySrmNodesClient.Delete(orgID, sddcID, srmNodeID)
 	if err != nil {
-		return fmt.Errorf("Error while deactivating site recovery for sddc %s: %v", sddcID, err)
+		return fmt.Errorf("Error while deactivating site recovery instance for sddc %s: %v", sddcID, err)
 	}
 	tasksClient := draas.NewDefaultTaskClient(connector)
 	return resource.Retry(d.Timeout(schema.TimeoutDelete), func() *resource.RetryError {
 		task, err := tasksClient.Get(orgID, task.Id)
 		if err != nil {
-			return resource.NonRetryableError(fmt.Errorf("Error while deactivating site recovery for sddc %s : %v", sddcID, err))
+			return resource.NonRetryableError(fmt.Errorf("Error while deactivating site recovery instance for sddc %s : %v", sddcID, err))
 		}
 		if *task.Status != "FINISHED" {
 			return resource.RetryableError(fmt.Errorf("Expected instance to be deleted but was in state %s", *task.Status))
@@ -158,12 +158,12 @@ func resourceSRMNodesUpdate(d *schema.ResourceData, m interface{}) error {
 	if d.HasChange("srm_extension_key_suffix") {
 		err := resource.NonRetryableError(resourceSRMNodesDelete(d, m))
 		if err != nil {
-			return fmt.Errorf("Error while deleting SRM instance: %v", err)
+			return fmt.Errorf("Error while deactivating site recovery instance: %v", err)
 		}
 
 		err = resource.NonRetryableError(resourceSRMNodesCreate(d, m))
 		if err != nil {
-			return fmt.Errorf("Error while creating SRM instance: %v", err)
+			return fmt.Errorf("Error while activating site recovery instance: %v", err)
 		}
 	}
 	return nil
