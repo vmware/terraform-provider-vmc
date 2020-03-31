@@ -21,6 +21,7 @@ func resourceSRMNodes() *schema.Resource {
 		Create: resourceSRMNodesCreate,
 		Read:   resourceSRMNodesRead,
 		Delete: resourceSRMNodesDelete,
+		Update: resourceSRMNodesUpdate,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -151,4 +152,19 @@ func resourceSRMNodesDelete(d *schema.ResourceData, m interface{}) error {
 		d.SetId("")
 		return resource.NonRetryableError(nil)
 	})
+}
+
+func resourceSRMNodesUpdate(d *schema.ResourceData, m interface{}) error {
+	if d.HasChange("srm_extension_key_suffix") {
+		err := resource.NonRetryableError(resourceSRMNodesDelete(d, m))
+		if err != nil {
+			return fmt.Errorf("Error while deleting SRM instance: %v", err)
+		}
+
+		err = resource.NonRetryableError(resourceSRMNodesCreate(d, m))
+		if err != nil {
+			return fmt.Errorf("Error while creating SRM instance: %v", err)
+		}
+	}
+	return nil
 }
