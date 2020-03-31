@@ -21,7 +21,7 @@ func resourceSRMNodes() *schema.Resource {
 		Create: resourceSRMNodesCreate,
 		Read:   resourceSRMNodesRead,
 		Delete: resourceSRMNodesDelete,
-		Update: resourceSRMNodesUpdate,
+		//Update: resourceSRMNodesUpdate,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -38,6 +38,7 @@ func resourceSRMNodes() *schema.Resource {
 			},
 			"srm_extension_key_suffix": {
 				Type:         schema.TypeString,
+				ForceNew:     true,
 				Required:     true,
 				ValidateFunc: validation.StringLenBetween(1, 13),
 				Description:  "The custom extension suffix for SRM must contain 13 characters or less, be composed of letters, numbers, ., - characters only. The suffix is appended to com.vmware.vcDr- to form the full extension key. ",
@@ -151,19 +152,4 @@ func resourceSRMNodesDelete(d *schema.ResourceData, m interface{}) error {
 		d.SetId("")
 		return resource.NonRetryableError(nil)
 	})
-}
-
-func resourceSRMNodesUpdate(d *schema.ResourceData, m interface{}) error {
-	if d.HasChange("srm_extension_key_suffix") {
-		err := resource.NonRetryableError(resourceSRMNodesDelete(d, m))
-		if err != nil {
-			return fmt.Errorf("Error while deactivating site recovery instance: %v", err)
-		}
-
-		err = resource.NonRetryableError(resourceSRMNodesCreate(d, m))
-		if err != nil {
-			return fmt.Errorf("Error while activating site recovery instance: %v", err)
-		}
-	}
-	return nil
 }
