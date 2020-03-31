@@ -14,29 +14,27 @@ import (
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
 	"github.com/vmware/vsphere-automation-sdk-go/lib/vapi/std/errors"
-	"github.com/vmware/vsphere-automation-sdk-go/services/vmc/draas/model"
 )
 
-func TestAccResourceVmcSiteRecovery_basic(t *testing.T) {
-	var siteRecovery model.SiteRecovery
+func TestAccResourceVmcSRMNodes_basic(t *testing.T) {
 	srmExtensionKeySuffix := acctest.RandStringFromCharSet(10, acctest.CharSetAlphaNum)
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
-		CheckDestroy: testCheckVmcSiteRecoveryDestroy,
+		CheckDestroy: testCheckVmcSRMNodesDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccVmcSiteConfigBasic(srmExtensionKeySuffix),
+				Config: testAccVmcSRMNodeConfigBasic(srmExtensionKeySuffix),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckVmcSiteRecoveryExists("vmc_site_recovery.site_recovery_1", &siteRecovery),
-					resource.TestCheckResourceAttr("vmc_site_recovery.site_recovery_1", "site_recovery_state", "ACTIVATED"),
+					testCheckVmcSRMNodesExists("vmc_srm_nodes.srm_nodes_1"),
+					resource.TestCheckResourceAttrSet("vmc_srm_nodes.srm_nodes_1", "srm_nodes"),
 				),
 			},
 		},
 	})
 }
 
-func testCheckVmcSiteRecoveryExists(name string, siteRecovery *model.SiteRecovery) resource.TestCheckFunc {
+func testCheckVmcSRMNodesExists(name string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		rs, ok := s.RootModule().Resources[name]
 		if !ok {
@@ -49,7 +47,7 @@ func testCheckVmcSiteRecoveryExists(name string, siteRecovery *model.SiteRecover
 
 		draasClient := draas.NewDefaultSiteRecoveryClient(connector)
 		var err error
-		*siteRecovery, err = draasClient.Get(orgID, sddcID)
+		siteRecovery, err := draasClient.Get(orgID, sddcID)
 		if err != nil {
 			return fmt.Errorf("Bad: Get on DraaS API: %s", err)
 		}
@@ -62,14 +60,14 @@ func testCheckVmcSiteRecoveryExists(name string, siteRecovery *model.SiteRecover
 	}
 }
 
-func testCheckVmcSiteRecoveryDestroy(s *terraform.State) error {
+func testCheckVmcSRMNodesDestroy(s *terraform.State) error {
 
 	connectorWrapper := testAccProvider.Meta().(*ConnectorWrapper)
 	connector := connectorWrapper.Connector
 	draasClient := draas.NewDefaultSiteRecoveryClient(connector)
 
 	for _, rs := range s.RootModule().Resources {
-		if rs.Type != "vmc_site_recovery" {
+		if rs.Type != "vmc_srm_nodes" {
 			continue
 		}
 
@@ -91,12 +89,18 @@ func testCheckVmcSiteRecoveryDestroy(s *terraform.State) error {
 	return nil
 }
 
-func testAccVmcSiteConfigBasic(srmExtensionKeySuffix string) string {
+func testAccVmcSRMNodeConfigBasic(srmExtensionKeySuffix string) string {
 	return fmt.Sprintf(`
-  resource "vmc_site_recovery" "site_recovery_1" {
-	sddc_id = %q
-    srm_extension_key_suffix = %q
-  }`,
+resource "vmc_site_recovery" "site_recovery_1" {
+  sddc_id = %q
+}
+
+resource "vmc_srm_nodes" "srm_node_1"{
+  sddc_id = %q
+  srm_extension_key_suffix = %q
+  depends_on = [vmc_site_recovery.site_recovery_1]
+}`,
+		os.Getenv(TestSDDCId),
 		os.Getenv(TestSDDCId),
 		srmExtensionKeySuffix,
 	)

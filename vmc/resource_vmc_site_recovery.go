@@ -20,6 +20,7 @@ func resourceSiteRecovery() *schema.Resource {
 	return &schema.Resource{
 		Create: resourceSiteRecoveryCreate,
 		Read:   resourceSiteRecoveryRead,
+		Update: resourceSiteRecoveryUpdate,
 		Delete: resourceSiteRecoveryDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
@@ -37,7 +38,6 @@ func resourceSiteRecovery() *schema.Resource {
 			},
 			"srm_extension_key_suffix": {
 				Type:         schema.TypeString,
-				ForceNew:     true,
 				Optional:     true,
 				ValidateFunc: validation.StringLenBetween(0, 13),
 				Description:  "Custom extension key suffix for SRM. If not specified, default extension key will be used. The custom extension suffix must contain 13 characters or less, be composed of letters, numbers, ., - characters only. The extension suffix must begin and end with a letter or number. The suffix is appended to com.vmware.vcDr- to form the full extension key",
@@ -108,6 +108,7 @@ func resourceSiteRecoveryCreate(d *schema.ResourceData, m interface{}) error {
 			return resource.NonRetryableError(fmt.Errorf("Error describing instance: %s", err))
 
 		}
+
 		if *task.Status != "FINISHED" {
 			return resource.RetryableError(fmt.Errorf("Expected instance to be created but was in state %s", *task.Status))
 		}
@@ -124,6 +125,11 @@ func resourceSiteRecoveryRead(d *schema.ResourceData, m interface{}) error {
 	siteRecoveryClient := draas.NewDefaultSiteRecoveryClient(connector)
 	siteRecovery, err := siteRecoveryClient.Get(orgID, sddcID)
 	if err != nil {
+		if err.Error() == errors.NewNotFound().Error() {
+			log.Printf("Site recovery for SDDC with ID %s not found", sddcID)
+			d.SetId("")
+			return fmt.Errorf("Site recovery for SDDC with ID %s not found", sddcID)
+		}
 		return fmt.Errorf("Error while site recovery information for SDDC with ID %s : %v", sddcID, err)
 	}
 	d.SetId(siteRecovery.Id)
@@ -180,4 +186,20 @@ func resourceSiteRecoveryDelete(d *schema.ResourceData, m interface{}) error {
 		d.SetId("")
 		return resource.NonRetryableError(nil)
 	})
+}
+
+func resourceSiteRecoveryUpdate(d *schema.ResourceData, m interface{}) error {
+	if d.HasChange("srm_extension_key_suffix") {
+		err := resource.NonRetryableError(resourceSiteRecoveryDelete(d, m))
+		if err != nil {
+			return fmt.Errorf("Error while deactivating site recovery: %v", err)
+		}
+		time.Sleep(15 * time.Minute)
+
+		err = resource.NonRetryableError(resourceSiteRecoveryCreate(d, m))
+		if err != nil {
+			return fmt.Errorf("Error while activating site recovery for sddc : %v", err)
+		}
+	}
+	return nil
 }

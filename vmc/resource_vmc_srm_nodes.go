@@ -106,6 +106,11 @@ func resourceSRMNodesRead(d *schema.ResourceData, m interface{}) error {
 	siteRecoveryClient := draas.NewDefaultSiteRecoveryClient(connector)
 	siteRecovery, err := siteRecoveryClient.Get(orgID, sddcID)
 	if err != nil {
+		if err.Error() == errors.NewNotFound().Error() {
+			log.Printf("SRM information for SDDC with ID %s not found", sddcID)
+			d.SetId("")
+			return fmt.Errorf("SRM information for SDDC with ID %s not found", sddcID)
+		}
 		return fmt.Errorf("Error while SRM information for SDDC with ID %s : %v", sddcID, err)
 	}
 	srm_nodes := []map[string]string{}
