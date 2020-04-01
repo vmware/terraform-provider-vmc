@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"github.com/hashicorp/terraform/helper/validation"
 	"log"
+	"strings"
 	"time"
 
 	"github.com/hashicorp/terraform/helper/resource"
@@ -57,10 +58,9 @@ func resourceSiteRecovery() *schema.Resource {
 				Computed:    true,
 				Description: "User name that last updated this record.",
 			},
-			"srm_nodes": {
-				Type:     schema.TypeList,
+			"srm_node": {
+				Type:     schema.TypeMap,
 				Computed: true,
-				Elem:     &schema.Schema{Type: schema.TypeMap},
 			},
 			"vr_node": {
 				Type:     schema.TypeMap,
@@ -138,16 +138,31 @@ func resourceSiteRecoveryRead(d *schema.ResourceData, m interface{}) error {
 	d.Set("user_id", siteRecovery.UserId)
 	d.Set("user_name", siteRecovery.UserName)
 
-	srm_nodes := []map[string]string{}
-	for _, srmNode := range siteRecovery.SrmNodes {
-		m := map[string]string{}
-		m["id"] = *srmNode.Id
-		m["ip_address"] = *srmNode.IpAddress
-		m["host_name"] = *srmNode.Hostname
-		m["state"] = *srmNode.State
-		m["type"] = *srmNode.Type_
-		m["vm_moref_id"] = *srmNode.VmMorefId
-		srm_nodes = append(srm_nodes, m)
+	srmExtensionKey := d.Get("srm_extension_key_suffix").(string)
+	srm_node := map[string]string{}
+	var i int
+	for i = 0; i < len(siteRecovery.SrmNodes); i++ {
+		currentSRMNode := siteRecovery.SrmNodes[i]
+		if len(strings.TrimSpace(srmExtensionKey)) == 0 {
+			tempStr := strings.Trim(*currentSRMNode.Hostname, ".")
+			if strings.Contains(tempStr, "-") {
+				srm_node["id"] = *currentSRMNode.Id
+				srm_node["ip_address"] = *currentSRMNode.IpAddress
+				srm_node["host_name"] = *currentSRMNode.Hostname
+				srm_node["state"] = *currentSRMNode.State
+				srm_node["type"] = *currentSRMNode.Type_
+				srm_node["vm_moref_id"] = *currentSRMNode.VmMorefId
+				break
+			}
+		} else if strings.Contains(*currentSRMNode.Hostname, srmExtensionKey) {
+			srm_node["id"] = *currentSRMNode.Id
+			srm_node["ip_address"] = *currentSRMNode.IpAddress
+			srm_node["host_name"] = *currentSRMNode.Hostname
+			srm_node["state"] = *currentSRMNode.State
+			srm_node["type"] = *currentSRMNode.Type_
+			srm_node["vm_moref_id"] = *currentSRMNode.VmMorefId
+			break
+		}
 	}
 
 	vr_node := map[string]string{}
@@ -158,7 +173,7 @@ func resourceSiteRecoveryRead(d *schema.ResourceData, m interface{}) error {
 	vr_node["state"] = *siteRecovery.VrNode.State
 	vr_node["ip_address"] = *siteRecovery.VrNode.IpAddress
 
-	d.Set("srm_nodes", srm_nodes)
+	d.Set("srm_node", srm_node)
 	d.Set("vr_node", vr_node)
 	return nil
 }
@@ -194,6 +209,8 @@ func resourceSiteRecoveryUpdate(d *schema.ResourceData, m interface{}) error {
 		if err != nil {
 			return fmt.Errorf("Error while deactivating site recovery: %v", err)
 		}
+
+		// This wait is required after deactivation before activation
 		time.Sleep(15 * time.Minute)
 
 		err = resource.NonRetryableError(resourceSiteRecoveryCreate(d, m))

@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"github.com/hashicorp/terraform/helper/validation"
 	"log"
+	"strings"
 	"time"
 
 	"github.com/hashicorp/terraform/helper/resource"
@@ -36,17 +37,16 @@ func resourceSRMNodes() *schema.Resource {
 				ForceNew:    true,
 				Description: "SDDC identifier",
 			},
-			"srm_extension_key_suffix": {
+			"srm_node_extension_key_suffix": {
 				Type:         schema.TypeString,
 				ForceNew:     true,
 				Required:     true,
 				ValidateFunc: validation.StringLenBetween(1, 13),
 				Description:  "The custom extension suffix for SRM must contain 13 characters or less, be composed of letters, numbers, ., - characters only. The suffix is appended to com.vmware.vcDr- to form the full extension key. ",
 			},
-			"srm_nodes": {
-				Type:     schema.TypeList,
+			"srm_instance": {
+				Type:     schema.TypeMap,
 				Computed: true,
-				Elem:     &schema.Schema{Type: schema.TypeMap},
 			},
 		},
 	}
@@ -58,7 +58,7 @@ func resourceSRMNodesCreate(d *schema.ResourceData, m interface{}) error {
 
 	siteRecoverySrmNodesClient := draas.NewDefaultSiteRecoverySrmNodesClient(connector)
 
-	srmExtensionKeySuffix := d.Get("srm_extension_key_suffix").(string)
+	srmExtensionKeySuffix := d.Get("srm_node_extension_key_suffix").(string)
 	orgID := (m.(*ConnectorWrapper)).OrgID
 	sddcID := d.Get("sddc_id").(string)
 
@@ -114,18 +114,22 @@ func resourceSRMNodesRead(d *schema.ResourceData, m interface{}) error {
 		}
 		return fmt.Errorf("Error while getting SRM instance information for SDDC with ID %s : %v", sddcID, err)
 	}
-	srm_nodes := []map[string]string{}
-	for _, srmNode := range siteRecovery.SrmNodes {
-		m := map[string]string{}
-		m["id"] = *srmNode.Id
-		m["ip_address"] = *srmNode.IpAddress
-		m["host_name"] = *srmNode.Hostname
-		m["state"] = *srmNode.State
-		m["type"] = *srmNode.Type_
-		m["vm_moref_id"] = *srmNode.VmMorefId
-		srm_nodes = append(srm_nodes, m)
+	srmExtensionKey := d.Get("srm_node_extension_key_suffix").(string)
+	srm_node := map[string]string{}
+	var i int
+	for i = 0; i < len(siteRecovery.SrmNodes); i++ {
+		currentSRMNode := siteRecovery.SrmNodes[i]
+		if strings.Contains(*currentSRMNode.Hostname, srmExtensionKey) {
+			srm_node["id"] = *currentSRMNode.Id
+			srm_node["ip_address"] = *currentSRMNode.IpAddress
+			srm_node["host_name"] = *currentSRMNode.Hostname
+			srm_node["state"] = *currentSRMNode.State
+			srm_node["type"] = *currentSRMNode.Type_
+			srm_node["vm_moref_id"] = *currentSRMNode.VmMorefId
+			d.Set("srm_instance", srm_node)
+			break
+		}
 	}
-	d.Set("srm_nodes", srm_nodes)
 	return nil
 }
 
