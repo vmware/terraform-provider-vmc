@@ -22,7 +22,6 @@ func resourceSRMNodes() *schema.Resource {
 		Create: resourceSRMNodesCreate,
 		Read:   resourceSRMNodesRead,
 		Delete: resourceSRMNodesDelete,
-		//Update: resourceSRMNodesUpdate,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -116,8 +115,8 @@ func resourceSRMNodesRead(d *schema.ResourceData, m interface{}) error {
 	}
 	srmExtensionKey := d.Get("srm_node_extension_key_suffix").(string)
 	srm_node := map[string]string{}
-	var i int
-	for i = 0; i < len(siteRecovery.SrmNodes); i++ {
+
+	for i := 0; i < len(siteRecovery.SrmNodes); i++ {
 		currentSRMNode := siteRecovery.SrmNodes[i]
 		if strings.Contains(*currentSRMNode.Hostname, srmExtensionKey) {
 			srm_node["id"] = *currentSRMNode.Id

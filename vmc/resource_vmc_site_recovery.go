@@ -140,8 +140,7 @@ func resourceSiteRecoveryRead(d *schema.ResourceData, m interface{}) error {
 
 	srmExtensionKey := d.Get("srm_extension_key_suffix").(string)
 	srm_node := map[string]string{}
-	var i int
-	for i = 0; i < len(siteRecovery.SrmNodes); i++ {
+	for i := 0; i < len(siteRecovery.SrmNodes); i++ {
 		currentSRMNode := siteRecovery.SrmNodes[i]
 		if len(strings.TrimSpace(srmExtensionKey)) == 0 {
 			tempStr := strings.Trim(*currentSRMNode.Hostname, ".")
