@@ -17,11 +17,11 @@ import (
 	"github.com/vmware/vsphere-automation-sdk-go/services/vmc/draas/model"
 )
 
-func resourceSRMNodes() *schema.Resource {
+func resourceSRMNode() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceSRMNodesCreate,
-		Read:   resourceSRMNodesRead,
-		Delete: resourceSRMNodesDelete,
+		Create: resourceSRMNodeCreate,
+		Read:   resourceSRMNodeRead,
+		Delete: resourceSRMNodeDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -51,7 +51,7 @@ func resourceSRMNodes() *schema.Resource {
 	}
 }
 
-func resourceSRMNodesCreate(d *schema.ResourceData, m interface{}) error {
+func resourceSRMNodeCreate(d *schema.ResourceData, m interface{}) error {
 
 	connector := (m.(*ConnectorWrapper)).Connector
 
@@ -97,7 +97,7 @@ func resourceSRMNodesCreate(d *schema.ResourceData, m interface{}) error {
 
 }
 
-func resourceSRMNodesRead(d *schema.ResourceData, m interface{}) error {
+func resourceSRMNodeRead(d *schema.ResourceData, m interface{}) error {
 
 	connector := (m.(*ConnectorWrapper)).Connector
 	orgID := (m.(*ConnectorWrapper)).OrgID
@@ -132,7 +132,7 @@ func resourceSRMNodesRead(d *schema.ResourceData, m interface{}) error {
 	return nil
 }
 
-func resourceSRMNodesDelete(d *schema.ResourceData, m interface{}) error {
+func resourceSRMNodeDelete(d *schema.ResourceData, m interface{}) error {
 	connector := (m.(*ConnectorWrapper)).Connector
 	siteRecoverySrmNodesClient := draas.NewDefaultSiteRecoverySrmNodesClient(connector)
 
