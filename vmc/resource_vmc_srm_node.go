@@ -93,8 +93,6 @@ func resourceSRMNodeCreate(d *schema.ResourceData, m interface{}) error {
 		}
 		return resource.NonRetryableError(resourceSRMNodeRead(d, m))
 	})
-	return nil
-
 }
 
 func resourceSRMNodeRead(d *schema.ResourceData, m interface{}) error {
