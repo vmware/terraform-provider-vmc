@@ -114,8 +114,6 @@ func resourceSiteRecoveryCreate(d *schema.ResourceData, m interface{}) error {
 		}
 		return resource.NonRetryableError(resourceSiteRecoveryRead(d, m))
 	})
-	return nil
-
 }
 
 func resourceSiteRecoveryRead(d *schema.ResourceData, m interface{}) error {

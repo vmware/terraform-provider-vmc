@@ -286,7 +286,6 @@ func resourceSddcCreate(d *schema.ResourceData, m interface{}) error {
 		}
 		return resource.NonRetryableError(resourceSddcRead(d, m))
 	})
-	return nil
 }
 
 func resourceSddcRead(d *schema.ResourceData, m interface{}) error {

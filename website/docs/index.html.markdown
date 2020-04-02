@@ -11,8 +11,7 @@ description: |-
 The VMware Cloud on AWS provider can be used to configure hybrid cloud infrastructure using the resources supported by VMware Cloud on AWS.
 
 
-More information on VMC can be found on the [VMC Product
-Page](https://cloud.vmware.com/vmc-aws)
+More information on VMC can be found on the [VMC Product Page](https://cloud.vmware.com/vmc-aws)
 
 Please use the navigation to the left to read about available data sources and
 resources.
