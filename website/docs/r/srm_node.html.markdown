@@ -32,7 +32,7 @@ resource "vmc_srm_node" "srm_node_1"{
 
 ## Argument Reference
 
-The following arguments are supported for vmc_site_recovery resource:
+The following arguments are supported for vmc_srm_node resource:
 
 * `sddc_id` - (Required) SDDC identifier.
 
