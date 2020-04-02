@@ -11,7 +11,7 @@ description: |-
 # vmc_srm_node
 
  Provides a resource to add an instance to SDDC after site recovery has been activated.
-~> **Note:** SRM node resource depends on site recovery resource creation. Site recovery must be activated to add an SRM node instance. For details on how to activate site recovery refer to the site recovery resource an SDDC refer to [vmc_site_recovery](https://www.terraform.io/docs/providers/vmc/r/site_recovery.html).
+~> **Note:** SRM node resource depends on site recovery resource creation. Site recovery must be activated to add SRM node instance. For details on how to activate site recovery refer to the site recovery resource [vmc_site_recovery](https://www.terraform.io/docs/providers/vmc/r/site_recovery.html).
 
 ## Example Usage
 
