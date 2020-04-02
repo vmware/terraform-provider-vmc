@@ -91,7 +91,7 @@ func resourceSRMNodeCreate(d *schema.ResourceData, m interface{}) error {
 		if *task.Status != "FINISHED" {
 			return resource.RetryableError(fmt.Errorf("Expected instance to be created but was in state %s", *task.Status))
 		}
-		return resource.NonRetryableError(resourceSRMNodesRead(d, m))
+		return resource.NonRetryableError(resourceSRMNodeRead(d, m))
 	})
 	return nil
 
