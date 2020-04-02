@@ -37,7 +37,8 @@ The following arguments are supported for vmc_srm_node resource:
 * `sddc_id` - (Required) SDDC identifier.
 
 * `srm_node_extension_key_suffix` - (Required) Custom extension key suffix for SRM. If not specified, default extension key will be used. 
-The custom extension suffix must contain 13 characters or less, be composed of letters, numbers, ., - characters. The extension suffix must begin and end with a letter or number. The suffix is appended to com.vmware.vcDr- to form the full extension key.
+The custom extension suffix must contain 13 characters or less, be composed of letters, numbers, ., - characters. 
+The extension suffix must begin and end with a letter or number. The suffix is appended to com.vmware.vcDr- to form the full extension key.
 
 ## Attributes Reference
 

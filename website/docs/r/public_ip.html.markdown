@@ -11,7 +11,7 @@ description: |-
 # vmc_public_ip
 
 Provides a resource to manage public IPs.
-~> **Note:** Public IP resource implicitly depends on SSDC resource creation. SDDC must be provisioned before a public IP can be created. For details on how to provision a SDDC refer to the SDDC documentation.
+~> **Note:** Public IP resource implicitly depends on SDDC resource creation. SDDC must be provisioned before a public IP can be created. For details on how to provision a SDDC refer to [vmc_sddc](https://www.terraform.io/docs/providers/vmc/r/sddc.html).
 
 ## Example Usage
 
