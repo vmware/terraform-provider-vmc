@@ -212,7 +212,7 @@ func resourceSddcCreate(d *schema.ResourceData, m interface{}) error {
 	orgID := connectorWrapper.OrgID
 
 	storageCapacity := d.Get("storage_capacity").(string)
-	if len(strings.TrimSpace(storageCapacity)) == 0 {
+	if len(strings.TrimSpace(storageCapacity)) > 0 {
 		storageCapacityConverted = convertStorageCapacitytoInt(storageCapacity)
 	}
 
