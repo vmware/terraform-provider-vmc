@@ -5,13 +5,13 @@ page_title: "VMC: vmc_site_recovery"
 sidebar_current: "docs-vmc_site_recovery"
 
 description: |-
-  Provides a resource to activate and deactivate site recovery for an SDDC.
+  Provides a resource to activate and deactivate site recovery for SDDC.
 ---
 
 # vmc_site_recovery
 
-Provides a resource to activate and deactivate site recovery for an SDDC.
-~> **Note:** Site recovery resource implicitly depends on SSDC resource creation. SDDC must be provisioned before a site recovery can be activated. For details on how to provision an SDDC refer to [vmc_sddc](https://www.terraform.io/docs/providers/vmc/r/sddc.html).
+Provides a resource to activate and deactivate site recovery for SDDC.
+~> **Note:** Site recovery resource implicitly depends on SSDC resource creation. SDDC must be provisioned before a site recovery can be activated. For details on how to provision SDDC refer to [vmc_sddc](https://www.terraform.io/docs/providers/vmc/r/sddc.html).
 
 ## Example Usage
 
