@@ -63,3 +63,13 @@ variable sddc_type {
   description = "Denotes the sddc type, if the value is null or empty, the type is considered as default. Possible values : '1NODE', 'DEFAULT'. "
   default = "1NODE"
 }
+
+variable site_recovery_srm_extension_key_suffix {
+  description = "The custom extension suffix for SRM must contain 13 characters or less, be composed of letters, numbers, ., - characters only. The suffix is appended to com.vmware.vcDr- to form the full extension key",
+  default     = ""
+}
+
+variable srm_node_srm_extension_key_suffix{
+  description = "The custom extension suffix for SRM must contain 13 characters or less, be composed of letters, numbers, ., - characters only. The suffix is appended to com.vmware.vcDr- to form the full extension key",
+  default     = "test"
+}
