@@ -1,4 +1,11 @@
 ## 1.2.0 (Unreleased)
+
+FEATURES:
+
+* **New Resource:** `vmc_site_recovery` Added resource for site recovery management. [\#14](https://github.com/terraform-providers/terraform-provider-vmc/pull/14)
+* **New Resource:** `vmc_srm_node` Added resource to add SRM instance after site recovery has been activated. [\#14](https://github.com/terraform-providers/terraform-provider-vmc/pull/14)
+
+
 ## 1.1.1 (March 24, 2020)
 
 BUG FIXES:
