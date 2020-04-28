@@ -72,6 +72,10 @@ func resourceSiteRecovery() *schema.Resource {
 
 func resourceSiteRecoveryCreate(d *schema.ResourceData, m interface{}) error {
 
+	err := (m.(*ConnectorWrapper)).authenticate()
+	if err != nil {
+		return fmt.Errorf("Error authenticating in CSP: %s", err)
+	}
 	connector := (m.(*ConnectorWrapper)).Connector
 
 	siteRecoveryClient := draas.NewDefaultSiteRecoveryClient(connector)

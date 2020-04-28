@@ -1,13 +1,51 @@
 # Example: Provision an SDDC
 
-This is an example that demonstrates SDDC management actions like creating, updating and deleting an existing SDDC.
+This is an example that demonstrates the following workflow :
 
-To run the example:
+1. SDDC management actions like creating, updating and deleting an existing SDDC.
+2. Public IP management actions like creation and deletion.
+3. Site recovery management actions like activation and deactivation.
+4. SRM node management actions like creation and deletion.
+
+For the entire workflow a 10 minute delay must be added after SDDC is created and before site recovery can be activated.
+
+Update the SDDC resource in [main.tf](https://github.com/terraform-providers/terraform-provider-vmc/blob/master/examples/main.tf) as follows :
+
+```sh
+resource "vmc_sddc" "sddc_1" {
+  sddc_name           = var.sddc_name
+  vpc_cidr            = var.vpc_cidr
+  num_host            = var.num_hosts
+  provider_type       = var.provider_type
+  region              = data.vmc_customer_subnets.my_subnets.region
+  vxlan_subnet        = var.vxlan_subnet
+  delay_account_link  = false
+  skip_creating_vxlan = false
+  sso_domain          = "vmc.local"
+  sddc_type = var.sddc_type
+  deployment_type = "SingleAZ"
+
+  account_link_sddc_config {
+    customer_subnet_ids  = [data.vmc_customer_subnets.my_subnets.ids[0]]
+    connected_account_id = data.vmc_connected_accounts.my_accounts.id
+  }
+  timeouts {
+    create = "300m"
+    update = "300m"
+    delete = "180m"
+  }
+   provisioner "local-exec" {
+   command = "sleep 600"
+   }
+}
+```
+
+To run the entire workflow:
 
 * Generate an API token using [VMware Cloud on AWS console] (https://vmc.vmware.com/console/)
 
 * Update the variables required parameters api_token and org_id in [variables.tf](https://github.com/terraform-providers/terraform-provider-vmc/blob/master/examples/variables.tf) with your infrastructure settings. 
-
+ 
 * Load the provider
 
 ```sh
