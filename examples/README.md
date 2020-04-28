@@ -1,6 +1,6 @@
 # Example: Provision an SDDC
 
-This is an example that demonstrates the following workflow :
+This is an example that demonstrates the following workflow:
 
 1. SDDC management actions like creating, updating and deleting an existing SDDC.
 2. Public IP management actions like creation and deletion.
@@ -9,7 +9,7 @@ This is an example that demonstrates the following workflow :
 
 For this workflow, a 10 minute delay must be added after SDDC is created and before site recovery can be activated.
 
-To add the delay, update the SDDC resource in [main.tf](https://github.com/terraform-providers/terraform-provider-vmc/blob/master/examples/main.tf) as follows :
+To add delay after SDDC has been created, update SDDC resource in [main.tf](https://github.com/terraform-providers/terraform-provider-vmc/blob/master/examples/main.tf) with local-exec provisioner:
 
 ```sh
 resource "vmc_sddc" "sddc_1" {
@@ -70,7 +70,7 @@ or
     terraform show
 ```
 
-* Delete the SDDC
+* Delete resources created during apply.
 
 ```sh
     terraform destroy
