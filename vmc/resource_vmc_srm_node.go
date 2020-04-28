@@ -55,7 +55,7 @@ func resourceSRMNodeCreate(d *schema.ResourceData, m interface{}) error {
 
 	err := (m.(*ConnectorWrapper)).updateToken()
 	if err != nil {
-		return fmt.Errorf("Error authenticating in CSP: %s", err)
+		return fmt.Errorf("authentication error from Cloud Service Provider: %s", err)
 	}
 	connector := (m.(*ConnectorWrapper)).Connector
 
@@ -85,7 +85,7 @@ func resourceSRMNodeCreate(d *schema.ResourceData, m interface{}) error {
 				log.Print("Auth error", err.Error(), errors.Unauthenticated{}.Error())
 				err = (m.(*ConnectorWrapper)).updateToken()
 				if err != nil {
-					return resource.NonRetryableError(fmt.Errorf("Error authenticating in CSP: %s", err))
+					return resource.NonRetryableError(fmt.Errorf("authentication error from Cloud Service Provider: %s", err))
 				}
 				return resource.RetryableError(fmt.Errorf("Instance creation still in progress"))
 			}
