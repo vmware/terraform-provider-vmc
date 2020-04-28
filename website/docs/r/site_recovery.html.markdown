@@ -11,7 +11,10 @@ description: |-
 # vmc_site_recovery
 
 Provides a resource to activate and deactivate site recovery for SDDC.
-~> **Note:** Site recovery resource implicitly depends on SDDC resource creation. SDDC must be provisioned before a site recovery can be activated. For details on how to provision SDDC refer to [vmc_sddc](https://www.terraform.io/docs/providers/vmc/r/sddc.html).
+
+~> **Note:** Site recovery resource implicitly depends on SDDC resource creation. SDDC must be provisioned before a site recovery can be activated. 
+A 10 minute delay must be added to SDDC resource before site recovery can be activated.
+This delay is added using using the local-exec provisioner. For details on how to provision SDDC refer to [vmc_sddc](https://www.terraform.io/docs/providers/vmc/r/sddc.html).
 
 ## Example Usage
 
@@ -22,10 +25,42 @@ provider "vmc" {
   org_id = var.org_id
 }
 
+resource "vmc_sddc" "sddc_1" {
+  sddc_name           = var.sddc_name
+  vpc_cidr            = var.vpc_cidr
+  num_host            = 3
+  provider_type       = "AWS"
+  region              = data.vmc_customer_subnets.my_subnets.region
+  vxlan_subnet        = var.vxlan_subnet
+  delay_account_link  = false
+  skip_creating_vxlan = false
+  sso_domain          = "vmc.local"
+
+  deployment_type = "SingleAZ"
+
+  account_link_sddc_config {
+    customer_subnet_ids  = [data.vmc_customer_subnets.my_subnets.ids[0]]
+    connected_account_id = data.vmc_connected_accounts.my_accounts.ids[0]
+  }
+
+  timeouts {
+    create = "300m"
+    update = "300m"
+    delete = "180m"
+  }
+  
+   # provisioner defined to add 10 minute delay after SDDC creation to enable site recovery activation.
+   provisioner "local-exec" {
+     command = "sleep 600"     
+   } 
+}
+
+
 resource "vmc_site_recovery" "site_recovery_1" {
   sddc_id = vmc_sddc.sddc_1.id
   srm_extension_key_suffix = var.site_recovery_srm_extension_key_suffix
 }
+
 
 ```
 

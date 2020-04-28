@@ -272,7 +272,7 @@ func resourceSddcCreate(d *schema.ResourceData, m interface{}) error {
 		if err != nil {
 			if err.Error() == (errors.Unauthenticated{}.Error()) {
 				log.Print("Auth error", err.Error(), errors.Unauthenticated{}.Error())
-				err = connectorWrapper.updateToken()
+				err = connectorWrapper.authenticate()
 				if err != nil {
 					return resource.NonRetryableError(fmt.Errorf("Error authenticating in Cloud Service Provider: %s", err))
 				}

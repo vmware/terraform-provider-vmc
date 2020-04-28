@@ -21,7 +21,7 @@ type ConnectorWrapper struct {
 	CspURL       string
 }
 
-func (c *ConnectorWrapper) updateToken() error {
+func (c *ConnectorWrapper) authenticate() error {
 	var err error
 	httpClient := http.Client{}
 	c.Connector, err = NewClientConnectorByRefreshToken(c.RefreshToken, c.VmcURL, c.CspURL, httpClient)

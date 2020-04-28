@@ -72,7 +72,7 @@ func resourceSiteRecovery() *schema.Resource {
 
 func resourceSiteRecoveryCreate(d *schema.ResourceData, m interface{}) error {
 
-	err := (m.(*ConnectorWrapper)).updateToken()
+	err := (m.(*ConnectorWrapper)).authenticate()
 	if err != nil {
 		return fmt.Errorf("authentication error from Cloud Service Provider: %s", err)
 	}
@@ -103,7 +103,7 @@ func resourceSiteRecoveryCreate(d *schema.ResourceData, m interface{}) error {
 		if err != nil {
 			if err.Error() == (errors.Unauthenticated{}.Error()) {
 				log.Print("Auth error", err.Error(), errors.Unauthenticated{}.Error())
-				err = (m.(*ConnectorWrapper)).updateToken()
+				err = (m.(*ConnectorWrapper)).authenticate()
 				if err != nil {
 					return resource.NonRetryableError(fmt.Errorf("authentication error from Cloud Service Provider:: %s", err))
 				}
