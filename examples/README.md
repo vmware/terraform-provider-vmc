@@ -1,4 +1,4 @@
-# Example: SDDC, public IP, site recovery and SRM node management.
+# Example: Creation of SDDC, public IP, site recovery and SRM node.
 
 This is an example that demonstrates the creation of VMC resources like SDDC, public IP, site recovery and SRM node.
 
