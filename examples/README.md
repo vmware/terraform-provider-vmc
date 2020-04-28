@@ -7,9 +7,9 @@ This is an example that demonstrates the following workflow :
 3. Site recovery management actions like activation and deactivation.
 4. SRM node management actions like creation and deletion.
 
-For the entire workflow a 10 minute delay must be added after SDDC is created and before site recovery can be activated.
+For this workflow, a 10 minute delay must be added after SDDC is created and before site recovery can be activated.
 
-Update the SDDC resource in [main.tf](https://github.com/terraform-providers/terraform-provider-vmc/blob/master/examples/main.tf) as follows :
+To add the delay, update the SDDC resource in [main.tf](https://github.com/terraform-providers/terraform-provider-vmc/blob/master/examples/main.tf) as follows :
 
 ```sh
 resource "vmc_sddc" "sddc_1" {
@@ -40,7 +40,7 @@ resource "vmc_sddc" "sddc_1" {
 }
 ```
 
-To run the entire workflow:
+To run the workflow:
 
 * Generate an API token using [VMware Cloud on AWS console] (https://vmc.vmware.com/console/)
 
@@ -63,8 +63,6 @@ or
 ```sh
    terraform apply -var="api_token=xxxx" -var="org_id=xxxx"
 ```
-
-Verify the SDDC has been created successfully.
 
 * Check the terraform state
 
