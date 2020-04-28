@@ -36,19 +36,9 @@ resource "vmc_sddc" "sddc_1" {
     customer_subnet_ids  = [data.vmc_customer_subnets.my_subnets.ids[0]]
     connected_account_id = data.vmc_connected_accounts.my_accounts.id
   }
-
   timeouts {
     create = "300m"
     update = "300m"
     delete = "180m"
   }
-
-  provisioner "local-exec" {
-    command = "sleep 600"
-  }
-}
-
-resource "vmc_site_recovery" "site_recovery_1" {
-  sddc_id = vmc_sddc.sddc_1.id
-  srm_extension_key_suffix = var.site_recovery_srm_extension_key_suffix
 }
