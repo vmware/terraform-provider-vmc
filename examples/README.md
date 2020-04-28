@@ -1,4 +1,4 @@
-# Example: Provision an SDDC
+# Example: SDDC, public IP, site recovery and SRM node management
 
 This is an example that demonstrates the following workflow:
 

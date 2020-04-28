@@ -72,7 +72,7 @@ func resourceSiteRecovery() *schema.Resource {
 
 func resourceSiteRecoveryCreate(d *schema.ResourceData, m interface{}) error {
 
-	err := (m.(*ConnectorWrapper)).authenticate()
+	err := (m.(*ConnectorWrapper)).updateToken()
 	if err != nil {
 		return fmt.Errorf("Error authenticating in CSP: %s", err)
 	}
@@ -103,7 +103,7 @@ func resourceSiteRecoveryCreate(d *schema.ResourceData, m interface{}) error {
 		if err != nil {
 			if err.Error() == (errors.Unauthenticated{}.Error()) {
 				log.Print("Auth error", err.Error(), errors.Unauthenticated{}.Error())
-				err = (m.(*ConnectorWrapper)).authenticate()
+				err = (m.(*ConnectorWrapper)).updateToken()
 				if err != nil {
 					return resource.NonRetryableError(fmt.Errorf("Error authenticating in CSP: %s", err))
 				}
