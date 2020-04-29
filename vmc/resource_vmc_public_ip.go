@@ -51,9 +51,9 @@ func resourcePublicIp() *schema.Resource {
 
 func resourcePublicIpCreate(d *schema.ResourceData, m interface{}) error {
 	nsxtReverseProxyUrl := d.Get("nsxt_reverse_proxy_url").(string)
-	connector, err := getNsxtReverseProxyUrlConnector(nsxtReverseProxyUrl)
+	connector, err := getNSXTReverseProxyUrlConnector(nsxtReverseProxyUrl)
 	if err != nil {
-		return fmt.Errorf("Error getting connector for reverse proxy url : %v", err)
+		return fmt.Errorf("error getting connector for reverse proxy url : %v", err)
 	}
 	nsxVmcAwsClient := api.NewDefaultNsxVmcAwsIntegrationClient(connector)
 
@@ -70,7 +70,7 @@ func resourcePublicIpCreate(d *schema.ResourceData, m interface{}) error {
 	// API call to create public IP
 	publicIp, err := nsxVmcAwsClient.CreatePublicIp(uuid, *publicIpModel)
 	if err != nil {
-		return fmt.Errorf("Error creating public IP : %v", err)
+		return fmt.Errorf("error creating public IP : %v", err)
 	}
 
 	d.SetId(*publicIp.Id)
@@ -79,9 +79,9 @@ func resourcePublicIpCreate(d *schema.ResourceData, m interface{}) error {
 
 func resourcePublicIpRead(d *schema.ResourceData, m interface{}) error {
 	nsxtReverseProxyUrl := d.Get("nsxt_reverse_proxy_url").(string)
-	connector, err := getNsxtReverseProxyUrlConnector(nsxtReverseProxyUrl)
+	connector, err := getNSXTReverseProxyUrlConnector(nsxtReverseProxyUrl)
 	if err != nil {
-		return fmt.Errorf("Error getting connector for reverse proxy url : %v", err)
+		return fmt.Errorf("error getting connector for reverse proxy url : %v", err)
 	}
 	nsxVmcAwsClient := api.NewDefaultNsxVmcAwsIntegrationClient(connector)
 	uuid := d.Id()
@@ -94,7 +94,7 @@ func resourcePublicIpRead(d *schema.ResourceData, m interface{}) error {
 				d.SetId("")
 				return nil
 			}
-			return fmt.Errorf("Error getting public IP with ID %s : %v", uuid, err)
+			return fmt.Errorf("error getting public IP with ID %s : %v", uuid, err)
 		}
 		d.Set("ip", publicIp.Ip)
 		d.Set("display_name", publicIp.DisplayName)
@@ -104,7 +104,7 @@ func resourcePublicIpRead(d *schema.ResourceData, m interface{}) error {
 			// get the list of IPs
 			publicIpResultList, err := nsxVmcAwsClient.ListPublicIps()
 			if err != nil {
-				return fmt.Errorf("Error getting list of public IPs : %v", err)
+				return fmt.Errorf("error getting list of public IPs : %v", err)
 			}
 			publicIpsList := publicIpResultList.Results
 			if publicIpsList != nil {
@@ -123,9 +123,9 @@ func resourcePublicIpRead(d *schema.ResourceData, m interface{}) error {
 
 func resourcePublicIpUpdate(d *schema.ResourceData, m interface{}) error {
 	nsxtReverseProxyUrl := d.Get("nsxt_reverse_proxy_url").(string)
-	connector, err := getNsxtReverseProxyUrlConnector(nsxtReverseProxyUrl)
+	connector, err := getNSXTReverseProxyUrlConnector(nsxtReverseProxyUrl)
 	if err != nil {
-		return fmt.Errorf("Error getting connector for reverse proxy url : %v", err)
+		return fmt.Errorf("error getting connector for reverse proxy url : %v", err)
 	}
 	nsxVmcAwsClient := api.NewDefaultNsxVmcAwsIntegrationClient(connector)
 
@@ -142,7 +142,7 @@ func resourcePublicIpUpdate(d *schema.ResourceData, m interface{}) error {
 		// API call to update public IP
 		publicIp, err := nsxVmcAwsClient.CreatePublicIp(uuid, *publicIpModel)
 		if err != nil {
-			return fmt.Errorf("Error while updating public IP's display name : %v", err)
+			return fmt.Errorf("error while updating public IP's display name : %v", err)
 		}
 
 		d.Set("display_name", publicIp.DisplayName)
@@ -153,25 +153,25 @@ func resourcePublicIpUpdate(d *schema.ResourceData, m interface{}) error {
 
 func resourcePublicIpDelete(d *schema.ResourceData, m interface{}) error {
 	nsxtReverseProxyUrl := d.Get("nsxt_reverse_proxy_url").(string)
-	connector, err := getNsxtReverseProxyUrlConnector(nsxtReverseProxyUrl)
+	connector, err := getNSXTReverseProxyUrlConnector(nsxtReverseProxyUrl)
 	if err != nil {
-		return fmt.Errorf("Error getting connector for reverse proxy url : %v", err)
+		return fmt.Errorf("error getting connector for reverse proxy url : %v", err)
 	}
 	nsxVmcAwsClient := api.NewDefaultNsxVmcAwsIntegrationClient(connector)
 	uuid := d.Id()
 	var forceDelete bool = true
 	err = nsxVmcAwsClient.DeletePublicIp(uuid, &forceDelete)
 	if err != nil {
-		return fmt.Errorf("Error deleting public IP with ID %s : %v", uuid, err)
+		return fmt.Errorf("error deleting public IP with ID %s : %v", uuid, err)
 	}
 	d.SetId("")
 	return nil
 }
 
-func getNsxtReverseProxyUrlConnector(nsxtReverseProxyUrl string) (client.Connector, error) {
+func getNSXTReverseProxyUrlConnector(nsxtReverseProxyUrl string) (client.Connector, error) {
 	apiToken := os.Getenv(APIToken)
-	if len(nsxtReverseProxyUrl) == 0 {
-		return nil, fmt.Errorf("NSX reverse proxy url is required for Public IP resource creation.")
+	if len(nsxtReverseProxyUrl ) == 0 {
+		return nil, fmt.Errorf("NSX reverse proxy url is required for public IP resource creation.")
 	}
 	if strings.Contains(nsxtReverseProxyUrl, SksNSXTManager) {
 		nsxtReverseProxyUrl = strings.Replace(nsxtReverseProxyUrl, SksNSXTManager, "", -1)

@@ -44,7 +44,7 @@ func testCheckVmcSddcExists(name string, sddcResource *model.Sddc) resource.Test
 	return func(s *terraform.State) error {
 		rs, ok := s.RootModule().Resources[name]
 		if !ok {
-			return fmt.Errorf("Not found: %s", name)
+			return fmt.Errorf("not found: %s", name)
 		}
 		sddcID := rs.Primary.Attributes["id"]
 		sddcName := rs.Primary.Attributes["sddc_name"]
@@ -56,11 +56,11 @@ func testCheckVmcSddcExists(name string, sddcResource *model.Sddc) resource.Test
 		var err error
 		*sddcResource, err = sddcClient.Get(orgID, sddcID)
 		if err != nil {
-			return fmt.Errorf("Bad: Get on sddcApi: %s", err)
+			return fmt.Errorf("error retrieving SDDC : %s", err)
 		}
 
 		if sddcResource.Id != sddcID {
-			return fmt.Errorf("Bad: Sddc %q does not exist", sddcName)
+			return fmt.Errorf("error : SDDC %q does not exist", sddcName)
 		}
 
 		fmt.Printf("SDDC %s created successfully with id %s \n", sddcName, sddcID)
@@ -72,7 +72,7 @@ func testCheckSddcAttributes(sddcResource *model.Sddc) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		sddcState := sddcResource.SddcState
 		if *sddcState != "READY" {
-			return fmt.Errorf("The SDDC %s with ID %s is not in ready state", *sddcResource.Name, sddcResource.Id)
+			return fmt.Errorf(" SDDC %s with ID %s is not in ready state", *sddcResource.Name, sddcResource.Id)
 		}
 		return nil
 	}
