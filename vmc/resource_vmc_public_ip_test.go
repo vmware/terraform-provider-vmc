@@ -39,32 +39,32 @@ func testAccCheckVmcPublicIpExists(name string, publicIpResource *model.PublicIp
 	return func(s *terraform.State) error {
 		rs, ok := s.RootModule().Resources[name]
 		if !ok {
-			return fmt.Errorf("Not found: %s", name)
+			return fmt.Errorf("not found: %s", name)
 		}
 		uuid := rs.Primary.Attributes["id"]
 		displayName := rs.Primary.Attributes["display_name"]
-		connector, err := getNsxtReverseProxyUrlConnector(os.Getenv(NsxtReverseProxyUrl))
+		connector, err := getNSXTReverseProxyUrlConnector(os.Getenv(NSXTReverseProxyUrl))
 		if err != nil {
-			return fmt.Errorf("Bad: creating connector : %v ", err)
+			return fmt.Errorf("error creating client connector : %v ", err)
 		}
 
 		nsxVmcAwsClient := api.NewDefaultNsxVmcAwsIntegrationClient(connector)
 		publicIp, err := nsxVmcAwsClient.GetPublicIp(uuid)
 		if err != nil {
-			return fmt.Errorf("Bad: getting public IP with ID %s : %v", uuid, err)
+			return fmt.Errorf("error getting public IP with ID %s : %v", uuid, err)
 		}
 
 		if *publicIp.Id != uuid {
-			return fmt.Errorf("Bad: Public IP %q does not exist", displayName)
+			return fmt.Errorf("error public IP %q does not exist", displayName)
 		}
 		return nil
 	}
 }
 
 func testCheckVmcPublicIpDestroy(s *terraform.State) error {
-	connector, err := getNsxtReverseProxyUrlConnector(os.Getenv(NsxtReverseProxyUrl))
+	connector, err := getNSXTReverseProxyUrlConnector(os.Getenv(NSXTReverseProxyUrl))
 	if err != nil {
-		return fmt.Errorf("Bad: creating connector : %v ", err)
+		return fmt.Errorf("error creating client connector : %v ", err)
 	}
 	nsxVmcAwsClient := api.NewDefaultNsxVmcAwsIntegrationClient(connector)
 
@@ -77,7 +77,7 @@ func testCheckVmcPublicIpDestroy(s *terraform.State) error {
 		publicIp, err := nsxVmcAwsClient.GetPublicIp(uuid)
 		if err == nil {
 			if *publicIp.Id == uuid {
-				return fmt.Errorf("Public IP %s with ID %s still exits", *publicIp.DisplayName, uuid)
+				return fmt.Errorf("public IP %s with ID %s still exits", *publicIp.DisplayName, uuid)
 			}
 			return nil
 		}
@@ -99,6 +99,6 @@ resource "vmc_public_ip" "public_ip_1" {
 }
 `,
 		displayName,
-		os.Getenv(NsxtReverseProxyUrl),
+		os.Getenv(NSXTReverseProxyUrl),
 	)
 }

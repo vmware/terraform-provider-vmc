@@ -45,7 +45,7 @@ func NewClientConnectorByRefreshToken(refreshToken, serviceUrl, cspURL string,
 	return connector, nil
 }
 
-// SecurityContextByRefreshToken returns Security Context with access token that is received from CSP using Refresh Token by OAuth authentication scheme.
+// SecurityContextByRefreshToken returns Security Context with access token that is received from Cloud Service Provider using Refresh Token by OAuth authentication scheme.
 func SecurityContextByRefreshToken(refreshToken string, cspURL string) (core.SecurityContext, error) {
 	payload := strings.NewReader("refresh_token=" + refreshToken)
 
@@ -61,7 +61,7 @@ func SecurityContextByRefreshToken(refreshToken string, cspURL string) (core.Sec
 
 	if res.StatusCode != 200 {
 		b, _ := ioutil.ReadAll(res.Body)
-		return nil, fmt.Errorf("status code %d trying to get csp auth token. %s", res.StatusCode, string(b))
+		return nil, fmt.Errorf("response from Cloud Service Provider contains status code %d : %s", res.StatusCode, string(b))
 	}
 
 	defer res.Body.Close()
@@ -78,7 +78,7 @@ func SecurityContextByRefreshToken(refreshToken string, cspURL string) (core.Sec
 			return nil, errors.New(errMsg)
 		}
 	} else {
-		return nil, errors.New("CSP auth response doesn't contain access token")
+		return nil, errors.New("Cloud Service Provider authentication response does not contain access token")
 	}
 
 	securityCtx := security.NewOauthSecurityContext(accessToken)

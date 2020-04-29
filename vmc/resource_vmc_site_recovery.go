@@ -91,7 +91,7 @@ func resourceSiteRecoveryCreate(d *schema.ResourceData, m interface{}) error {
 	task, err := siteRecoveryClient.Post(orgID, sddcID, activateSiteRecoveryConfigParam)
 
 	if err != nil {
-		return fmt.Errorf("Error while activating site recovery for sddc %s: %v", sddcID, err)
+		return fmt.Errorf("error activating site recovery for SDDC %s: %v", sddcID, err)
 	}
 
 	// Wait until site recovery is activated
@@ -107,14 +107,14 @@ func resourceSiteRecoveryCreate(d *schema.ResourceData, m interface{}) error {
 				if err != nil {
 					return resource.NonRetryableError(fmt.Errorf("authentication error from Cloud Service Provider:: %s", err))
 				}
-				return resource.RetryableError(fmt.Errorf("Instance creation still in progress"))
+				return resource.RetryableError(fmt.Errorf("instance creation still in progress"))
 			}
-			return resource.NonRetryableError(fmt.Errorf("Error describing instance: %s", err))
+			return resource.NonRetryableError(fmt.Errorf("error describing instance: %s", err))
 
 		}
 
 		if *task.Status != "FINISHED" {
-			return resource.RetryableError(fmt.Errorf("Expected instance to be created but was in state %s", *task.Status))
+			return resource.RetryableError(fmt.Errorf("expected instance to be created but was in state %s", *task.Status))
 		}
 		return resource.NonRetryableError(resourceSiteRecoveryRead(d, m))
 	})
@@ -130,9 +130,9 @@ func resourceSiteRecoveryRead(d *schema.ResourceData, m interface{}) error {
 		if err.Error() == errors.NewNotFound().Error() {
 			log.Printf("Site recovery for SDDC with ID %s not found", sddcID)
 			d.SetId("")
-			return fmt.Errorf("Site recovery for SDDC with ID %s not found", sddcID)
+			return fmt.Errorf("site recovery for SDDC with ID %s not found", sddcID)
 		}
-		return fmt.Errorf("Error while site recovery information for SDDC with ID %s : %v", sddcID, err)
+		return fmt.Errorf("error retrieving site recovery information for SDDC with ID %s : %v", sddcID, err)
 	}
 	d.SetId(siteRecovery.Id)
 	d.Set("site_recovery_state", siteRecovery.SiteRecoveryState)
@@ -188,16 +188,16 @@ func resourceSiteRecoveryDelete(d *schema.ResourceData, m interface{}) error {
 
 	task, err := siteRecoveryClient.Delete(orgID, sddcID, nil, nil)
 	if err != nil {
-		return fmt.Errorf("Error while deactivating site recovery for sddc %s: %v", sddcID, err)
+		return fmt.Errorf("error deactivating site recovery for SDDC %s: %v", sddcID, err)
 	}
 	tasksClient := draas.NewDefaultTaskClient(connector)
 	return resource.Retry(d.Timeout(schema.TimeoutDelete), func() *resource.RetryError {
 		task, err := tasksClient.Get(orgID, task.Id)
 		if err != nil {
-			return resource.NonRetryableError(fmt.Errorf("Error while deactivating site recovery for sddc %s : %v", sddcID, err))
+			return resource.NonRetryableError(fmt.Errorf("error deactivating site recovery for SDDC %s : %v", sddcID, err))
 		}
 		if *task.Status != "FINISHED" {
-			return resource.RetryableError(fmt.Errorf("Expected instance to be deleted but was in state %s", *task.Status))
+			return resource.RetryableError(fmt.Errorf("expected instance to be deleted but was in state %s", *task.Status))
 		}
 		d.SetId("")
 		return resource.NonRetryableError(nil)
@@ -208,7 +208,7 @@ func resourceSiteRecoveryUpdate(d *schema.ResourceData, m interface{}) error {
 	if d.HasChange("srm_extension_key_suffix") {
 		err := resource.NonRetryableError(resourceSiteRecoveryDelete(d, m))
 		if err != nil {
-			return fmt.Errorf("Error while deactivating site recovery: %v", err)
+			return fmt.Errorf("error deactivating site recovery: %v", err)
 		}
 
 		// This wait is required after deactivation before activation
@@ -216,7 +216,7 @@ func resourceSiteRecoveryUpdate(d *schema.ResourceData, m interface{}) error {
 
 		err = resource.NonRetryableError(resourceSiteRecoveryCreate(d, m))
 		if err != nil {
-			return fmt.Errorf("Error while activating site recovery for sddc : %v", err)
+			return fmt.Errorf("error activating site recovery : %v", err)
 		}
 	}
 	return nil

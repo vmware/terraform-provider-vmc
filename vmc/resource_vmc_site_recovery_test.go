@@ -40,7 +40,7 @@ func testCheckVmcSiteRecoveryExists(name string, siteRecovery *model.SiteRecover
 	return func(s *terraform.State) error {
 		rs, ok := s.RootModule().Resources[name]
 		if !ok {
-			return fmt.Errorf("Not found: %s", name)
+			return fmt.Errorf("not found: %s", name)
 		}
 		sddcID := rs.Primary.Attributes["sddc_id"]
 		connectorWrapper := testAccProvider.Meta().(*ConnectorWrapper)
@@ -51,11 +51,11 @@ func testCheckVmcSiteRecoveryExists(name string, siteRecovery *model.SiteRecover
 		var err error
 		*siteRecovery, err = draasClient.Get(orgID, sddcID)
 		if err != nil {
-			return fmt.Errorf("Bad: Get on DraaS API: %s", err)
+			return fmt.Errorf("error retrieving site recovery information for SDDC %s : %s", sddcID, err)
 		}
 
 		if *siteRecovery.SddcId != sddcID {
-			return fmt.Errorf("Bad: Site recovery: %s ", sddcID)
+			return fmt.Errorf("error retrieving site recovery for SDDC with id %s ", sddcID)
 		}
 
 		return nil

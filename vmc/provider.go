@@ -87,7 +87,7 @@ func providerConfigure(d *schema.ResourceData) (interface{}, error) {
 	httpClient := http.Client{}
 	connector, err := NewClientConnectorByRefreshToken(refreshToken, vmcURL, cspURL, httpClient)
 	if err != nil {
-		return nil, fmt.Errorf("Error creating connector : %v ", err)
+		return nil, fmt.Errorf("error creating client connector : %v ", err)
 	}
 
 	return &ConnectorWrapper{connector, refreshToken, orgID, vmcURL, cspURL}, nil

@@ -260,7 +260,7 @@ func resourceSddcCreate(d *schema.ResourceData, m interface{}) error {
 	// Create a Sddc
 	task, err := sddcClient.Create(orgID, *awsSddcConfig, nil)
 	if err != nil {
-		return fmt.Errorf("Error while creating sddc %s: %v", sddcName, err)
+		return fmt.Errorf("error while creating SDDC %s: %v", sddcName, err)
 	}
 
 	// Wait until Sddc is created
@@ -274,15 +274,15 @@ func resourceSddcCreate(d *schema.ResourceData, m interface{}) error {
 				log.Print("Auth error", err.Error(), errors.Unauthenticated{}.Error())
 				err = connectorWrapper.authenticate()
 				if err != nil {
-					return resource.NonRetryableError(fmt.Errorf("Error authenticating in Cloud Service Provider: %s", err))
+					return resource.NonRetryableError(fmt.Errorf("authentication error from Cloud Service Provider : %s", err))
 				}
-				return resource.RetryableError(fmt.Errorf("Instance creation still in progress"))
+				return resource.RetryableError(fmt.Errorf("instance creation still in progress"))
 			}
-			return resource.NonRetryableError(fmt.Errorf("Error describing instance: %s", err))
+			return resource.NonRetryableError(fmt.Errorf("error describing instance: %s", err))
 
 		}
 		if *task.Status != "FINISHED" {
-			return resource.RetryableError(fmt.Errorf("Expected instance to be created but was in state %s", *task.Status))
+			return resource.RetryableError(fmt.Errorf("expected instance to be created but was in state %s", *task.Status))
 		}
 		return resource.NonRetryableError(resourceSddcRead(d, m))
 	})
@@ -299,11 +299,11 @@ func resourceSddcRead(d *schema.ResourceData, m interface{}) error {
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("Error while getting the SDDC with ID %s,%v", sddcID, err)
+		return fmt.Errorf("error while getting the SDDC with ID %s,%v", sddcID, err)
 	}
 
 	if *sddc.SddcState == "DELETED" {
-		log.Printf("Can't get, SDDC with ID %s is already deleted", sddc.Id)
+		log.Printf("Unable to retrieve SDDC with ID %s", sddc.Id)
 		d.SetId("")
 		return nil
 	}
@@ -344,19 +344,19 @@ func resourceSddcDelete(d *schema.ResourceData, m interface{}) error {
 	task, err := sddcClient.Delete(orgID, sddcID, nil, nil, nil)
 	if err != nil {
 		if err.Error() == errors.NewInvalidRequest().Error() {
-			log.Printf("Can't Delete : SDDC with ID %s not found or already deleted %v", sddcID, err)
+			log.Printf("Unable to delete SDDC with ID %s. Not found or already deleted %v", sddcID, err)
 			return nil
 		}
-		return fmt.Errorf("Error while deleting sddc %s: %v", sddcID, err)
+		return fmt.Errorf("error while deleting SDDC %s: %v", sddcID, err)
 	}
 	tasksClient := orgs.NewDefaultTasksClient(connector)
 	return resource.Retry(d.Timeout(schema.TimeoutDelete), func() *resource.RetryError {
 		task, err := tasksClient.Get(orgID, task.Id)
 		if err != nil {
-			return resource.NonRetryableError(fmt.Errorf("Error while deleting sddc %s: %v", sddcID, err))
+			return resource.NonRetryableError(fmt.Errorf("error while deleting SDDC %s: %v", sddcID, err))
 		}
 		if *task.Status != "FINISHED" {
-			return resource.RetryableError(fmt.Errorf("Expected instance to be deleted but was in state %s", *task.Status))
+			return resource.RetryableError(fmt.Errorf("expected instance to be deleted but was in state %s", *task.Status))
 		}
 		d.SetId("")
 		return resource.NonRetryableError(nil)
@@ -390,16 +390,16 @@ func resourceSddcUpdate(d *schema.ResourceData, m interface{}) error {
 		task, err := esxsClient.Create(orgID, sddcID, esxConfig, &action)
 
 		if err != nil {
-			return fmt.Errorf("Error while updating number of host for SDDC %s: %v", sddcID, err)
+			return fmt.Errorf("error while updating number of host for SDDC %s: %v", sddcID, err)
 		}
 		tasksClient := orgs.NewDefaultTasksClient(connector)
 		err = resource.Retry(d.Timeout(schema.TimeoutUpdate), func() *resource.RetryError {
 			task, err := tasksClient.Get(orgID, task.Id)
 			if err != nil {
-				return resource.NonRetryableError(fmt.Errorf("Error while waiting for task sddc %s: %v", task.Id, err))
+				return resource.NonRetryableError(fmt.Errorf("error while waiting for task %s: %v", task.Id, err))
 			}
 			if *task.Status != "FINISHED" {
-				return resource.RetryableError(fmt.Errorf("Expected Host to be updated but was in state %s", *task.Status))
+				return resource.RetryableError(fmt.Errorf("expected host to be updated but was in state %s", *task.Status))
 			}
 			return resource.NonRetryableError(resourceSddcRead(d, m))
 		})
@@ -417,7 +417,7 @@ func resourceSddcUpdate(d *schema.ResourceData, m interface{}) error {
 		sddc, err := sddcClient.Patch(orgID, sddcID, sddcPatchRequest)
 
 		if err != nil {
-			return fmt.Errorf("Error while updating sddc's name %v", err)
+			return fmt.Errorf("error while updating SDDC's name %v", err)
 		}
 		d.Set("sddc_name", sddc.Name)
 	}
