@@ -72,6 +72,10 @@ func resourceSiteRecovery() *schema.Resource {
 
 func resourceSiteRecoveryCreate(d *schema.ResourceData, m interface{}) error {
 
+	err := (m.(*ConnectorWrapper)).authenticate()
+	if err != nil {
+		return fmt.Errorf("authentication error from Cloud Service Provider: %s", err)
+	}
 	connector := (m.(*ConnectorWrapper)).Connector
 
 	siteRecoveryClient := draas.NewDefaultSiteRecoveryClient(connector)
@@ -101,7 +105,7 @@ func resourceSiteRecoveryCreate(d *schema.ResourceData, m interface{}) error {
 				log.Print("Auth error", err.Error(), errors.Unauthenticated{}.Error())
 				err = (m.(*ConnectorWrapper)).authenticate()
 				if err != nil {
-					return resource.NonRetryableError(fmt.Errorf("Error authenticating in CSP: %s", err))
+					return resource.NonRetryableError(fmt.Errorf("authentication error from Cloud Service Provider:: %s", err))
 				}
 				return resource.RetryableError(fmt.Errorf("Instance creation still in progress"))
 			}

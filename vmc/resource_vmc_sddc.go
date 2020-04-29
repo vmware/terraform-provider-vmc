@@ -274,7 +274,7 @@ func resourceSddcCreate(d *schema.ResourceData, m interface{}) error {
 				log.Print("Auth error", err.Error(), errors.Unauthenticated{}.Error())
 				err = connectorWrapper.authenticate()
 				if err != nil {
-					return resource.NonRetryableError(fmt.Errorf("Error authenticating in CSP: %s", err))
+					return resource.NonRetryableError(fmt.Errorf("Error authenticating in Cloud Service Provider: %s", err))
 				}
 				return resource.RetryableError(fmt.Errorf("Instance creation still in progress"))
 			}
