@@ -170,7 +170,7 @@ func resourcePublicIpDelete(d *schema.ResourceData, m interface{}) error {
 
 func getNSXTReverseProxyUrlConnector(nsxtReverseProxyUrl string) (client.Connector, error) {
 	apiToken := os.Getenv(APIToken)
-	if len(nsxtReverseProxyUrl ) == 0 {
+	if len(nsxtReverseProxyUrl) == 0 {
 		return nil, fmt.Errorf("NSX reverse proxy url is required for public IP resource creation.")
 	}
 	if strings.Contains(nsxtReverseProxyUrl, SksNSXTManager) {

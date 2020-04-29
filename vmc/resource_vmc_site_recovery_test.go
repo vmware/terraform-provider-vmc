@@ -51,7 +51,7 @@ func testCheckVmcSiteRecoveryExists(name string, siteRecovery *model.SiteRecover
 		var err error
 		*siteRecovery, err = draasClient.Get(orgID, sddcID)
 		if err != nil {
-			return fmt.Errorf("error retrieving site recovery information for SDDC %s : %s",sddcID, err)
+			return fmt.Errorf("error retrieving site recovery information for SDDC %s : %s", sddcID, err)
 		}
 
 		if *siteRecovery.SddcId != sddcID {
