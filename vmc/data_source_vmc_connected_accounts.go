@@ -54,7 +54,7 @@ func dataSourceVmcConnectedAccountsRead(d *schema.ResourceData, m interface{}) e
 	}
 
 	if err != nil {
-		return fmt.Errorf("error while reading accounts from org %q: %v", orgID, err)
+		return fmt.Errorf("error reading accounts from org %q: %v", orgID, err)
 	}
 
 	if id == "" {
