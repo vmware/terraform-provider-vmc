@@ -1,4 +1,4 @@
-module github.com/terraform-repositories/terraform-provider-vmc
+module github.com/terraform-providers/terraform-provider-vmc
 
 go 1.13
 
