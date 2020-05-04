@@ -1,4 +1,16 @@
-## 1.3.0 (Unreleased)
+## 1.2.1 (Unreleased)
+
+BUG FIXES: 
+
+* Added instructions for delay needed after SDDC creation for site recovery [\#21](https://github.com/terraform-providers/terraform-provider-vmc/pull/21)
+* Removed capitalized error messages from code [\#23](https://github.com/terraform-providers/terraform-provider-vmc/pull/23)
+* Updated module name in go.mod [\#24](https://github.com/terraform-providers/terraform-provider-vmc/pull/24)
+
+ENHANCEMENTS:
+
+* Updated dependencies version to latest in go.mod [\#20](https://github.com/terraform-providers/terraform-provider-vmc/pull/20)
+* Added sample .tf file for each resource in examples folder [\#22](https://github.com/terraform-providers/terraform-provider-vmc/pull/22)
+
 ## 1.2.0 (April 03, 2020)
 
 FEATURES:
