@@ -97,8 +97,8 @@ func resourceClusterCreate(d *schema.ResourceData, m interface{}) error {
 			return resource.NonRetryableError(fmt.Errorf("error describing instance: %s", err))
 
 		}
-		if task.Params.HasField(ClusterFieldName) {
-			clusterID, err := task.Params.String(ClusterFieldName)
+		if task.Params.HasField(ClusterIdFieldName) {
+			clusterID, err := task.Params.String(ClusterIdFieldName)
 			if err != nil {
 				return resource.NonRetryableError(fmt.Errorf("error getting clusterId : %s", err))
 
