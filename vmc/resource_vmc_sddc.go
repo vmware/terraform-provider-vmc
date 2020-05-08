@@ -292,7 +292,7 @@ func resourceSddcRead(d *schema.ResourceData, m interface{}) error {
 	connector := (m.(*ConnectorWrapper)).Connector
 	sddcID := d.Id()
 	orgID := (m.(*ConnectorWrapper)).OrgID
-	sddc, err := getSDDC(connector, orgID, sddcID)
+	sddc, err := GetSDDC(connector, orgID, sddcID)
 	if err != nil {
 		if err.Error() == errors.NewNotFound().Error() {
 			log.Printf("SDDC with ID %s not found", sddcID)
@@ -449,7 +449,7 @@ func expandAccountLinkSddcConfig(l []interface{}) []model.AccountLinkSddcConfig 
 	return configs
 }
 
-func getSDDC(connector client.Connector, orgID string, sddcID string) (model.Sddc, error) {
+func GetSDDC(connector client.Connector, orgID string, sddcID string) (model.Sddc, error) {
 	sddcClient := orgs.NewDefaultSddcsClient(connector)
 	sddc, err := sddcClient.Get(orgID, sddcID)
 	return sddc, err

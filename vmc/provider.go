@@ -62,6 +62,7 @@ func Provider() terraform.ResourceProvider {
 			"vmc_public_ip":     resourcePublicIp(),
 			"vmc_site_recovery": resourceSiteRecovery(),
 			"vmc_srm_node":      resourceSRMNode(),
+			"vmc_cluster":       resourceCluster(),
 		},
 
 		DataSourcesMap: map[string]*schema.Resource{
