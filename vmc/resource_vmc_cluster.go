@@ -118,7 +118,7 @@ func resourceClusterRead(d *schema.ResourceData, m interface{}) error {
 	sddcID := d.Get("sddc_id").(string)
 	orgID := (m.(*ConnectorWrapper)).OrgID
 	sddc, err := GetSDDC(connector, orgID, sddcID)
-	log.Printf("SDDC ID : %s",sddcID)
+	log.Printf("SDDC ID : %s", sddcID)
 	if err != nil {
 		if err.Error() == errors.NewNotFound().Error() {
 			log.Printf("SDDC with ID %s not found", sddcID)
