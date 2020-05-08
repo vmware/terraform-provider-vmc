@@ -67,7 +67,6 @@ func resourceClusterCreate(d *schema.ResourceData, m interface{}) error {
 	numHosts := int64(d.Get("num_hosts").(int))
 	hostCPUCoresCount := int64(d.Get("host_cpu_cores_count").(int))
 
-
 	//To be added : hostinstance type support to be added in next commit
 	//hostInstanceType:=d.Get("host_instance_type").(string)
 
