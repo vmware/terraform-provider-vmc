@@ -24,8 +24,9 @@ func resourceCluster() *schema.Resource {
 			State: schema.ImportStatePassthrough,
 		},
 		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(30 * time.Minute),
+			Create: schema.DefaultTimeout(35 * time.Minute),
 			Delete: schema.DefaultTimeout(20 * time.Minute),
+			Update: schema.DefaultTimeout(40 * time.Minute),
 		},
 		Schema: map[string]*schema.Schema{
 			"sddc_id": {
@@ -48,6 +49,8 @@ func resourceCluster() *schema.Resource {
 				Type:        schema.TypeString,
 				Optional:    true,
 				Description: "The instance type for the esx hosts added to this cluster.",
+				ValidateFunc: validation.StringInSlice(
+					[]string{HostInstancetypeI3, HostInstancetypeR5}, false),
 			},
 			"storage_capacity": {
 				Type:        schema.TypeInt,
@@ -67,9 +70,6 @@ func resourceClusterCreate(d *schema.ResourceData, m interface{}) error {
 	numHosts := int64(d.Get("num_hosts").(int))
 	hostCPUCoresCount := int64(d.Get("host_cpu_cores_count").(int))
 
-	//To be added : hostinstance type support to be added in next commit
-	//hostInstanceType:=d.Get("host_instance_type").(string)
-
 	connector := m.(*ConnectorWrapper)
 	orgID := m.(*ConnectorWrapper).OrgID
 	clusterClient := sddcs.NewDefaultClustersClient(connector)
@@ -77,6 +77,9 @@ func resourceClusterCreate(d *schema.ResourceData, m interface{}) error {
 	clusterConfig := &model.ClusterConfig{
 		NumHosts:          numHosts,
 		HostCpuCoresCount: &hostCPUCoresCount,
+		// To be added : support for other host instance types
+		//HostInstanceType:  &hostInstanceType,
+		//StorageCapacity:   &storageCapacityConverted,
 	}
 
 	task, err := clusterClient.Create(orgID, sddcID, *clusterConfig)
@@ -177,5 +180,53 @@ func resourceClusterDelete(d *schema.ResourceData, m interface{}) error {
 }
 
 func resourceClusterUpdate(d *schema.ResourceData, m interface{}) error {
+	connector := (m.(*ConnectorWrapper)).Connector
+	esxsClient := sddcs.NewDefaultEsxsClient(connector)
+	sddcID := d.Get("sddc_id").(string)
+	orgID := (m.(*ConnectorWrapper)).OrgID
+	clusterID := d.Id()
+
+	// Add or remove hosts from a cluster
+	if d.HasChange("num_hosts") {
+		oldTmp, newTmp := d.GetChange("num_hosts")
+		oldNum := oldTmp.(int)
+		newNum := newTmp.(int)
+
+		action := "add"
+		diffNum := newNum - oldNum
+
+		if newNum < oldNum {
+			action = "remove"
+			diffNum = oldNum - newNum
+			if diffNum <= 2 {
+				return fmt.Errorf("number of hosts for a cluster %s cannot be less than 3", clusterID)
+			}
+		}
+
+		esxConfig := model.EsxConfig{
+			NumHosts:  int64(diffNum),
+			ClusterId: &clusterID,
+		}
+
+		task, err := esxsClient.Create(orgID, sddcID, esxConfig, &action)
+
+		if err != nil {
+			return fmt.Errorf("error while updating number of host for cluster %s: %v", clusterID, err)
+		}
+		tasksClient := orgs.NewDefaultTasksClient(connector)
+		err = resource.Retry(d.Timeout(schema.TimeoutUpdate), func() *resource.RetryError {
+			task, err := tasksClient.Get(orgID, task.Id)
+			if err != nil {
+				return resource.NonRetryableError(fmt.Errorf("error while waiting for task %s: %v", task.Id, err))
+			}
+			if *task.Status != "FINISHED" {
+				return resource.RetryableError(fmt.Errorf("expected host to be updated but was in state %s", *task.Status))
+			}
+			return resource.NonRetryableError(resourceClusterRead(d, m))
+		})
+		if err != nil {
+			return err
+		}
+	}
 	return nil
 }

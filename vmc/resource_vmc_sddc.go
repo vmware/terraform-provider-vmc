@@ -13,19 +13,10 @@ import (
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
 	"github.com/vmware/vsphere-automation-sdk-go/lib/vapi/std/errors"
-	"github.com/vmware/vsphere-automation-sdk-go/runtime/protocol/client"
 	"github.com/vmware/vsphere-automation-sdk-go/services/vmc/model"
 	"github.com/vmware/vsphere-automation-sdk-go/services/vmc/orgs"
 	"github.com/vmware/vsphere-automation-sdk-go/services/vmc/orgs/sddcs"
 )
-
-var storageCapacityMap = map[string]int64{
-	"15TB": 15003,
-	"20TB": 20004,
-	"25TB": 25005,
-	"30TB": 30006,
-	"35TB": 35007,
-}
 
 func resourceSddc() *schema.Resource {
 	return &schema.Resource{
@@ -213,7 +204,7 @@ func resourceSddcCreate(d *schema.ResourceData, m interface{}) error {
 
 	storageCapacity := d.Get("storage_capacity").(string)
 	if len(strings.TrimSpace(storageCapacity)) > 0 {
-		storageCapacityConverted = convertStorageCapacitytoInt(storageCapacity)
+		storageCapacityConverted = ConvertStorageCapacitytoInt(storageCapacity)
 	}
 
 	sddcName := d.Get("sddc_name").(string)
@@ -449,13 +440,3 @@ func expandAccountLinkSddcConfig(l []interface{}) []model.AccountLinkSddcConfig 
 	return configs
 }
 
-func GetSDDC(connector client.Connector, orgID string, sddcID string) (model.Sddc, error) {
-	sddcClient := orgs.NewDefaultSddcsClient(connector)
-	sddc, err := sddcClient.Get(orgID, sddcID)
-	return sddc, err
-}
-
-func convertStorageCapacitytoInt(s string) int64 {
-	storageCapacity := storageCapacityMap[s]
-	return storageCapacity
-}
