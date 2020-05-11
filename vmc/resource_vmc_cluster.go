@@ -147,6 +147,7 @@ func resourceClusterRead(d *schema.ResourceData, m interface{}) error {
 			cluster["cluster_name"] = *currentResourceConfig.ClusterName
 			cluster["cluster_state"] = *currentResourceConfig.ClusterState
 			cluster["host_instance_type"] = *currentResourceConfig.EsxHostInfo.InstanceType
+			cluster["cluster_id"] = currentResourceConfig.ClusterId
 			d.Set("cluster_info", cluster)
 			break
 		}
@@ -198,9 +199,6 @@ func resourceClusterUpdate(d *schema.ResourceData, m interface{}) error {
 		if newNum < oldNum {
 			action = "remove"
 			diffNum = oldNum - newNum
-			if diffNum <= 2 {
-				return fmt.Errorf("number of hosts for a cluster %s cannot be less than 3", clusterID)
-			}
 		}
 
 		esxConfig := model.EsxConfig{

@@ -168,6 +168,10 @@ func resourceSddc() *schema.Resource {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
+			"cluster_info": {
+				Type:     schema.TypeMap,
+				Computed: true,
+			},
 		},
 		CustomizeDiff: func(d *schema.ResourceDiff, meta interface{}) error {
 
@@ -316,11 +320,23 @@ func resourceSddcRead(d *schema.ResourceData, m interface{}) error {
 	d.Set("sddc_access_state", sddc.SddcAccessState)
 	d.Set("sddc_type", sddc.SddcType)
 	d.Set("sddc_state", sddc.SddcState)
+
 	if sddc.ResourceConfig != nil {
 		d.Set("vc_url", sddc.ResourceConfig.VcUrl)
 		d.Set("cloud_username", sddc.ResourceConfig.CloudUsername)
 		d.Set("cloud_password", sddc.ResourceConfig.CloudPassword)
 		d.Set("nsxt_reverse_proxy_url", sddc.ResourceConfig.NsxApiPublicEndpointUrl)
+	}
+	if len(sddc.ResourceConfig.Clusters) > 0 {
+		cluster := map[string]string{}
+		for i := 0; i < len(sddc.ResourceConfig.Clusters); i++ {
+				currentResourceConfig := sddc.ResourceConfig.Clusters[i]
+				cluster["cluster_name"] = *currentResourceConfig.ClusterName
+				cluster["cluster_state"] = *currentResourceConfig.ClusterState
+				cluster["host_instance_type"] = *currentResourceConfig.EsxHostInfo.InstanceType
+				cluster["cluster_id"] = currentResourceConfig.ClusterId
+				d.Set("cluster_info", cluster)
+		}
 	}
 
 	return nil
@@ -439,4 +455,3 @@ func expandAccountLinkSddcConfig(l []interface{}) []model.AccountLinkSddcConfig 
 	}
 	return configs
 }
-
