@@ -330,12 +330,12 @@ func resourceSddcRead(d *schema.ResourceData, m interface{}) error {
 	if len(sddc.ResourceConfig.Clusters) > 0 {
 		cluster := map[string]string{}
 		for i := 0; i < len(sddc.ResourceConfig.Clusters); i++ {
-				currentResourceConfig := sddc.ResourceConfig.Clusters[i]
-				cluster["cluster_name"] = *currentResourceConfig.ClusterName
-				cluster["cluster_state"] = *currentResourceConfig.ClusterState
-				cluster["host_instance_type"] = *currentResourceConfig.EsxHostInfo.InstanceType
-				cluster["cluster_id"] = currentResourceConfig.ClusterId
-				d.Set("cluster_info", cluster)
+			currentResourceConfig := sddc.ResourceConfig.Clusters[i]
+			cluster["cluster_name"] = *currentResourceConfig.ClusterName
+			cluster["cluster_state"] = *currentResourceConfig.ClusterState
+			cluster["host_instance_type"] = *currentResourceConfig.EsxHostInfo.InstanceType
+			cluster["cluster_id"] = currentResourceConfig.ClusterId
+			d.Set("cluster_info", cluster)
 		}
 	}
 
