@@ -43,6 +43,11 @@ resource "vmc_sddc" "sddc_1" {
   }
 }
 
+resource "vmc_cluster" "cluster_2" {
+  sddc_id = vmc_sddc.sddc_1.id
+  num_hosts = var.cluster_num_hosts
+}
+
 resource "vmc_public_ip" "public_ip_1" {
   nsxt_reverse_proxy_url = vmc_sddc.sddc_1.nsxt_reverse_proxy_url
   display_name = var.public_ip_displayname

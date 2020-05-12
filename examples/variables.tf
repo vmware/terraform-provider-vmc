@@ -64,6 +64,11 @@ variable sddc_type {
   default = "1NODE"
 }
 
+variable cluster_num_hosts {
+  description = "The number of hosts in the cluster."
+  default = 3
+}
+
 variable site_recovery_srm_extension_key_suffix {
   description = "The custom extension suffix for SRM must contain 13 characters or less, be composed of letters, numbers, ., - characters only. The suffix is appended to com.vmware.vcDr- to form the full extension key",
   default     = ""
