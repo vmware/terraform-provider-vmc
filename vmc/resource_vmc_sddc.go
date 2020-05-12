@@ -327,16 +327,15 @@ func resourceSddcRead(d *schema.ResourceData, m interface{}) error {
 		d.Set("cloud_password", sddc.ResourceConfig.CloudPassword)
 		d.Set("nsxt_reverse_proxy_url", sddc.ResourceConfig.NsxApiPublicEndpointUrl)
 	}
-	if len(sddc.ResourceConfig.Clusters) > 0 {
-		cluster := map[string]string{}
-		for i := 0; i < len(sddc.ResourceConfig.Clusters); i++ {
-			currentResourceConfig := sddc.ResourceConfig.Clusters[i]
+	if len(sddc.ResourceConfig.Clusters) != 0 {
+			cluster := map[string]string{}
+			currentResourceConfig := sddc.ResourceConfig.Clusters[0]
 			cluster["cluster_name"] = *currentResourceConfig.ClusterName
 			cluster["cluster_state"] = *currentResourceConfig.ClusterState
 			cluster["host_instance_type"] = *currentResourceConfig.EsxHostInfo.InstanceType
 			cluster["cluster_id"] = currentResourceConfig.ClusterId
 			d.Set("cluster_info", cluster)
-		}
+
 	}
 
 	return nil
