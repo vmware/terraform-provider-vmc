@@ -40,7 +40,7 @@ func resourceCluster() *schema.Resource {
 			"num_hosts": {
 				Type:         schema.TypeInt,
 				Required:     true,
-				ValidateFunc: validation.IntAtLeast(3),
+				ValidateFunc: validation.IntBetween(3, 16),
 				Description:  "The number of hosts.",
 			},
 			"host_cpu_cores_count": {

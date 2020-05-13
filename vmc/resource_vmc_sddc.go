@@ -88,7 +88,6 @@ func resourceSddc() *schema.Resource {
 				Optional: true,
 				ForceNew: true,
 			},
-			// TODO check the deprecation statement
 			"delay_account_link": {
 				Type:     schema.TypeBool,
 				Optional: true,
