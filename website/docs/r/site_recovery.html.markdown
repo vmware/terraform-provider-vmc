@@ -28,7 +28,7 @@ provider "vmc" {
 resource "vmc_sddc" "sddc_1" {
   sddc_name           = var.sddc_name
   vpc_cidr            = var.vpc_cidr
-  num_host            = 3
+  num_host            = var.sddc_num_hosts
   provider_type       = "AWS"
   region              = data.vmc_customer_subnets.my_subnets.region
   vxlan_subnet        = var.vxlan_subnet

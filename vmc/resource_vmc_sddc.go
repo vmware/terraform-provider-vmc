@@ -13,19 +13,10 @@ import (
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
 	"github.com/vmware/vsphere-automation-sdk-go/lib/vapi/std/errors"
-	"github.com/vmware/vsphere-automation-sdk-go/runtime/protocol/client"
 	"github.com/vmware/vsphere-automation-sdk-go/services/vmc/model"
 	"github.com/vmware/vsphere-automation-sdk-go/services/vmc/orgs"
 	"github.com/vmware/vsphere-automation-sdk-go/services/vmc/orgs/sddcs"
 )
-
-var storageCapacityMap = map[string]int64{
-	"15TB": 15003,
-	"20TB": 20004,
-	"25TB": 25005,
-	"30TB": 30006,
-	"35TB": 35007,
-}
 
 func resourceSddc() *schema.Resource {
 	return &schema.Resource{
@@ -97,7 +88,6 @@ func resourceSddc() *schema.Resource {
 				Optional: true,
 				ForceNew: true,
 			},
-			// TODO check the deprecation statement
 			"delay_account_link": {
 				Type:     schema.TypeBool,
 				Optional: true,
@@ -177,6 +167,10 @@ func resourceSddc() *schema.Resource {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
+			"cluster_info": {
+				Type:     schema.TypeMap,
+				Computed: true,
+			},
 		},
 		CustomizeDiff: func(d *schema.ResourceDiff, meta interface{}) error {
 
@@ -213,7 +207,7 @@ func resourceSddcCreate(d *schema.ResourceData, m interface{}) error {
 
 	storageCapacity := d.Get("storage_capacity").(string)
 	if len(strings.TrimSpace(storageCapacity)) > 0 {
-		storageCapacityConverted = convertStorageCapacitytoInt(storageCapacity)
+		storageCapacityConverted = ConvertStorageCapacitytoInt(storageCapacity)
 	}
 
 	sddcName := d.Get("sddc_name").(string)
@@ -292,7 +286,7 @@ func resourceSddcRead(d *schema.ResourceData, m interface{}) error {
 	connector := (m.(*ConnectorWrapper)).Connector
 	sddcID := d.Id()
 	orgID := (m.(*ConnectorWrapper)).OrgID
-	sddc, err := getSDDC(connector, orgID, sddcID)
+	sddc, err := GetSDDC(connector, orgID, sddcID)
 	if err != nil {
 		if err.Error() == errors.NewNotFound().Error() {
 			log.Printf("SDDC with ID %s not found", sddcID)
@@ -325,11 +319,22 @@ func resourceSddcRead(d *schema.ResourceData, m interface{}) error {
 	d.Set("sddc_access_state", sddc.SddcAccessState)
 	d.Set("sddc_type", sddc.SddcType)
 	d.Set("sddc_state", sddc.SddcState)
+
 	if sddc.ResourceConfig != nil {
 		d.Set("vc_url", sddc.ResourceConfig.VcUrl)
 		d.Set("cloud_username", sddc.ResourceConfig.CloudUsername)
 		d.Set("cloud_password", sddc.ResourceConfig.CloudPassword)
 		d.Set("nsxt_reverse_proxy_url", sddc.ResourceConfig.NsxApiPublicEndpointUrl)
+	}
+	if len(sddc.ResourceConfig.Clusters) != 0 {
+		cluster := map[string]string{}
+		currentResourceConfig := sddc.ResourceConfig.Clusters[0]
+		cluster["cluster_name"] = *currentResourceConfig.ClusterName
+		cluster["cluster_state"] = *currentResourceConfig.ClusterState
+		cluster["host_instance_type"] = *currentResourceConfig.EsxHostInfo.InstanceType
+		cluster["cluster_id"] = currentResourceConfig.ClusterId
+		d.Set("cluster_info", cluster)
+
 	}
 
 	return nil
@@ -390,7 +395,7 @@ func resourceSddcUpdate(d *schema.ResourceData, m interface{}) error {
 		task, err := esxsClient.Create(orgID, sddcID, esxConfig, &action)
 
 		if err != nil {
-			return fmt.Errorf("error while updating number of host for SDDC %s: %v", sddcID, err)
+			return fmt.Errorf("error while updating hosts for SDDC %s: %v", sddcID, err)
 		}
 		tasksClient := orgs.NewDefaultTasksClient(connector)
 		err = resource.Retry(d.Timeout(schema.TimeoutUpdate), func() *resource.RetryError {
@@ -399,7 +404,7 @@ func resourceSddcUpdate(d *schema.ResourceData, m interface{}) error {
 				return resource.NonRetryableError(fmt.Errorf("error while waiting for task %s: %v", task.Id, err))
 			}
 			if *task.Status != "FINISHED" {
-				return resource.RetryableError(fmt.Errorf("expected host to be updated but was in state %s", *task.Status))
+				return resource.RetryableError(fmt.Errorf("expected hosts to be updated but were in state %s", *task.Status))
 			}
 			return resource.NonRetryableError(resourceSddcRead(d, m))
 		})
@@ -447,15 +452,4 @@ func expandAccountLinkSddcConfig(l []interface{}) []model.AccountLinkSddcConfig 
 		configs = append(configs, con)
 	}
 	return configs
-}
-
-func getSDDC(connector client.Connector, orgID string, sddcID string) (model.Sddc, error) {
-	sddcClient := orgs.NewDefaultSddcsClient(connector)
-	sddc, err := sddcClient.Get(orgID, sddcID)
-	return sddc, err
-}
-
-func convertStorageCapacitytoInt(s string) int64 {
-	storageCapacity := storageCapacityMap[s]
-	return storageCapacity
 }

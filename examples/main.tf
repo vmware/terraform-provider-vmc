@@ -18,7 +18,7 @@ data "vmc_customer_subnets" "my_subnets" {
 resource "vmc_sddc" "sddc_1" {
   sddc_name           = var.sddc_name
   vpc_cidr            = var.vpc_cidr
-  num_host            = var.num_hosts
+  num_host            = var.sddc_num_hosts
   provider_type       = var.provider_type
   region              = data.vmc_customer_subnets.my_subnets.region
   vxlan_subnet        = var.vxlan_subnet
@@ -41,6 +41,11 @@ resource "vmc_sddc" "sddc_1" {
     update = "300m"
     delete = "180m"
   }
+}
+
+resource "vmc_cluster" "cluster_1" {
+  sddc_id = vmc_sddc.sddc_1.id
+  num_hosts = var.cluster_num_hosts
 }
 
 resource "vmc_public_ip" "public_ip_1" {

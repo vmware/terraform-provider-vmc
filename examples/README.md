@@ -1,6 +1,6 @@
-# Example: Creation of SDDC, public IP, site recovery and SRM node.
+# Example: Creation of SDDC, public IP, cluster, site recovery and SRM node.
 
-This is an example that demonstrates the creation of VMC resources like SDDC, public IP, site recovery and SRM node.
+This is an example that demonstrates the creation of VMC resources like SDDC, cluster, public IP, site recovery and SRM node.
 
 For site recovery activation, a 10 minute delay must be added after SDDC is created and before site recovery can be activated.
 

@@ -33,7 +33,7 @@ data "vmc_customer_subnets" "my_subnets" {
 resource "vmc_sddc" "sddc_1" {
   sddc_name           = var.sddc_name
   vpc_cidr            = var.vpc_cidr
-  num_host            = 3
+  num_host            = var.sddc_num_hosts
   provider_type       = "AWS"
   region              = data.vmc_customer_subnets.my_subnets.region
   vxlan_subnet        = var.vxlan_subnet
@@ -108,3 +108,5 @@ In addition to arguments listed above, the following attributes are exported:
 * `id` - SDDC identifier.
 
 * `nsxt_reverse_proxy_url` - NSXT reverse proxy url for managing public IP.
+
+* `cluster_info` - Information about cluster like id, name, state, host instance type.
