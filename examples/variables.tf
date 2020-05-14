@@ -49,8 +49,8 @@ variable storage_capacity {
   default     = ""
 }
 
-variable num_hosts {
-  description = "The number of hosts."
+variable sddc_num_hosts {
+  description = "The number of hosts in SDDC."
   default     = 1
 }
 

@@ -53,7 +53,7 @@ variable cluster_num_hosts {
   default = 3
 }
 
-variable num_hosts {
-  description = "The number of hosts."
+variable sddc_num_hosts {
+  description = "The number of hosts in SDDC."
   default     = 3
 }

@@ -1,6 +1,6 @@
 # Example: Cluster management for SDDC
 
-This is an example that demonstrates cluster management actions like creating, updating and deleting a cluster IP for an SDDC.
+This is an example that demonstrates cluster management actions like creating, updating and deleting a cluster for an SDDC.
 
 To run the example:
 
