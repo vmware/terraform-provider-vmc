@@ -395,7 +395,7 @@ func resourceSddcUpdate(d *schema.ResourceData, m interface{}) error {
 		task, err := esxsClient.Create(orgID, sddcID, esxConfig, &action)
 
 		if err != nil {
-			return fmt.Errorf("error while updating number of host for SDDC %s: %v", sddcID, err)
+			return fmt.Errorf("error while updating hosts for SDDC %s: %v", sddcID, err)
 		}
 		tasksClient := orgs.NewDefaultTasksClient(connector)
 		err = resource.Retry(d.Timeout(schema.TimeoutUpdate), func() *resource.RetryError {
@@ -404,7 +404,7 @@ func resourceSddcUpdate(d *schema.ResourceData, m interface{}) error {
 				return resource.NonRetryableError(fmt.Errorf("error while waiting for task %s: %v", task.Id, err))
 			}
 			if *task.Status != "FINISHED" {
-				return resource.RetryableError(fmt.Errorf("expected host to be updated but was in state %s", *task.Status))
+				return resource.RetryableError(fmt.Errorf("expected hosts to be updated but were in state %s", *task.Status))
 			}
 			return resource.NonRetryableError(resourceSddcRead(d, m))
 		})
