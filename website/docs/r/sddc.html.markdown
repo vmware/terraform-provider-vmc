@@ -108,3 +108,5 @@ In addition to arguments listed above, the following attributes are exported:
 * `id` - SDDC identifier.
 
 * `nsxt_reverse_proxy_url` - NSXT reverse proxy url for managing public IP.
+
+* `cluster_info` - Information about cluster like id, name, state, host instance type.
