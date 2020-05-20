@@ -97,7 +97,7 @@ func dataSourceVmcCustomerSubnetsRead(d *schema.ResourceData, m interface{}) err
 	log.Printf("[DEBUG] Subnet IDs are %v\n", ids)
 
 	if err != nil {
-		return fmt.Errorf("error reading subnet IDs from org %q: %v", orgID, err)
+		return HandleDataSourceReadError(d, "Customer Subnets", err)
 	}
 
 	d.Set("ids", ids)

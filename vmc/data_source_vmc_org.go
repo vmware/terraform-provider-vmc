@@ -4,7 +4,6 @@
 package vmc
 
 import (
-	"fmt"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/vmware/vsphere-automation-sdk-go/services/vmc"
 )
@@ -39,7 +38,7 @@ func dataSourceVmcOrgRead(d *schema.ResourceData, m interface{}) error {
 	orgClient := vmc.NewDefaultOrgsClient(connector)
 	org, err := orgClient.Get(orgID)
 	if err != nil {
-		return fmt.Errorf("error while reading org information for %s: %v", orgID, err)
+		return HandleDataSourceReadError(d, "VMC Organization", err)
 	}
 	d.SetId(orgID)
 	d.Set("display_name", org.DisplayName)

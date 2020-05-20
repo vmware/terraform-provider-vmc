@@ -254,7 +254,7 @@ func resourceSddcCreate(d *schema.ResourceData, m interface{}) error {
 	// Create a Sddc
 	task, err := sddcClient.Create(orgID, *awsSddcConfig, nil)
 	if err != nil {
-		return fmt.Errorf("error while creating SDDC %s: %v", sddcName, err)
+		return HandleCreateError("SDDC", err)
 	}
 
 	// Wait until Sddc is created
@@ -288,12 +288,7 @@ func resourceSddcRead(d *schema.ResourceData, m interface{}) error {
 	orgID := (m.(*ConnectorWrapper)).OrgID
 	sddc, err := GetSDDC(connector, orgID, sddcID)
 	if err != nil {
-		if err.Error() == errors.NewNotFound().Error() {
-			log.Printf("SDDC with ID %s not found", sddcID)
-			d.SetId("")
-			return nil
-		}
-		return fmt.Errorf("error while getting the SDDC with ID %s,%v", sddcID, err)
+		return HandleReadError(d, "SDDC", sddcID, err)
 	}
 
 	if *sddc.SddcState == "DELETED" {
@@ -304,7 +299,7 @@ func resourceSddcRead(d *schema.ResourceData, m interface{}) error {
 
 	d.SetId(sddc.Id)
 
-	d.Set("name", sddc.Name)
+	d.Set("sddc_name", sddc.Name)
 	d.Set("updated", sddc.Updated)
 	d.Set("user_id", sddc.UserId)
 	d.Set("updated_by_user_id", sddc.UpdatedByUserId)
@@ -336,7 +331,6 @@ func resourceSddcRead(d *schema.ResourceData, m interface{}) error {
 		d.Set("cluster_info", cluster)
 
 	}
-
 	return nil
 }
 
@@ -348,11 +342,7 @@ func resourceSddcDelete(d *schema.ResourceData, m interface{}) error {
 
 	task, err := sddcClient.Delete(orgID, sddcID, nil, nil, nil)
 	if err != nil {
-		if err.Error() == errors.NewInvalidRequest().Error() {
-			log.Printf("Unable to delete SDDC with ID %s. Not found or already deleted %v", sddcID, err)
-			return nil
-		}
-		return fmt.Errorf("error while deleting SDDC %s: %v", sddcID, err)
+		return HandleDeleteError("SDDC", sddcID, err)
 	}
 	tasksClient := orgs.NewDefaultTasksClient(connector)
 	return resource.Retry(d.Timeout(schema.TimeoutDelete), func() *resource.RetryError {
@@ -395,7 +385,7 @@ func resourceSddcUpdate(d *schema.ResourceData, m interface{}) error {
 		task, err := esxsClient.Create(orgID, sddcID, esxConfig, &action)
 
 		if err != nil {
-			return fmt.Errorf("error while updating hosts for SDDC %s: %v", sddcID, err)
+			return HandleUpdateError("SDDC", err)
 		}
 		tasksClient := orgs.NewDefaultTasksClient(connector)
 		err = resource.Retry(d.Timeout(schema.TimeoutUpdate), func() *resource.RetryError {
@@ -422,7 +412,7 @@ func resourceSddcUpdate(d *schema.ResourceData, m interface{}) error {
 		sddc, err := sddcClient.Patch(orgID, sddcID, sddcPatchRequest)
 
 		if err != nil {
-			return fmt.Errorf("error while updating SDDC's name %v", err)
+			return HandleUpdateError("SDDC", err)
 		}
 		d.Set("sddc_name", sddc.Name)
 	}

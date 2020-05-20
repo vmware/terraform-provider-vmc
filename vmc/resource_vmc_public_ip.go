@@ -5,14 +5,12 @@ package vmc
 
 import (
 	"fmt"
-	"log"
 	"net/http"
 	"os"
 	"strings"
 
 	"github.com/hashicorp/terraform/helper/schema"
 	uuid "github.com/satori/go.uuid"
-	"github.com/vmware/vsphere-automation-sdk-go/lib/vapi/std/errors"
 	"github.com/vmware/vsphere-automation-sdk-go/runtime/protocol/client"
 	"github.com/vmware/vsphere-automation-sdk-go/services/nsxt-vmc-aws-integration/api"
 	"github.com/vmware/vsphere-automation-sdk-go/services/nsxt-vmc-aws-integration/model"
@@ -70,7 +68,7 @@ func resourcePublicIpCreate(d *schema.ResourceData, m interface{}) error {
 	// API call to create public IP
 	publicIp, err := nsxVmcAwsClient.CreatePublicIp(uuid, *publicIpModel)
 	if err != nil {
-		return fmt.Errorf("error creating public IP : %v", err)
+		return HandleCreateError("Public IP", err)
 	}
 
 	d.SetId(*publicIp.Id)
@@ -89,12 +87,7 @@ func resourcePublicIpRead(d *schema.ResourceData, m interface{}) error {
 	if len(uuid) > 0 {
 		publicIp, err := nsxVmcAwsClient.GetPublicIp(uuid)
 		if err != nil {
-			if err.Error() == errors.NewNotFound().Error() {
-				log.Printf("Public IP with ID %s not found", uuid)
-				d.SetId("")
-				return nil
-			}
-			return fmt.Errorf("error getting public IP with ID %s : %v", uuid, err)
+			return HandleReadError(d, "Cluster", uuid, err)
 		}
 		d.Set("ip", publicIp.Ip)
 		d.Set("display_name", publicIp.DisplayName)
@@ -104,7 +97,7 @@ func resourcePublicIpRead(d *schema.ResourceData, m interface{}) error {
 			// get the list of IPs
 			publicIpResultList, err := nsxVmcAwsClient.ListPublicIps()
 			if err != nil {
-				return fmt.Errorf("error getting list of public IPs : %v", err)
+				return HandleListError("Cluster", err)
 			}
 			publicIpsList := publicIpResultList.Results
 			if publicIpsList != nil {
