@@ -135,7 +135,7 @@ func resourcePublicIpUpdate(d *schema.ResourceData, m interface{}) error {
 		// API call to update public IP
 		publicIp, err := nsxVmcAwsClient.CreatePublicIp(uuid, *publicIpModel)
 		if err != nil {
-			return HandleUpdateError("Public IP",err)
+			return HandleUpdateError("Public IP", err)
 		}
 
 		d.Set("display_name", publicIp.DisplayName)
@@ -155,7 +155,7 @@ func resourcePublicIpDelete(d *schema.ResourceData, m interface{}) error {
 	forceDelete := true
 	err = nsxVmcAwsClient.DeletePublicIp(uuid, &forceDelete)
 	if err != nil {
-		return HandleDeleteError("Public IP",uuid,err)
+		return HandleDeleteError("Public IP", uuid, err)
 	}
 	d.SetId("")
 	return nil
