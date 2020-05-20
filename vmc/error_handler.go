@@ -122,7 +122,7 @@ func HandleUpdateError(resourceType string, err error) error {
 }
 
 func HandleListError(resourceType string, err error) error {
-	msg := fmt.Sprintf("Failed to read %ss", resourceType)
+	msg := fmt.Sprintf("Failed to read %s", resourceType)
 	return logAPIError(msg, err)
 }
 
