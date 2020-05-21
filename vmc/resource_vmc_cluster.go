@@ -87,7 +87,7 @@ func resourceClusterCreate(d *schema.ResourceData, m interface{}) error {
 
 	task, err := clusterClient.Create(orgID, sddcID, *clusterConfig)
 	if err != nil {
-		return fmt.Errorf("error while creating cluster for SDDC with id %s: %v", sddcID, err)
+		return HandleCreateError("Cluster", err)
 	}
 
 	return resource.Retry(d.Timeout(schema.TimeoutCreate), func() *resource.RetryError {
@@ -128,12 +128,7 @@ func resourceClusterRead(d *schema.ResourceData, m interface{}) error {
 	sddc, err := GetSDDC(connector, orgID, sddcID)
 	log.Printf("SDDC ID : %s", sddcID)
 	if err != nil {
-		if err.Error() == errors.NewNotFound().Error() {
-			log.Printf("SDDC with ID %s not found", sddcID)
-			d.SetId("")
-			return nil
-		}
-		return fmt.Errorf("error while getting the SDDC with ID %s,%v", sddcID, err)
+		return HandleReadError(d, "Cluster", clusterID, err)
 	}
 
 	if *sddc.SddcState == "DELETED" {
@@ -166,7 +161,7 @@ func resourceClusterDelete(d *schema.ResourceData, m interface{}) error {
 	clusterClient := sddcs.NewDefaultClustersClient(connector)
 	task, err := clusterClient.Delete(orgID, sddcID, clusterID)
 	if err != nil {
-		fmt.Printf("error : %v", err)
+		return HandleDeleteError("Cluster", clusterID, err)
 	}
 	tasksClient := orgs.NewDefaultTasksClient(connector)
 	return resource.Retry(d.Timeout(schema.TimeoutDelete), func() *resource.RetryError {
@@ -211,7 +206,7 @@ func resourceClusterUpdate(d *schema.ResourceData, m interface{}) error {
 		task, err := esxsClient.Create(orgID, sddcID, esxConfig, &action)
 
 		if err != nil {
-			return fmt.Errorf("error while updating hosts for cluster %s: %v", clusterID, err)
+			return HandleUpdateError("Cluster", err)
 		}
 		tasksClient := orgs.NewDefaultTasksClient(connector)
 		err = resource.Retry(d.Timeout(schema.TimeoutUpdate), func() *resource.RetryError {

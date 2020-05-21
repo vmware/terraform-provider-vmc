@@ -72,7 +72,7 @@ func resourceSRMNodeCreate(d *schema.ResourceData, m interface{}) error {
 	task, err := siteRecoverySrmNodesClient.Post(orgID, sddcID, provisionSrmConfigParam)
 
 	if err != nil {
-		return fmt.Errorf("error activating site recovery instance for SDDC with ID %s: %v", sddcID, err)
+		return HandleCreateError("SRM Node", err)
 	}
 
 	taskID := task.ResourceId
@@ -108,12 +108,7 @@ func resourceSRMNodeRead(d *schema.ResourceData, m interface{}) error {
 	siteRecoveryClient := draas.NewDefaultSiteRecoveryClient(connector)
 	siteRecovery, err := siteRecoveryClient.Get(orgID, sddcID)
 	if err != nil {
-		if err.Error() == errors.NewNotFound().Error() {
-			log.Printf("SRM information for SDDC with ID %s not found", sddcID)
-			d.SetId("")
-			return fmt.Errorf("SRM information for SDDC with ID %s not found", sddcID)
-		}
-		return fmt.Errorf("error retrieving SRM instance information for SDDC with ID %s : %v", sddcID, err)
+		return HandleReadError(d, "SRM Node", sddcID, err)
 	}
 	srmExtensionKey := d.Get("srm_node_extension_key_suffix").(string)
 	srm_node := map[string]string{}
@@ -143,7 +138,7 @@ func resourceSRMNodeDelete(d *schema.ResourceData, m interface{}) error {
 	srmNodeID := d.Id()
 	task, err := siteRecoverySrmNodesClient.Delete(orgID, sddcID, srmNodeID)
 	if err != nil {
-		return fmt.Errorf("error deactivating site recovery instance for SDDC %s: %v", sddcID, err)
+		return HandleDeleteError("SRM Node", sddcID, err)
 	}
 	tasksClient := draas.NewDefaultTaskClient(connector)
 	return resource.Retry(d.Timeout(schema.TimeoutDelete), func() *resource.RetryError {
