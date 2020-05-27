@@ -162,7 +162,10 @@ func resourcePublicIpDelete(d *schema.ResourceData, m interface{}) error {
 }
 
 func getNSXTReverseProxyUrlConnector(nsxtReverseProxyUrl string) (client.Connector, error) {
-	apiToken := os.Getenv(APIToken)
+	clientId := os.Getenv(ClientID)
+	clientSecret := os.Getenv(ClientSecret)
+	refreshToken := os.Getenv(ApiToken)
+
 	if len(nsxtReverseProxyUrl) == 0 {
 		return nil, fmt.Errorf("NSX reverse proxy url is required for public IP resource creation")
 	}
@@ -170,9 +173,19 @@ func getNSXTReverseProxyUrlConnector(nsxtReverseProxyUrl string) (client.Connect
 		nsxtReverseProxyUrl = strings.Replace(nsxtReverseProxyUrl, SksNSXTManager, "", -1)
 	}
 	httpClient := http.Client{}
-	connector, err := NewClientConnectorByRefreshToken(apiToken, nsxtReverseProxyUrl, DefaultCSPUrl, httpClient)
-	if err != nil {
-		return nil, HandleCreateError("NSXT reverse proxy URL connector", err)
+
+	if len(refreshToken) > 0 {
+		connector, err := NewClientConnectorByRefreshToken(refreshToken, nsxtReverseProxyUrl, DefaultCSPUrl, httpClient)
+		if err != nil {
+			return nil, HandleCreateError("NSXT reverse proxy URL connector", err)
+		}
+		return connector, nil
+	} else {
+		connector, err := NewClientConnectorByClientID(clientId, clientSecret, nsxtReverseProxyUrl, DefaultCSPUrl, httpClient)
+		if err != nil {
+			return nil, HandleCreateError("NSXT reverse proxy URL connector", err)
+		}
+		return connector, nil
 	}
-	return connector, nil
+
 }

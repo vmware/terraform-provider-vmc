@@ -5,6 +5,7 @@ package vmc
 
 import (
 	"fmt"
+	"log"
 	"net/http"
 	"os"
 
@@ -16,6 +17,8 @@ import (
 type ConnectorWrapper struct {
 	client.Connector
 	RefreshToken string
+	ClientID     string
+	ClientSecret string
 	OrgID        string
 	VmcURL       string
 	CspURL       string
@@ -24,10 +27,18 @@ type ConnectorWrapper struct {
 func (c *ConnectorWrapper) authenticate() error {
 	var err error
 	httpClient := http.Client{}
-	c.Connector, err = NewClientConnectorByRefreshToken(c.RefreshToken, c.VmcURL, c.CspURL, httpClient)
+	if len(c.RefreshToken) > 0 {
+		c.Connector, err = NewClientConnectorByRefreshToken(c.RefreshToken, c.VmcURL, c.CspURL, httpClient)
+		if err != nil {
+			return err
+		}
+	} /*else {
+		c.Connector, err = NewClientConnectorByClientID(c.ClientID, c.ClientSecret, c.VmcURL, c.CspURL, httpClient)
 	if err != nil {
 		return err
 	}
+	}*/
+
 	return nil
 }
 
@@ -37,13 +48,23 @@ func Provider() terraform.ResourceProvider {
 		Schema: map[string]*schema.Schema{
 			"refresh_token": {
 				Type:        schema.TypeString,
-				Required:    true,
-				DefaultFunc: schema.EnvDefaultFunc(APIToken, nil),
+				Optional:    true,
+				DefaultFunc: schema.EnvDefaultFunc(ApiToken, nil),
+			},
+			"client_id": {
+				Type:        schema.TypeString,
+				Optional:    true,
+				DefaultFunc: schema.EnvDefaultFunc(ClientID, nil),
+			},
+			"client_secret": {
+				Type:        schema.TypeString,
+				Optional:    true,
+				DefaultFunc: schema.EnvDefaultFunc(ClientSecret, nil),
 			},
 			"org_id": {
 				Type:        schema.TypeString,
 				Required:    true,
-				DefaultFunc: schema.EnvDefaultFunc("ORG_ID", nil),
+				DefaultFunc: schema.EnvDefaultFunc(OrgID, nil),
 			},
 			"vmc_url": {
 				Type:     schema.TypeString,
@@ -76,20 +97,41 @@ func Provider() terraform.ResourceProvider {
 }
 
 func providerConfigure(d *schema.ResourceData) (interface{}, error) {
+
 	refreshToken := d.Get("refresh_token").(string)
-	if len(refreshToken) <= 0 {
-		return nil, fmt.Errorf("refresh token cannot be empty")
+	clientID := d.Get("client_id").(string)
+	clientSecret := d.Get("client_secret").(string)
+    log.Println(refreshToken)
+	if len(refreshToken) <= 0 && len(clientID) <= 0 && len(clientSecret) <= 0 {
+		return nil, fmt.Errorf("must provide value for refresh_token or client_id and client_secret")
 	}
-	// set refresh token to env variable so that it can be used by other connectors
-	os.Setenv(APIToken, refreshToken)
+
 	vmcURL := d.Get("vmc_url").(string)
 	cspURL := d.Get("csp_url").(string)
 	orgID := d.Get("org_id").(string)
 	httpClient := http.Client{}
-	connector, err := NewClientConnectorByRefreshToken(refreshToken, vmcURL, cspURL, httpClient)
-	if err != nil {
-		return nil, HandleCreateError("Client connector", err)
-	}
 
-	return &ConnectorWrapper{connector, refreshToken, orgID, vmcURL, cspURL}, nil
-}
+	//if len(refreshToken) > 0 {
+		// set refresh token to env variable so that it can be used by other connectors
+		os.Setenv(ApiToken, refreshToken)
+		connector, err := NewClientConnectorByRefreshToken(refreshToken, vmcURL, cspURL, httpClient)
+		if err != nil {
+			log.Printf("Error creating NewClient Connector : %v",err)
+			return nil, HandleCreateError("Client connector using refresh token", err)
+		}
+
+		return &ConnectorWrapper{connector, refreshToken, clientID, clientSecret, orgID, vmcURL, cspURL}, nil
+	}/* else {
+		// set client ID and client secret to env variable so that it can be used by other connectors
+		os.Setenv(ClientID, clientID)
+		os.Setenv(ClientSecret, clientSecret)
+
+		connector, err := NewClientConnectorByClientID(clientID, clientSecret, vmcURL, cspURL, httpClient)
+		if err != nil {
+			return nil, HandleCreateError("Client connector", err)
+		}
+
+		return &ConnectorWrapper{connector, refreshToken, clientID, clientSecret, orgID, vmcURL, cspURL}, nil
+	}*/
+
+

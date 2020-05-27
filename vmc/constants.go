@@ -7,9 +7,7 @@ const (
 	// DefaultVMCServer defines the default VMC server.
 	DefaultVMCServer string = "https://vmc.vmware.com"
 	// DefaultCSPUrl defines the default URL for CSP.
-	DefaultCSPUrl string = "https://console.cloud.vmware.com"
-	// CSPRefreshUrlSuffix defines the CSP Refresh API endpoint.
-	CSPRefreshUrlSuffix string = "/csp/gateway/am/api/auth/api-tokens/authorize"
+	DefaultCSPUrl string = "https://console.cloud.vmware.com/csp/gateway/"
 	// sksNSXTManager to be stripped from nsxt reverse proxy url for public IP resource
 	SksNSXTManager string = "/sks-nsxt-manager"
 
@@ -20,7 +18,9 @@ const (
 	ClusterIdFieldName = "clusterId"
 
 	// Env variables used in acceptance tests
-	APIToken            string = "API_TOKEN"
+	ApiToken            string = "API_TOKEN"
+	ClientID            string = "CLIENT_ID"
+	ClientSecret        string = "CLIENT_SECRET"
 	OrgID               string = "ORG_ID"
 	OrgDisplayName      string = "ORG_DISPLAY_NAME"
 	TestSDDCId          string = "TEST_SDDC_ID"
