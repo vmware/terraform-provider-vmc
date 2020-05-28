@@ -111,7 +111,7 @@ func providerConfigure(d *schema.ResourceData) (interface{}, error) {
 	orgID := d.Get("org_id").(string)
 	httpClient := http.Client{}
 
-	//if len(refreshToken) > 0 {
+	if len(refreshToken) > 0 {
 		// set refresh token to env variable so that it can be used by other connectors
 		os.Setenv(ApiToken, refreshToken)
 		connector, err := NewClientConnectorByRefreshToken(refreshToken, vmcURL, cspURL, httpClient)
@@ -121,17 +121,18 @@ func providerConfigure(d *schema.ResourceData) (interface{}, error) {
 		}
 
 		return &ConnectorWrapper{connector, refreshToken, clientID, clientSecret, orgID, vmcURL, cspURL}, nil
-	}/* else {
+	} else {
 		// set client ID and client secret to env variable so that it can be used by other connectors
 		os.Setenv(ClientID, clientID)
 		os.Setenv(ClientSecret, clientSecret)
 
 		connector, err := NewClientConnectorByClientID(clientID, clientSecret, vmcURL, cspURL, httpClient)
 		if err != nil {
-			return nil, HandleCreateError("Client connector", err)
+			return nil, HandleCreateError("Client connector using client ID and client secret", err)
 		}
 
 		return &ConnectorWrapper{connector, refreshToken, clientID, clientSecret, orgID, vmcURL, cspURL}, nil
-	}*/
+	}
+}
 
 

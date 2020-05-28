@@ -46,11 +46,6 @@ func SecurityContextByRefreshToken(refreshToken string, cspURL string) (core.Sec
 	}
 
 	config := openapiclient.NewConfiguration()
-
-	if len(cspURL) > 0 {
-		config.BasePath = cspURL
-	}
-	log.Printf("CSP URL  : %s",cspURL)
 	config.HTTPClient = &http.Client{Transport: tr}
 	config.AddDefaultHeader("authorization", "Basic"+refreshToken)
 
@@ -96,6 +91,7 @@ func NewClientConnectorByClientID(clientID, clientSecret, serviceUrl, cspURL str
 func SecurityContextByClientID(clientID string, clientSecret string, cspURL string) (core.SecurityContext, error) {
 
 	clientCredentials := clientID + ":" + clientSecret
+
 	encodedClientCredentials := base64.StdEncoding.EncodeToString([]byte(clientCredentials))
 
 	tr := &http.Transport{
@@ -103,9 +99,7 @@ func SecurityContextByClientID(clientID string, clientSecret string, cspURL stri
 	}
 
 	config := openapiclient.NewConfiguration()
-	if len(cspURL) > 0 {
-		config.BasePath = cspURL
-	}
+	log.Printf("config basepath %s",config.BasePath)
 	config.HTTPClient = &http.Client{Transport: tr}
 	config.AddDefaultHeader("authorization", "Basic"+encodedClientCredentials)
 
@@ -116,7 +110,10 @@ func SecurityContextByClientID(clientID string, clientSecret string, cspURL stri
 
 	APIClient := openapiclient.NewAPIClient(config)
 
-	accessToken, _, err := APIClient.AuthenticationApi.GetTokenForAuthGrantTypeUsingPOST1(auth, "client_credentials", nil)
+	accessToken,response, err := APIClient.AuthenticationApi.GetTokenForAuthGrantTypeUsingPOST1(auth, "client_credentials", nil)
+	log.Printf("Request %v",response.Request)
+	log.Printf("Response code %d",response.StatusCode)
+	log.Printf("Request Body %v",response.Body)
 	if err != nil {
 		return nil, HandleCreateError("accesstoken using client ID and client secret",err)
 	}
