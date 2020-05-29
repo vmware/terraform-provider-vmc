@@ -5,7 +5,6 @@ package vmc
 
 import (
 	"fmt"
-	"log"
 	"net/http"
 	"os"
 
@@ -32,12 +31,12 @@ func (c *ConnectorWrapper) authenticate() error {
 		if err != nil {
 			return err
 		}
-	} /*else {
+	} else {
 		c.Connector, err = NewClientConnectorByClientID(c.ClientID, c.ClientSecret, c.VmcURL, c.CspURL, httpClient)
-	if err != nil {
-		return err
+		if err != nil {
+			return err
+		}
 	}
-	}*/
 
 	return nil
 }
@@ -74,7 +73,7 @@ func Provider() terraform.ResourceProvider {
 			"csp_url": {
 				Type:     schema.TypeString,
 				Optional: true,
-				Default:  "https://console.cloud.vmware.com",
+				Default:  "https://console.cloud.vmware.com/csp/gateway",
 			},
 		},
 
@@ -101,7 +100,7 @@ func providerConfigure(d *schema.ResourceData) (interface{}, error) {
 	refreshToken := d.Get("refresh_token").(string)
 	clientID := d.Get("client_id").(string)
 	clientSecret := d.Get("client_secret").(string)
-    log.Println(refreshToken)
+
 	if len(refreshToken) <= 0 && len(clientID) <= 0 && len(clientSecret) <= 0 {
 		return nil, fmt.Errorf("must provide value for refresh_token or client_id and client_secret")
 	}
@@ -116,7 +115,6 @@ func providerConfigure(d *schema.ResourceData) (interface{}, error) {
 		os.Setenv(ApiToken, refreshToken)
 		connector, err := NewClientConnectorByRefreshToken(refreshToken, vmcURL, cspURL, httpClient)
 		if err != nil {
-			log.Printf("Error creating NewClient Connector : %v",err)
 			return nil, HandleCreateError("Client connector using refresh token", err)
 		}
 
@@ -134,5 +132,3 @@ func providerConfigure(d *schema.ResourceData) (interface{}, error) {
 		return &ConnectorWrapper{connector, refreshToken, clientID, clientSecret, orgID, vmcURL, cspURL}, nil
 	}
 }
-
-

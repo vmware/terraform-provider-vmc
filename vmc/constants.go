@@ -7,7 +7,7 @@ const (
 	// DefaultVMCServer defines the default VMC server.
 	DefaultVMCServer string = "https://vmc.vmware.com"
 	// DefaultCSPUrl defines the default URL for CSP.
-	DefaultCSPUrl string = "https://console.cloud.vmware.com/csp/gateway/"
+	DefaultCSPUrl string = "https://console.cloud.vmware.com/csp/gateway"
 	// sksNSXTManager to be stripped from nsxt reverse proxy url for public IP resource
 	SksNSXTManager string = "/sks-nsxt-manager"
 

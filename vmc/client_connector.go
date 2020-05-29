@@ -12,7 +12,6 @@ import (
 	"github.com/vmware/vsphere-automation-sdk-go/runtime/protocol/client"
 	"github.com/vmware/vsphere-automation-sdk-go/runtime/security"
 	"gitlab.eng.vmware.com/vapi-sdk/csp-go-openapi-bindings"
-	"log"
 	"net/http"
 )
 
@@ -20,13 +19,13 @@ import (
 func NewClientConnectorByRefreshToken(refreshToken, serviceUrl, cspURL string,
 	httpClient http.Client) (client.Connector, error) {
 
-	/*if len(serviceUrl) <= 0 {
+	if len(serviceUrl) <= 0 {
 		serviceUrl = DefaultVMCServer
 	}
 
 	if len(cspURL) <= 0 {
 		cspURL = DefaultCSPUrl
-	}*/
+	}
 
 	securityCtx, err := SecurityContextByRefreshToken(refreshToken, cspURL)
 	if err != nil {
@@ -46,6 +45,10 @@ func SecurityContextByRefreshToken(refreshToken string, cspURL string) (core.Sec
 	}
 
 	config := openapiclient.NewConfiguration()
+
+	if len(cspURL) > 0 {
+		config.BasePath = cspURL
+	}
 	config.HTTPClient = &http.Client{Transport: tr}
 	config.AddDefaultHeader("authorization", "Basic"+refreshToken)
 
@@ -55,19 +58,13 @@ func SecurityContextByRefreshToken(refreshToken string, cspURL string) (core.Sec
 	})
 
 	APIClient := openapiclient.NewAPIClient(config)
-
 	accessToken, resp, err := APIClient.AuthenticationApi.GetAccessTokenByApiRefreshTokenUsingPOST(auth, refreshToken)
-	log.Printf("Response status from the call  : %s",resp.Status)
-	log.Printf("Response code from the call  : %d",resp.StatusCode)
-	log.Println(resp.Request)
-	log.Printf("Accesstoken  : %v",accessToken)
 	if resp.StatusCode != 200 {
-		return nil, HandleCreateError("accesstoken using refresh_token",err)
+		return nil, HandleCreateError("access token using refresh_token", err)
 	}
 	if err != nil {
-		return nil, HandleCreateError("accesstoken using refresh_token",err)
+		return nil, HandleCreateError("access token using refresh_token", err)
 	}
-
 
 	securityCtx := security.NewOauthSecurityContext(accessToken.AccessToken)
 	return securityCtx, nil
@@ -76,7 +73,13 @@ func SecurityContextByRefreshToken(refreshToken string, cspURL string) (core.Sec
 func NewClientConnectorByClientID(clientID, clientSecret, serviceUrl, cspURL string,
 	httpClient http.Client) (client.Connector, error) {
 
+	if len(serviceUrl) <= 0 {
+		serviceUrl = DefaultVMCServer
+	}
 
+	if len(cspURL) <= 0 {
+		cspURL = DefaultCSPUrl
+	}
 	securityCtx, err := SecurityContextByClientID(clientID, clientSecret, cspURL)
 	if err != nil {
 		return nil, err
@@ -99,7 +102,9 @@ func SecurityContextByClientID(clientID string, clientSecret string, cspURL stri
 	}
 
 	config := openapiclient.NewConfiguration()
-	log.Printf("config basepath %s",config.BasePath)
+	if len(cspURL) > 0 {
+		config.BasePath = cspURL
+	}
 	config.HTTPClient = &http.Client{Transport: tr}
 	config.AddDefaultHeader("authorization", "Basic"+encodedClientCredentials)
 
@@ -110,12 +115,12 @@ func SecurityContextByClientID(clientID string, clientSecret string, cspURL stri
 
 	APIClient := openapiclient.NewAPIClient(config)
 
-	accessToken,response, err := APIClient.AuthenticationApi.GetTokenForAuthGrantTypeUsingPOST1(auth, "client_credentials", nil)
-	log.Printf("Request %v",response.Request)
-	log.Printf("Response code %d",response.StatusCode)
-	log.Printf("Request Body %v",response.Body)
+	accessToken, response, err := APIClient.AuthenticationApi.GetTokenForAuthGrantTypeUsingPOST1(auth, "client_credentials", nil)
+	if response.StatusCode != 200 {
+		return nil, HandleCreateError("access token using refresh_token", err)
+	}
 	if err != nil {
-		return nil, HandleCreateError("accesstoken using client ID and client secret",err)
+		return nil, HandleCreateError("access token using client ID and client secret", err)
 	}
 
 	securityCtx := security.NewOauthSecurityContext(accessToken.AccessToken)
