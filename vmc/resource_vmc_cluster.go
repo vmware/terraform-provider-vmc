@@ -27,7 +27,7 @@ func resourceCluster() *schema.Resource {
 			State: schema.ImportStatePassthrough,
 		},
 		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(35 * time.Minute),
+			Create: schema.DefaultTimeout(60 * time.Minute),
 			Delete: schema.DefaultTimeout(20 * time.Minute),
 			Update: schema.DefaultTimeout(40 * time.Minute),
 		},
@@ -38,10 +38,10 @@ func resourceCluster() *schema.Resource {
 				Description: "SDDC identifier",
 			},
 			"num_hosts": {
-				Type:         schema.TypeInt,
-				Required:     true,
+				Type:     schema.TypeInt,
+				Required: true,
 				ValidateFunc: validation.IntBetween(3, 16),
-				Description:  "The number of hosts.",
+				Description: "The number of hosts.",
 			},
 			"host_cpu_cores_count": {
 				Type:        schema.TypeInt,
@@ -53,12 +53,7 @@ func resourceCluster() *schema.Resource {
 				Optional:    true,
 				Description: "The instance type for the esx hosts added to this cluster.",
 				ValidateFunc: validation.StringInSlice(
-					[]string{HostInstancetypeI3, HostInstancetypeR5}, false),
-			},
-			"storage_capacity": {
-				Type:        schema.TypeInt,
-				Optional:    true,
-				Description: "For EBS-backed instances only, the requested storage capacity in GiB.",
+					[]string{HostInstancetypeI3, HostInstancetypeR5, HostInstancetypeI3EN}, false),
 			},
 			"cluster_info": {
 				Type:     schema.TypeMap,
@@ -72,6 +67,7 @@ func resourceClusterCreate(d *schema.ResourceData, m interface{}) error {
 	sddcID := d.Get("sddc_id").(string)
 	numHosts := int64(d.Get("num_hosts").(int))
 	hostCPUCoresCount := int64(d.Get("host_cpu_cores_count").(int))
+	hostInstanceType := model.HostInstanceTypes(d.Get("host_instance_type").(string))
 
 	connector := m.(*ConnectorWrapper)
 	orgID := m.(*ConnectorWrapper).OrgID
@@ -80,9 +76,7 @@ func resourceClusterCreate(d *schema.ResourceData, m interface{}) error {
 	clusterConfig := &model.ClusterConfig{
 		NumHosts:          numHosts,
 		HostCpuCoresCount: &hostCPUCoresCount,
-		// To be added : support for other host instance types
-		//HostInstanceType:  &hostInstanceType,
-		//StorageCapacity:   &storageCapacityConverted,
+		HostInstanceType:  &hostInstanceType,
 	}
 
 	task, err := clusterClient.Create(orgID, sddcID, *clusterConfig)

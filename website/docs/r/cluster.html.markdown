@@ -40,7 +40,7 @@ The following arguments are supported for vmc_cluster resource:
 
 * `host_cpu_cores_count` - (Optional) Customize CPU cores on hosts in a cluster. Specify number of cores to be enabled on hosts in a cluster.
 
-* `host_instance_type` - (Optional) The instance type for the esx hosts added to this cluster. Possible values are: I3_METAL, I3EN.metal and R5_METAL. Default value: I3_METAL.
+* `host_instance_type` - (Optional) The instance type for the esx hosts added to this cluster. Possible values are: I3_METAL, I3EN_metal and R5_METAL. Default value: I3_METAL.
 
 * `storage_capacity` - (Optional) For EBS-backed instances i.e: for R5.METAL only, the requested storage capacity in GiB.
 
