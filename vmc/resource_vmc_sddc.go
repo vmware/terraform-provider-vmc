@@ -398,7 +398,10 @@ func resourceSddcUpdate(d *schema.ResourceData, m interface{}) error {
 			action = "remove"
 			diffNum = oldNum - newNum
 		}
-
+		if d.Get("deployment_type").(string) == MultiAvailabilityZone && diffNum % 2 != 0 {
+			log.Printf("Check for the diffnum %d",diffNum % 2)
+			return fmt.Errorf("for multiAZ SDDC hosts must be added in pairs across availability zones",)
+		}
 		esxConfig := model.EsxConfig{
 			NumHosts: int64(diffNum),
 		}
