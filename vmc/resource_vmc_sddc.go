@@ -171,6 +171,11 @@ func resourceSddc() *schema.Resource {
 				Type:     schema.TypeMap,
 				Computed: true,
 			},
+			"availability_zones": {
+				Type:     schema.TypeList,
+				Computed: true,
+				Elem:     &schema.Schema{Type: schema.TypeString},
+			},
 		},
 		CustomizeDiff: func(d *schema.ResourceDiff, meta interface{}) error {
 
@@ -335,6 +340,7 @@ func resourceSddcRead(d *schema.ResourceData, m interface{}) error {
 		d.Set("cloud_username", sddc.ResourceConfig.CloudUsername)
 		d.Set("cloud_password", sddc.ResourceConfig.CloudPassword)
 		d.Set("nsxt_reverse_proxy_url", sddc.ResourceConfig.NsxApiPublicEndpointUrl)
+		d.Set("availability_zones", sddc.ResourceConfig.AvailabilityZones)
 	}
 	if len(sddc.ResourceConfig.Clusters) != 0 {
 		cluster := map[string]string{}
