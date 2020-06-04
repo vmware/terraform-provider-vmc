@@ -184,14 +184,11 @@ func resourceSddc() *schema.Resource {
 			accountLinkSddcConfig := d.Get("account_link_sddc_config").([]interface{})
 			for _, config := range accountLinkSddcConfig {
 				c := config.(map[string]interface{})
-				log.Printf("length of customer subnets : %d", len(c["customer_subnet_ids"].([]interface{})))
 				if len(c["customer_subnet_ids"].([]interface{})) < 2 {
 					return fmt.Errorf("deployment type %s requires 2 subnets one in each availability zone ", deploymentType)
 				}
 			}
 
-			log.Printf("Deployment type in custom diff : %s", deploymentType)
-			log.Printf("numHosts in custom diff : %d", numHosts)
 			newInstanceType := d.Get("host_instance_type").(string)
 
 			switch newInstanceType {
