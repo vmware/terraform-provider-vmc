@@ -123,9 +123,9 @@ func resourceSddc() *schema.Resource {
 				Type:     schema.TypeString,
 				Optional: true,
 				ForceNew: true,
-				Default:  "SingleAZ",
+				Default:  SingleAvailabilityZone,
 				ValidateFunc: validation.StringInSlice([]string{
-					"SingleAZ", "MultiAZ",
+					SingleAvailabilityZone, MultiAvailabilityZone,
 				}, false),
 			},
 			"region": {
@@ -174,6 +174,24 @@ func resourceSddc() *schema.Resource {
 		},
 		CustomizeDiff: func(d *schema.ResourceDiff, meta interface{}) error {
 
+			deploymentType := d.Get("deployment_type").(string)
+			numHosts := d.Get("num_host").(int)
+
+			if deploymentType == "MultiAZ" && numHosts < 6 {
+				return fmt.Errorf("number of hosts must be atleast 6 for deployment type %s ", deploymentType)
+			}
+
+			accountLinkSddcConfig := d.Get("account_link_sddc_config").([]interface{})
+			for _, config := range accountLinkSddcConfig {
+				c := config.(map[string]interface{})
+				log.Printf("length of customer subnets : %d", len(c["customer_subnet_ids"].([]interface{})))
+				if len(c["customer_subnet_ids"].([]interface{})) < 2 {
+					return fmt.Errorf("deployment type %s requires 2 subnets one in each availability zone ", deploymentType)
+				}
+			}
+
+			log.Printf("Deployment type in custom diff : %s", deploymentType)
+			log.Printf("numHosts in custom diff : %d", numHosts)
 			newInstanceType := d.Get("host_instance_type").(string)
 
 			switch newInstanceType {
