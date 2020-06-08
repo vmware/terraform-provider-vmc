@@ -81,7 +81,6 @@ func resourceSddc() *schema.Resource {
 			"sddc_type": {
 				Type:     schema.TypeString,
 				Optional: true,
-				ForceNew: true,
 			},
 			"vxlan_subnet": {
 				Type:     schema.TypeString,
@@ -123,9 +122,9 @@ func resourceSddc() *schema.Resource {
 				Type:     schema.TypeString,
 				Optional: true,
 				ForceNew: true,
-				Default:  "SingleAZ",
+				Default:  "SINGLE_AZ",
 				ValidateFunc: validation.StringInSlice([]string{
-					"SingleAZ", "MultiAZ",
+					"SINGLE_AZ", "MULTI_AZ",
 				}, false),
 			},
 			"region": {
@@ -315,11 +314,16 @@ func resourceSddcRead(d *schema.ResourceData, m interface{}) error {
 	d.Set("sddc_type", sddc.SddcType)
 	d.Set("sddc_state", sddc.SddcState)
 	d.Set("num_host", len(sddc.ResourceConfig.EsxHosts))
+
 	if sddc.ResourceConfig != nil {
 		d.Set("vc_url", sddc.ResourceConfig.VcUrl)
 		d.Set("cloud_username", sddc.ResourceConfig.CloudUsername)
 		d.Set("cloud_password", sddc.ResourceConfig.CloudPassword)
 		d.Set("nsxt_reverse_proxy_url", sddc.ResourceConfig.NsxApiPublicEndpointUrl)
+		d.Set("region", *sddc.ResourceConfig.Region)
+		d.Set("deployment_type", *sddc.ResourceConfig.DeploymentType)
+		d.Set("sso_domain", *sddc.ResourceConfig.SsoDomain)
+		d.Set("skipCreatingVxlan", *sddc.ResourceConfig.SkipCreatingVxlan)
 	}
 	if len(sddc.ResourceConfig.Clusters) != 0 {
 		cluster := map[string]string{}
