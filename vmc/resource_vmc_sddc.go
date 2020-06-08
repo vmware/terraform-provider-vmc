@@ -81,7 +81,6 @@ func resourceSddc() *schema.Resource {
 			"sddc_type": {
 				Type:     schema.TypeString,
 				Optional: true,
-				ForceNew: true,
 			},
 			"vxlan_subnet": {
 				Type:     schema.TypeString,
@@ -381,7 +380,7 @@ func resourceSddcUpdate(d *schema.ResourceData, m interface{}) error {
 		esxConfig := model.EsxConfig{
 			NumHosts: int64(diffNum),
 		}
-
+		log.Print("change the host num from %v to %v", oldNum, newNum)
 		task, err := esxsClient.Create(orgID, sddcID, esxConfig, &action)
 
 		if err != nil {
