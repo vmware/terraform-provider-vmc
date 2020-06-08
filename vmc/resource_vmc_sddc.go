@@ -314,7 +314,7 @@ func resourceSddcRead(d *schema.ResourceData, m interface{}) error {
 	d.Set("sddc_access_state", sddc.SddcAccessState)
 	d.Set("sddc_type", sddc.SddcType)
 	d.Set("sddc_state", sddc.SddcState)
-
+	d.Set("num_host", len(sddc.ResourceConfig.EsxHosts))
 	if sddc.ResourceConfig != nil {
 		d.Set("vc_url", sddc.ResourceConfig.VcUrl)
 		d.Set("cloud_username", sddc.ResourceConfig.CloudUsername)
@@ -329,7 +329,6 @@ func resourceSddcRead(d *schema.ResourceData, m interface{}) error {
 		cluster["host_instance_type"] = *currentResourceConfig.EsxHostInfo.InstanceType
 		cluster["cluster_id"] = currentResourceConfig.ClusterId
 		d.Set("cluster_info", cluster)
-
 	}
 	return nil
 }
