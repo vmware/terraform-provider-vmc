@@ -122,9 +122,9 @@ func resourceSddc() *schema.Resource {
 				Type:     schema.TypeString,
 				Optional: true,
 				ForceNew: true,
-				Default:  "SINGLE_AZ",
+				Default:  "SingleAZ",
 				ValidateFunc: validation.StringInSlice([]string{
-					"SINGLE_AZ", "MULTI_AZ",
+					"SingleAZ", "MultiAZ",
 				}, false),
 			},
 			"region": {
@@ -321,9 +321,10 @@ func resourceSddcRead(d *schema.ResourceData, m interface{}) error {
 		d.Set("cloud_password", sddc.ResourceConfig.CloudPassword)
 		d.Set("nsxt_reverse_proxy_url", sddc.ResourceConfig.NsxApiPublicEndpointUrl)
 		d.Set("region", *sddc.ResourceConfig.Region)
-		d.Set("deployment_type", *sddc.ResourceConfig.DeploymentType)
+		d.Set("deployment_type", ConvertDeployType(*sddc.ResourceConfig.DeploymentType))
 		d.Set("sso_domain", *sddc.ResourceConfig.SsoDomain)
-		d.Set("skipCreatingVxlan", *sddc.ResourceConfig.SkipCreatingVxlan)
+		d.Set("skip_creating_vxlan", *sddc.ResourceConfig.SkipCreatingVxlan)
+		d.Set("provider_type", sddc.ResourceConfig.Provider)
 	}
 	if len(sddc.ResourceConfig.Clusters) != 0 {
 		cluster := map[string]string{}
@@ -384,7 +385,6 @@ func resourceSddcUpdate(d *schema.ResourceData, m interface{}) error {
 		esxConfig := model.EsxConfig{
 			NumHosts: int64(diffNum),
 		}
-
 		task, err := esxsClient.Create(orgID, sddcID, esxConfig, &action)
 
 		if err != nil {
