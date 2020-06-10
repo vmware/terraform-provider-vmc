@@ -367,20 +367,20 @@ func resourceSddcUpdate(d *schema.ResourceData, m interface{}) error {
 	sddcID := d.Id()
 	orgID := (m.(*ConnectorWrapper)).OrgID
 
-	//Convert sddc from 1node to default
-	covertSddc := false
+	// Convert sddc from 1node to default
+	toConvertSddc := false
 	if d.HasChange("sddc_type") {
 		oldTmp, newTmp := d.GetChange("sddc_type")
 		oldType := oldTmp.(string)
 		newType := newTmp.(string)
-		//Validate for convert type params
+
+		// Validate for convert type params
 		if oldType == "1NODE" && (newType == "" || newType == "DEFAULT") {
-			log.Print("start to change the sddc type")
 			oldTmp, newTmp := d.GetChange("num_host")
 			oldNum := oldTmp.(int)
 			newNum := newTmp.(int)
 			if oldNum != 1 || newNum != 3 {
-				return fmt.Errorf("Convert sddc must from 1 host to 3 host")
+				return fmt.Errorf("Scale SDDC must from 1 host to 3 hosts")
 			}
 			convertClient := sddcs.NewDefaultConvertClient(connector)
 			task, err := convertClient.Create(orgID, sddcID)
@@ -402,12 +402,12 @@ func resourceSddcUpdate(d *schema.ResourceData, m interface{}) error {
 			if err != nil {
 				return err
 			}
-			covertSddc = true
+			toConvertSddc = true
 		}
 	}
 
 	// Add,remove hosts
-	if d.HasChange("num_host") && !covertSddc {
+	if d.HasChange("num_host") && !toConvertSddc {
 		oldTmp, newTmp := d.GetChange("num_host")
 		oldNum := oldTmp.(int)
 		newNum := newTmp.(int)
@@ -444,6 +444,7 @@ func resourceSddcUpdate(d *schema.ResourceData, m interface{}) error {
 			return err
 		}
 	}
+
 	// Update sddc name
 	if d.HasChange("sddc_name") {
 		sddcClient := orgs.NewDefaultSddcsClient(connector)
