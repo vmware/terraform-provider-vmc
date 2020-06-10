@@ -27,3 +27,13 @@ func ConvertStorageCapacitytoInt(s string) int64 {
 	storageCapacity := storageCapacityMap[s]
 	return storageCapacity
 }
+
+func ConvertDeployType(s string) string {
+	if s == "SINGLE_AZ" {
+		return "SingleAZ"
+	} else if s == "MULTI_AZ" {
+		return "MultiAZ"
+	} else {
+		return ""
+	}
+}
