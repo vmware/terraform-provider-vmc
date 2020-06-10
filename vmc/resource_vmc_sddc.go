@@ -311,7 +311,6 @@ func resourceSddcRead(d *schema.ResourceData, m interface{}) error {
 	d.Set("provider", sddc.Provider)
 	d.Set("account_link_state", sddc.AccountLinkState)
 	d.Set("sddc_access_state", sddc.SddcAccessState)
-	d.Set("sddc_type", sddc.SddcType)
 	d.Set("sddc_state", sddc.SddcState)
 	d.Set("num_host", len(sddc.ResourceConfig.EsxHosts))
 
@@ -368,8 +367,47 @@ func resourceSddcUpdate(d *schema.ResourceData, m interface{}) error {
 	sddcID := d.Id()
 	orgID := (m.(*ConnectorWrapper)).OrgID
 
+	//Convert sddc from 1node to default
+	covertSddc := false
+	if d.HasChange("sddc_type") {
+		oldTmp, newTmp := d.GetChange("sddc_type")
+		oldType := oldTmp.(string)
+		newType := newTmp.(string)
+		//Validate for convert type params
+		if oldType == "1NODE" && (newType == "" || newType == "DEFAULT") {
+			log.Print("start to change the sddc type")
+			oldTmp, newTmp := d.GetChange("num_host")
+			oldNum := oldTmp.(int)
+			newNum := newTmp.(int)
+			if oldNum != 1 || newNum != 3 {
+				return fmt.Errorf("Convert sddc must from 1 host to 3 host")
+			}
+			convertClient := sddcs.NewDefaultConvertClient(connector)
+			task, err := convertClient.Create(orgID, sddcID)
+
+			if err != nil {
+				return HandleUpdateError("SDDC", err)
+			}
+			tasksClient := orgs.NewDefaultTasksClient(connector)
+			err = resource.Retry(d.Timeout(schema.TimeoutUpdate), func() *resource.RetryError {
+				task, err := tasksClient.Get(orgID, task.Id)
+				if err != nil {
+					return resource.NonRetryableError(fmt.Errorf("error while waiting for task %s: %v", task.Id, err))
+				}
+				if *task.Status != "FINISHED" {
+					return resource.RetryableError(fmt.Errorf("expected hosts to be updated but were in state %s", *task.Status))
+				}
+				return resource.NonRetryableError(resourceSddcRead(d, m))
+			})
+			if err != nil {
+				return err
+			}
+			covertSddc = true
+		}
+	}
+
 	// Add,remove hosts
-	if d.HasChange("num_host") {
+	if d.HasChange("num_host") && !covertSddc {
 		oldTmp, newTmp := d.GetChange("num_host")
 		oldNum := oldTmp.(int)
 		newNum := newTmp.(int)
