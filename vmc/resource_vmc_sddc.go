@@ -182,8 +182,8 @@ func resourceSddc() *schema.Resource {
 			deploymentType := d.Get("deployment_type").(string)
 			numHosts := d.Get("num_host").(int)
 
-			if deploymentType == "MultiAZ" && numHosts < 6 {
-				return fmt.Errorf("number of hosts must be atleast 6 for deployment type %s ", deploymentType)
+			if deploymentType == MultiAvailabilityZone && numHosts < 6 {
+				return fmt.Errorf("for MulitAZ deployment type number of hosts must be atleast 6 ")
 			}
 
 			accountLinkSddcConfig := d.Get("account_link_sddc_config").([]interface{})
@@ -399,8 +399,8 @@ func resourceSddcUpdate(d *schema.ResourceData, m interface{}) error {
 			diffNum = oldNum - newNum
 		}
 		if d.Get("deployment_type").(string) == MultiAvailabilityZone && diffNum%2 != 0 {
-			log.Printf("Check for the diffnum %d", diffNum%2)
-			return fmt.Errorf("for multiAZ SDDC hosts must be added in pairs across availability zones")
+
+			return fmt.Errorf("for multiAZ deployment type, SDDC hosts must be added in pairs across availability zones")
 		}
 		esxConfig := model.EsxConfig{
 			NumHosts: int64(diffNum),
