@@ -182,8 +182,8 @@ func resourceSddc() *schema.Resource {
 			deploymentType := d.Get("deployment_type").(string)
 			numHosts := d.Get("num_host").(int)
 
-			if deploymentType == MultiAvailabilityZone && numHosts < 6 {
-				return fmt.Errorf("for MulitAZ deployment type number of hosts must be atleast 6 ")
+			if deploymentType == MultiAvailabilityZone && numHosts < MinMultiAZHosts {
+				return fmt.Errorf("for MulitAZ deployment type number of hosts must be atleast %d ", MinMultiAZHosts)
 			}
 
 			accountLinkSddcConfig := d.Get("account_link_sddc_config").([]interface{})

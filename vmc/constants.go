@@ -23,6 +23,7 @@ const (
 	// Availability Zones
 	SingleAvailabilityZone string = "SingleAZ"
 	MultiAvailabilityZone  string = "MultiAZ"
+	MinMultiAZHosts        int    = 6
 
 	ClusterIdFieldName = "clusterId"
 
