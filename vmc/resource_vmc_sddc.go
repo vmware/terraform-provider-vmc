@@ -364,6 +364,7 @@ func resourceSddcDelete(d *schema.ResourceData, m interface{}) error {
 func resourceSddcUpdate(d *schema.ResourceData, m interface{}) error {
 	connector := (m.(*ConnectorWrapper)).Connector
 	esxsClient := sddcs.NewDefaultEsxsClient(connector)
+	sddcClient := orgs.NewDefaultSddcsClient(connector)
 	sddcID := d.Id()
 	orgID := (m.(*ConnectorWrapper)).OrgID
 
@@ -379,28 +380,48 @@ func resourceSddcUpdate(d *schema.ResourceData, m interface{}) error {
 			oldTmp, newTmp := d.GetChange("num_host")
 			oldNum := oldTmp.(int)
 			newNum := newTmp.(int)
-			if oldNum != 1 || newNum != 3 {
-				return fmt.Errorf("Scale SDDC must from 1 host to 3 hosts")
-			}
-			convertClient := sddcs.NewDefaultConvertClient(connector)
-			task, err := convertClient.Create(orgID, sddcID)
 
-			if err != nil {
-				return HandleUpdateError("SDDC", err)
-			}
-			tasksClient := orgs.NewDefaultTasksClient(connector)
-			err = resource.Retry(d.Timeout(schema.TimeoutUpdate), func() *resource.RetryError {
-				task, err := tasksClient.Get(orgID, task.Id)
+			if oldNum != 1 {
+				return fmt.Errorf("Scale SDDC must from 1 host type")
+			} else if newNum == 2 { // 2node sddc creation
+				err := resourceSddcDelete(d, m)
 				if err != nil {
-					return resource.NonRetryableError(fmt.Errorf("error while waiting for task %s: %v", task.Id, err))
+					return err
 				}
-				if *task.Status != "FINISHED" {
-					return resource.RetryableError(fmt.Errorf("expected hosts to be updated but were in state %s", *task.Status))
+				//TODO: create the node via client or call sddc resource, params??s
+				toConvertSddc = true
+			} else if newNum == 3 { // 3node sddc scale up
+				convertClient := sddcs.NewDefaultConvertClient(connector)
+				task, err := convertClient.Create(orgID, sddcID)
+
+				if err != nil {
+					return HandleUpdateError("SDDC", err)
 				}
-				return resource.NonRetryableError(resourceSddcRead(d, m))
-			})
-			if err != nil {
-				return err
+				tasksClient := orgs.NewDefaultTasksClient(connector)
+				err = resource.Retry(d.Timeout(schema.TimeoutUpdate), func() *resource.RetryError {
+					task, err := tasksClient.Get(orgID, task.Id)
+
+					if err != nil {
+						if err.Error() == (errors.Unauthenticated{}.Error()) {
+							log.Print("Auth error", err.Error(), errors.Unauthenticated{}.Error())
+							err = m.(*ConnectorWrapper).authenticate()
+							if err != nil {
+								return resource.NonRetryableError(fmt.Errorf("authentication error from Cloud Service Provider : %s", err))
+							}
+							return resource.RetryableError(fmt.Errorf("instance creation still in progress"))
+						}
+						return resource.NonRetryableError(fmt.Errorf("error describing instance: %s", err))
+					}
+					if *task.Status != "FINISHED" {
+						return resource.RetryableError(fmt.Errorf("expected hosts to be updated but were in state %s", *task.Status))
+					}
+					return resource.NonRetryableError(resourceSddcRead(d, m))
+				})
+				if err != nil {
+					return err
+				}
+			} else {
+				return fmt.Errorf("Convert sddc error from %d to %d is not supported", oldNum, newNum)
 			}
 			toConvertSddc = true
 		}
@@ -447,7 +468,6 @@ func resourceSddcUpdate(d *schema.ResourceData, m interface{}) error {
 
 	// Update sddc name
 	if d.HasChange("sddc_name") {
-		sddcClient := orgs.NewDefaultSddcsClient(connector)
 		newSDDCName := d.Get("sddc_name").(string)
 		sddcPatchRequest := model.SddcPatchRequest{
 			Name: &newSDDCName,
