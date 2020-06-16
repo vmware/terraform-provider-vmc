@@ -388,8 +388,7 @@ func resourceSddcUpdate(d *schema.ResourceData, m interface{}) error {
 				if err != nil {
 					return err
 				}
-				//TODO: create the node via client or call sddc resource, params??s
-				toConvertSddc = true
+				return resourceSddcCreate(d, m)
 			} else if newNum == 3 { // 3node sddc scale up
 				convertClient := sddcs.NewDefaultConvertClient(connector)
 				task, err := convertClient.Create(orgID, sddcID)
