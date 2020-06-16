@@ -73,7 +73,7 @@ The following arguments are supported:
 
 * `account_link_sddc_config` - (Optional) The account linking configuration object.
 
-* `host_instance_type` -  (Optional) The instance type for the esx hosts in the primary cluster of the SDDC. Possible values : I3_METAL, I3EN_METAL, R5_METAL.
+* `host_instance_type` -  (Optional) The instance type for the esx hosts in the primary cluster of the SDDC. Possible values : I3_METAL, I3EN_METAL, R5_METAL. I3EN_METAL does not currently support single host (1NODE) or two host SDDC deployment.
 
 * `vpc_cidr` - (Optional) SDDC management network CIDR. Only prefix of 16, 20 and 23 are supported. Note : Specify a private subnet range (RFC 1918) to be used for 
    vCenter Server, NSX Manager, and ESXi hosts. Choose a range that will not conflict with other networks you will connect to this SDDC.
