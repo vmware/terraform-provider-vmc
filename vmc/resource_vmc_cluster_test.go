@@ -5,7 +5,6 @@ package vmc
 
 import (
 	"fmt"
-	"github.com/vmware/vsphere-automation-sdk-go/services/vmc/orgs"
 	"os"
 	"strings"
 	"testing"
@@ -14,6 +13,7 @@ import (
 	"github.com/hashicorp/terraform/terraform"
 	"github.com/vmware/vsphere-automation-sdk-go/lib/vapi/std/errors"
 	"github.com/vmware/vsphere-automation-sdk-go/services/vmc/model"
+	"github.com/vmware/vsphere-automation-sdk-go/services/vmc/orgs"
 )
 
 func TestAccResourceVmcCluster_basic(t *testing.T) {
@@ -57,7 +57,7 @@ func testAccCheckVmcClusterExists(name string, sddcResource *model.Sddc) resourc
 		clusterExists := false
 		for i := 0; i < len(sddcResource.ResourceConfig.Clusters); i++ {
 			currentResourceConfig := sddcResource.ResourceConfig.Clusters[i]
-			if strings.Contains(*currentResourceConfig.ClusterName, "Cluster-2") {
+			if !strings.Contains(*currentResourceConfig.ClusterName, "Cluster-1") {
 				clusterExists = true
 				break
 			}
@@ -90,7 +90,7 @@ func testCheckVmcClusterDestroy(s *terraform.State) error {
 
 		for i := 0; i < len(sddcResource.ResourceConfig.Clusters); i++ {
 			currentResourceConfig := sddcResource.ResourceConfig.Clusters[i]
-			if strings.Contains(*currentResourceConfig.ClusterName, "Cluster-2") {
+			if !strings.Contains(*currentResourceConfig.ClusterName, "Cluster-1") {
 				return fmt.Errorf("cluster still exists : %v", err)
 
 			}
