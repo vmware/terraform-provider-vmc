@@ -27,7 +27,7 @@ func TestAccResourceVmcCluster_basic(t *testing.T) {
 				Config: testAccVmcClusterConfigBasic(),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckVmcClusterExists("vmc_cluster.cluster_1", &sddcResource),
-					resource.TestCheckResourceAttrSet("vmc_cluster.cluster_1", "cluster_id"),
+					resource.TestCheckResourceAttrSet("vmc_cluster.cluster_1", "id"),
 				),
 			},
 		},
