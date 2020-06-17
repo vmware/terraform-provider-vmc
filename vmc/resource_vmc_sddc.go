@@ -186,11 +186,13 @@ func resourceSddc() *schema.Resource {
 				return fmt.Errorf("for MulitAZ deployment type number of hosts must be atleast %d ", MinMultiAZHosts)
 			}
 
-			accountLinkSddcConfig := d.Get("account_link_sddc_config").([]interface{})
-			for _, config := range accountLinkSddcConfig {
-				c := config.(map[string]interface{})
-				if len(c["customer_subnet_ids"].([]interface{})) < 2 {
-					return fmt.Errorf("deployment type %s requires 2 subnets one in each availability zone ", deploymentType)
+			if deploymentType == MultiAvailabilityZone {
+				accountLinkSddcConfig := d.Get("account_link_sddc_config").([]interface{})
+				for _, config := range accountLinkSddcConfig {
+					c := config.(map[string]interface{})
+					if len(c["customer_subnet_ids"].([]interface{})) < 2 {
+						return fmt.Errorf("deployment type %s requires 2 subnets one in each availability zone ", deploymentType)
+					}
 				}
 			}
 
