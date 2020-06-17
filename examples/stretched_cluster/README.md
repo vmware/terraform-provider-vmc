@@ -6,7 +6,7 @@ This is an example that demonstrates MultiAZ SDDC management actions like creati
 
 The Stretched Clusters feature deploys a single SDDC across two AWS availability zones. 
 This option is only available during the SDDC creation. When enabled the default number of ESXi hosts supported in a Stretched Cluster is six. 
-Additional hosts can be added later but must to be done in pairs across AWS availability zones. The Stretched Clusters feature requires an AWS VPC with two subnets, one subnet per availability zone. The subnets determine an ESXi host placement between the two availability zones.
+Additional hosts can be added later but must be done in pairs across AWS availability zones. The Stretched Clusters feature requires an AWS VPC with two subnets, one subnet per availability zone. The subnets determine an ESXi host placement between the two availability zones.
 
 To run the example:
 
