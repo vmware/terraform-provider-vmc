@@ -5,11 +5,11 @@ package vmc
 
 import (
 	"fmt"
-	"github.com/hashicorp/terraform/helper/acctest"
 	"os"
 	"strings"
 	"testing"
 
+	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
 	"github.com/vmware/vsphere-automation-sdk-go/lib/vapi/std/errors"
