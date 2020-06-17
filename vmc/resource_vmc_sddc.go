@@ -369,7 +369,6 @@ func resourceSddcUpdate(d *schema.ResourceData, m interface{}) error {
 	orgID := (m.(*ConnectorWrapper)).OrgID
 
 	// Convert sddc from 1node to default
-	toConvertSddc := false
 	if d.HasChange("sddc_type") {
 		oldTmp, newTmp := d.GetChange("sddc_type")
 		oldType := oldTmp.(string)
@@ -407,7 +406,7 @@ func resourceSddcUpdate(d *schema.ResourceData, m interface{}) error {
 							if err != nil {
 								return resource.NonRetryableError(fmt.Errorf("authentication error from Cloud Service Provider : %s", err))
 							}
-							return resource.RetryableError(fmt.Errorf("instance creation still in progress"))
+							return resource.RetryableError(fmt.Errorf("instance scaling still in progress"))
 						}
 						return resource.NonRetryableError(fmt.Errorf("error describing instance: %s", err))
 					}
@@ -422,16 +421,16 @@ func resourceSddcUpdate(d *schema.ResourceData, m interface{}) error {
 			} else {
 				return fmt.Errorf("Convert sddc error from %d to %d is not supported", oldNum, newNum)
 			}
-			toConvertSddc = true
 		}
 	}
 
 	// Add,remove hosts
-	if d.HasChange("num_host") && !toConvertSddc {
+	if d.HasChange("num_host") {
+
 		oldTmp, newTmp := d.GetChange("num_host")
 		oldNum := oldTmp.(int)
 		newNum := newTmp.(int)
-
+		log.Printf("start to update sddc %d %d", oldNum, newNum)
 		action := "add"
 		diffNum := newNum - oldNum
 
