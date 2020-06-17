@@ -48,8 +48,8 @@ func testAccCheckVmcClusterExists(name string, sddcResource *model.Sddc) resourc
 
 		sddcClient := orgs.NewDefaultSddcsClient(connector)
 		var err error
-		fmt.Printf("SDDC ID : %s",sddcID)
-		fmt.Printf("Org ID : %s",orgID)
+		fmt.Printf("SDDC ID : %s", sddcID)
+		fmt.Printf("Org ID : %s", orgID)
 		*sddcResource, err = sddcClient.Get(orgID, sddcID)
 		if err != nil {
 			return fmt.Errorf("error retrieving SDDC : %s", err)

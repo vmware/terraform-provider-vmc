@@ -49,7 +49,6 @@ func testCheckVmcSddcExists(name string, sddcResource *model.Sddc) resource.Test
 		sddcID := rs.Primary.Attributes["id"]
 		sddcName := rs.Primary.Attributes["sddc_name"]
 
-
 		connectorWrapper := testAccProvider.Meta().(*ConnectorWrapper)
 		orgID := connectorWrapper.OrgID
 		connector := connectorWrapper.Connector
