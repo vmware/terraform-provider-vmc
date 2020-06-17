@@ -100,7 +100,7 @@ func testCheckVmcClusterDestroy(s *terraform.State) error {
 			}
 		}
 
-		//check if error type if not_found
+		// check if error type if not_found
 		if err.Error() != (errors.NotFound{}.Error()) {
 			return err
 		}
