@@ -122,9 +122,9 @@ func resourceSddc() *schema.Resource {
 				Type:     schema.TypeString,
 				Optional: true,
 				ForceNew: true,
-				Default:  "SingleAZ",
+				Default:  SingleAvailabilityZone,
 				ValidateFunc: validation.StringInSlice([]string{
-					"SingleAZ", "MultiAZ",
+					SingleAvailabilityZone, MultiAvailabilityZone,
 				}, false),
 			},
 			"region": {
@@ -170,8 +170,28 @@ func resourceSddc() *schema.Resource {
 				Type:     schema.TypeMap,
 				Computed: true,
 			},
+			"availability_zones": {
+				Type:     schema.TypeList,
+				Computed: true,
+				Elem:     &schema.Schema{Type: schema.TypeString},
+			},
 		},
 		CustomizeDiff: func(d *schema.ResourceDiff, meta interface{}) error {
+
+			deploymentType := d.Get("deployment_type").(string)
+			numHosts := d.Get("num_host").(int)
+
+			if deploymentType == MultiAvailabilityZone && numHosts < MinMultiAZHosts {
+				return fmt.Errorf("for MulitAZ deployment type number of hosts must be atleast %d ", MinMultiAZHosts)
+			}
+
+			accountLinkSddcConfig := d.Get("account_link_sddc_config").([]interface{})
+			for _, config := range accountLinkSddcConfig {
+				c := config.(map[string]interface{})
+				if len(c["customer_subnet_ids"].([]interface{})) < 2 {
+					return fmt.Errorf("deployment type %s requires 2 subnets one in each availability zone ", deploymentType)
+				}
+			}
 
 			newInstanceType := d.Get("host_instance_type").(string)
 
@@ -426,11 +446,10 @@ func resourceSddcUpdate(d *schema.ResourceData, m interface{}) error {
 
 	// Add,remove hosts
 	if d.HasChange("num_host") {
-
 		oldTmp, newTmp := d.GetChange("num_host")
 		oldNum := oldTmp.(int)
 		newNum := newTmp.(int)
-		log.Printf("start to update sddc %d %d", oldNum, newNum)
+
 		action := "add"
 		diffNum := newNum - oldNum
 
@@ -438,7 +457,10 @@ func resourceSddcUpdate(d *schema.ResourceData, m interface{}) error {
 			action = "remove"
 			diffNum = oldNum - newNum
 		}
+		if d.Get("deployment_type").(string) == MultiAvailabilityZone && diffNum%2 != 0 {
 
+			return fmt.Errorf("for multiAZ deployment type, SDDC hosts must be added in pairs across availability zones")
+		}
 		esxConfig := model.EsxConfig{
 			NumHosts: int64(diffNum),
 		}
