@@ -82,7 +82,7 @@ func testCheckVmcSiteRecoveryDestroy(s *terraform.State) error {
 			}
 			return nil
 		}
-		// check if error type if not_found
+		// check if error type is not_found
 		if err.Error() != (errors.NotFound{}.Error()) {
 			return err
 		}
