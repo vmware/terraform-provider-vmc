@@ -50,8 +50,7 @@ func testAccCheckVmcClusterExists(name string, sddcResource *model.Sddc) resourc
 
 		sddcClient := orgs.NewDefaultSddcsClient(connector)
 		var err error
-		fmt.Printf("SDDC ID : %s", sddcID)
-		fmt.Printf("Org ID : %s", orgID)
+
 		*sddcResource, err = sddcClient.Get(orgID, sddcID)
 		if err != nil {
 			return fmt.Errorf("error retrieving SDDC : %s", err)
@@ -60,7 +59,6 @@ func testAccCheckVmcClusterExists(name string, sddcResource *model.Sddc) resourc
 		for i := 0; i < len(sddcResource.ResourceConfig.Clusters); i++ {
 			currentResourceConfig := sddcResource.ResourceConfig.Clusters[i]
 			if strings.Contains(*currentResourceConfig.ClusterName, "Cluster-2") {
-				fmt.Printf("Cluster Name : %s", *currentResourceConfig.ClusterName)
 				clusterExists = true
 				break
 			}
@@ -94,7 +92,6 @@ func testCheckVmcClusterDestroy(s *terraform.State) error {
 		for i := 0; i < len(sddcResource.ResourceConfig.Clusters); i++ {
 			currentResourceConfig := sddcResource.ResourceConfig.Clusters[i]
 			if strings.Contains(*currentResourceConfig.ClusterName, "Cluster-2") {
-				fmt.Printf("Cluster Name : %s", *currentResourceConfig.ClusterName)
 				return fmt.Errorf("cluster still exists : %v", err)
 			}
 		}
