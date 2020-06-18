@@ -342,6 +342,7 @@ func resourceSddcRead(d *schema.ResourceData, m interface{}) error {
 		d.Set("cloud_password", sddc.ResourceConfig.CloudPassword)
 		d.Set("nsxt_reverse_proxy_url", sddc.ResourceConfig.NsxApiPublicEndpointUrl)
 		d.Set("region", *sddc.ResourceConfig.Region)
+		d.Set("availability_zones", sddc.ResourceConfig.AvailabilityZones)
 		d.Set("deployment_type", ConvertDeployType(*sddc.ResourceConfig.DeploymentType))
 		d.Set("sso_domain", *sddc.ResourceConfig.SsoDomain)
 		d.Set("skip_creating_vxlan", *sddc.ResourceConfig.SkipCreatingVxlan)
