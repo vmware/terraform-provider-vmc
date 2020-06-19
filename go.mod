@@ -15,11 +15,11 @@ require (
 	github.com/sirupsen/logrus v1.4.2 // indirect
 	github.com/spf13/cobra v0.0.6 // indirect
 	github.com/spf13/pflag v1.0.5 // indirect
-	github.com/vmware/vsphere-automation-sdk-go/lib v0.2.0
-	github.com/vmware/vsphere-automation-sdk-go/runtime v0.2.0
-	github.com/vmware/vsphere-automation-sdk-go/services/nsxt-vmc-aws-integration v0.2.0
-	github.com/vmware/vsphere-automation-sdk-go/services/vmc v0.2.0
-	github.com/vmware/vsphere-automation-sdk-go/services/vmc/draas v0.2.0
+	github.com/vmware/vsphere-automation-sdk-go/lib v0.3.1
+	github.com/vmware/vsphere-automation-sdk-go/runtime v0.3.1
+	github.com/vmware/vsphere-automation-sdk-go/services/nsxt-vmc-aws-integration v0.3.0
+	github.com/vmware/vsphere-automation-sdk-go/services/vmc v0.3.0
+	github.com/vmware/vsphere-automation-sdk-go/services/vmc/draas v0.3.0
 	go.starlark.net v0.0.0-20200203144150-6677ee5c7211 // indirect
 	golang.org/x/arch v0.0.0-20191126211547-368ea8f32fff // indirect
 	golang.org/x/crypto v0.0.0-20200221231518-2aa609cf4a9d // indirect
