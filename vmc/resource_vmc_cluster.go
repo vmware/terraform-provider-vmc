@@ -65,6 +65,29 @@ func resourceCluster() *schema.Resource {
 				Computed: true,
 			},
 		},
+		CustomizeDiff: func(d *schema.ResourceDiff, meta interface{}) error {
+			newInstanceType := d.Get("host_instance_type").(string)
+
+			switch newInstanceType {
+
+			case HostInstancetypeI3, HostInstancetypeI3EN:
+
+				if d.Get("storage_capacity").(string) != "" {
+
+					return fmt.Errorf("storage_capacity is not supported for host_instance_type %q", newInstanceType)
+
+				}
+			case HostInstancetypeR5:
+
+				if d.Get("storage_capacity").(string) == "" {
+
+					return fmt.Errorf("storage_capacity is required for host_instance_type %q", newInstanceType)
+
+				}
+
+			}
+			return nil
+		},
 	}
 }
 
