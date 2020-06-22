@@ -53,7 +53,7 @@ func resourceCluster() *schema.Resource {
 				Optional:    true,
 				Description: "The instance type for the esx hosts added to this cluster.",
 				ValidateFunc: validation.StringInSlice(
-					[]string{HostInstancetypeI3, HostInstancetypeR5}, false),
+					[]string{HostInstancetypeI3, HostInstancetypeR5, HostInstancetypeI3EN}, false),
 			},
 			"storage_capacity": {
 				Type:        schema.TypeInt,
@@ -69,6 +69,7 @@ func resourceCluster() *schema.Resource {
 }
 
 func resourceClusterCreate(d *schema.ResourceData, m interface{}) error {
+	var storageCapacityConverted int64
 	sddcID := d.Get("sddc_id").(string)
 	numHosts := int64(d.Get("num_hosts").(int))
 	hostCPUCoresCount := int64(d.Get("host_cpu_cores_count").(int))
@@ -76,13 +77,16 @@ func resourceClusterCreate(d *schema.ResourceData, m interface{}) error {
 	connector := m.(*ConnectorWrapper)
 	orgID := m.(*ConnectorWrapper).OrgID
 	clusterClient := sddcs.NewDefaultClustersClient(connector)
-
+	hostInstanceType := model.HostInstanceTypes(d.Get("host_instance_type").(string))
+	storageCapacity := d.Get("storage_capacity").(string)
+	if len(strings.TrimSpace(storageCapacity)) > 0 {
+		storageCapacityConverted = ConvertStorageCapacitytoInt(storageCapacity)
+	}
 	clusterConfig := &model.ClusterConfig{
 		NumHosts:          numHosts,
 		HostCpuCoresCount: &hostCPUCoresCount,
-		// To be added : support for other host instance types
-		//HostInstanceType:  &hostInstanceType,
-		//StorageCapacity:   &storageCapacityConverted,
+		HostInstanceType:  &hostInstanceType,
+		StorageCapacity:   &storageCapacityConverted,
 	}
 
 	task, err := clusterClient.Create(orgID, sddcID, *clusterConfig)
