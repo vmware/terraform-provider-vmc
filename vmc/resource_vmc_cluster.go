@@ -56,9 +56,11 @@ func resourceCluster() *schema.Resource {
 					[]string{HostInstancetypeI3, HostInstancetypeR5, HostInstancetypeI3EN}, false),
 			},
 			"storage_capacity": {
-				Type:        schema.TypeInt,
-				Optional:    true,
-				Description: "For EBS-backed instances only, the requested storage capacity in GiB.",
+				Type:     schema.TypeString,
+				Optional: true,
+				ForceNew: true,
+				ValidateFunc: validation.StringInSlice([]string{
+					"15TB", "20TB", "25TB", "30TB", "35TB"}, false),
 			},
 			"cluster_info": {
 				Type:     schema.TypeMap,
