@@ -27,13 +27,11 @@ func resourceSddc() *schema.Resource {
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
-
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(300 * time.Minute),
 			Update: schema.DefaultTimeout(300 * time.Minute),
 			Delete: schema.DefaultTimeout(180 * time.Minute),
 		},
-
 		Schema: map[string]*schema.Schema{
 			"storage_capacity": {
 				Type:     schema.TypeString,
@@ -145,7 +143,7 @@ func resourceSddc() *schema.Resource {
 				Optional: true,
 				ForceNew: true,
 				ValidateFunc: validation.StringInSlice(
-					[]string{HostInstancetypeI3, HostInstancetypeR5}, false),
+					[]string{HostInstancetypeI3, HostInstancetypeR5, HostInstancetypeI3EN}, false),
 			},
 			"sddc_state": {
 				Type:     schema.TypeString,
@@ -200,7 +198,7 @@ func resourceSddc() *schema.Resource {
 
 			switch newInstanceType {
 
-			case HostInstancetypeI3:
+			case HostInstancetypeI3, HostInstancetypeI3EN:
 
 				if d.Get("storage_capacity").(string) != "" {
 
