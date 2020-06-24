@@ -25,7 +25,6 @@ func resourcePublicIp() *schema.Resource {
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
-
 		Schema: map[string]*schema.Schema{
 			"nsxt_reverse_proxy_url": {
 				Type:        schema.TypeString,

@@ -27,13 +27,11 @@ func resourceSddc() *schema.Resource {
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
-
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(300 * time.Minute),
 			Update: schema.DefaultTimeout(300 * time.Minute),
 			Delete: schema.DefaultTimeout(180 * time.Minute),
 		},
-
 		Schema: map[string]*schema.Schema{
 			"storage_capacity": {
 				Type:     schema.TypeString,
@@ -123,9 +121,9 @@ func resourceSddc() *schema.Resource {
 				Type:     schema.TypeString,
 				Optional: true,
 				ForceNew: true,
-				Default:  "SingleAZ",
+				Default:  SingleAvailabilityZone,
 				ValidateFunc: validation.StringInSlice([]string{
-					"SingleAZ", "MultiAZ",
+					SingleAvailabilityZone, MultiAvailabilityZone,
 				}, false),
 			},
 			"region": {
@@ -145,7 +143,7 @@ func resourceSddc() *schema.Resource {
 				Optional: true,
 				ForceNew: true,
 				ValidateFunc: validation.StringInSlice(
-					[]string{HostInstancetypeI3, HostInstancetypeR5}, false),
+					[]string{HostInstancetypeI3, HostInstancetypeR5, HostInstancetypeI3EN}, false),
 			},
 			"sddc_state": {
 				Type:     schema.TypeString,
@@ -171,14 +169,36 @@ func resourceSddc() *schema.Resource {
 				Type:     schema.TypeMap,
 				Computed: true,
 			},
+			"availability_zones": {
+				Type:     schema.TypeList,
+				Computed: true,
+				Elem:     &schema.Schema{Type: schema.TypeString},
+			},
 		},
 		CustomizeDiff: func(d *schema.ResourceDiff, meta interface{}) error {
+
+			deploymentType := d.Get("deployment_type").(string)
+			numHosts := d.Get("num_host").(int)
+
+			if deploymentType == MultiAvailabilityZone && numHosts < MinMultiAZHosts {
+				return fmt.Errorf("for MulitAZ deployment type number of hosts must be atleast %d ", MinMultiAZHosts)
+			}
+
+			if deploymentType == MultiAvailabilityZone {
+				accountLinkSddcConfig := d.Get("account_link_sddc_config").([]interface{})
+				for _, config := range accountLinkSddcConfig {
+					c := config.(map[string]interface{})
+					if len(c["customer_subnet_ids"].([]interface{})) < 2 {
+						return fmt.Errorf("deployment type %s requires 2 subnets one in each availability zone ", deploymentType)
+					}
+				}
+			}
 
 			newInstanceType := d.Get("host_instance_type").(string)
 
 			switch newInstanceType {
 
-			case HostInstancetypeI3:
+			case HostInstancetypeI3, HostInstancetypeI3EN:
 
 				if d.Get("storage_capacity").(string) != "" {
 
@@ -314,12 +334,14 @@ func resourceSddcRead(d *schema.ResourceData, m interface{}) error {
 	d.Set("sddc_access_state", sddc.SddcAccessState)
 	d.Set("sddc_type", sddc.SddcType)
 	d.Set("sddc_state", sddc.SddcState)
+	d.Set("num_host", len(sddc.ResourceConfig.EsxHosts))
 
 	if sddc.ResourceConfig != nil {
 		d.Set("vc_url", sddc.ResourceConfig.VcUrl)
 		d.Set("cloud_username", sddc.ResourceConfig.CloudUsername)
 		d.Set("cloud_password", sddc.ResourceConfig.CloudPassword)
 		d.Set("nsxt_reverse_proxy_url", sddc.ResourceConfig.NsxApiPublicEndpointUrl)
+		d.Set("availability_zones", sddc.ResourceConfig.AvailabilityZones)
 	}
 	if len(sddc.ResourceConfig.Clusters) != 0 {
 		cluster := map[string]string{}
@@ -377,7 +399,10 @@ func resourceSddcUpdate(d *schema.ResourceData, m interface{}) error {
 			action = "remove"
 			diffNum = oldNum - newNum
 		}
+		if d.Get("deployment_type").(string) == MultiAvailabilityZone && diffNum%2 != 0 {
 
+			return fmt.Errorf("for multiAZ deployment type, SDDC hosts must be added in pairs across availability zones")
+		}
 		esxConfig := model.EsxConfig{
 			NumHosts: int64(diffNum),
 		}
