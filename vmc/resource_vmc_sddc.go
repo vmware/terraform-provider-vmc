@@ -16,6 +16,8 @@ import (
 	"github.com/vmware/vsphere-automation-sdk-go/services/vmc/model"
 	"github.com/vmware/vsphere-automation-sdk-go/services/vmc/orgs"
 	"github.com/vmware/vsphere-automation-sdk-go/services/vmc/orgs/sddcs"
+	autoscaler_cluster "github.com/vmware/vsphere-automation-sdk-go/services/vmc/autoscaler/api/orgs/sddcs/clusters"
+	autoscaler_model "github.com/vmware/vsphere-automation-sdk-go/services/vmc/autoscaler/model"
 )
 
 func resourceSddc() *schema.Resource {
@@ -174,6 +176,26 @@ func resourceSddc() *schema.Resource {
 				Type:     schema.TypeList,
 				Computed: true,
 				Elem:     &schema.Schema{Type: schema.TypeString},
+			},
+			"edrs_policy_type": {
+				Type:        schema.TypeString,
+				Optional:    true,
+				Description: "",
+			},
+			"enable_edrs": {
+				Type:        schema.TypeBool,
+				Optional:    true,
+				Description: "",
+			},
+			"min_hosts": {
+				Type:        schema.TypeInt,
+				Optional:    true,
+				Description: "",
+			},
+			"max_hosts": {
+				Type:        schema.TypeInt,
+				Optional:    true,
+				Description: "",
 			},
 		},
 		CustomizeDiff: func(d *schema.ResourceDiff, meta interface{}) error {
@@ -352,15 +374,27 @@ func resourceSddcRead(d *schema.ResourceData, m interface{}) error {
 		d.Set("vpc_cidr", *sddc.ResourceConfig.VpcInfo.VpcCidr)
 		d.Set("vxlan_subnet", sddc.ResourceConfig.VxlanSubnet)
 	}
-	if len(sddc.ResourceConfig.Clusters) != 0 {
-		cluster := map[string]string{}
-		currentResourceConfig := sddc.ResourceConfig.Clusters[0]
-		cluster["cluster_name"] = *currentResourceConfig.ClusterName
-		cluster["cluster_state"] = *currentResourceConfig.ClusterState
-		cluster["host_instance_type"] = *currentResourceConfig.EsxHostInfo.InstanceType
-		cluster["cluster_id"] = currentResourceConfig.ClusterId
-		d.Set("cluster_info", cluster)
+
+	sddcClient := sddcs.NewDefaultPrimaryclusterClient(connector)
+	primaryCluster, err := sddcClient.Get(orgID, sddcID)
+	if err != nil {
+		return HandleReadError(d, "Primary Cluster", sddcID, err)
 	}
+
+	d.Set("cluster_id", primaryCluster.ClusterId)
+	cluster := map[string]string{}
+	cluster["cluster_name"] = *primaryCluster.ClusterName
+	cluster["cluster_state"] = *primaryCluster.ClusterState
+	cluster["host_instance_type"] = *primaryCluster.EsxHostInfo.InstanceType
+	d.Set("cluster_info", cluster)
+
+	edrsPolicyClient := autoscaler_cluster.NewDefaultEdrsPolicyClient(connector)
+	edrsPolicy, err := edrsPolicyClient.Get(orgID, sddcID, primaryCluster.ClusterId)
+
+	d.Set("edrs_policy_type", *edrsPolicy.PolicyType)
+	d.Set("enable_edrs", edrsPolicy.EnableEdrs)
+	d.Set("max_hosts", *edrsPolicy.MaxHosts)
+	d.Set("min_hosts", *edrsPolicy.MinHosts)
 	return nil
 }
 
@@ -504,6 +538,28 @@ func resourceSddcUpdate(d *schema.ResourceData, m interface{}) error {
 			return HandleUpdateError("SDDC", err)
 		}
 		d.Set("sddc_name", sddc.Name)
+	}
+
+	if d.HasChange("edrs_policy_type") {
+		edrsPolicyClient := autoscaler_cluster.NewDefaultEdrsPolicyClient(connectorWrapper)
+		clusterID := d.Get("cluster_id").(string)
+		minHosts := int64(d.Get("min_hosts").(int))
+		maxHosts := int64(d.Get("max_hosts").(int))
+		policyType := d.Get("edrs_policy_type").(string)
+		enableEDRS := d.Get("enable_edrs").(bool)
+		edrsPolicy := &autoscaler_model.EdrsPolicy{
+			EnableEdrs: enableEDRS,
+			PolicyType: &policyType,
+			MinHosts:   &minHosts,
+			MaxHosts:   &maxHosts,
+		}
+		task, err := edrsPolicyClient.Post(orgID, sddcID, clusterID, *edrsPolicy)
+		if err != nil {
+			return HandleUpdateError("EDRS Policy", err)
+		}
+		for *task.ProgressPercent != 100 {
+			time.Sleep(1 * time.Millisecond)
+		}
 	}
 	return resourceSddcRead(d, m)
 }
