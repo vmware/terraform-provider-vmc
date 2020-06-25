@@ -29,7 +29,7 @@ func ConvertStorageCapacitytoInt(s string) int64 {
 }
 
 // Do a mapping for deployment_type field
-// When refresh/import state, return value of vmc api should be converted to uppercamel case in terraform
+// When refresh/import state, return value of VMC API should be converted to uppercamel case in terraform
 // to keep consistency
 func ConvertDeployType(s string) string {
 	if s == "SINGLE_AZ" {

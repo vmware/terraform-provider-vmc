@@ -389,7 +389,7 @@ func resourceSddcUpdate(d *schema.ResourceData, m interface{}) error {
 	sddcID := d.Id()
 	orgID := (m.(*ConnectorWrapper)).OrgID
 
-	// Convert sddc from 1node to default
+	// Convert SDDC from 1NODE to DEFAULT
 	if d.HasChange("sddc_type") {
 		oldTmp, newTmp := d.GetChange("sddc_type")
 		oldType := oldTmp.(string)
@@ -397,13 +397,10 @@ func resourceSddcUpdate(d *schema.ResourceData, m interface{}) error {
 
 		// Validate for convert type params
 		if oldType == "1NODE" && (newType == "" || newType == "DEFAULT") {
-			oldTmp, newTmp := d.GetChange("num_host")
-			oldNum := oldTmp.(int)
+			_, newTmp := d.GetChange("num_host")
 			newNum := newTmp.(int)
 
-			if oldNum != 1 {
-				return fmt.Errorf("Scale SDDC must from 1 host type")
-			} else if newNum == 2 { // 2node sddc creation
+			if newNum == 2 { // 2node sddc creation
 				err := resourceSddcDelete(d, m)
 				if err != nil {
 					return err
@@ -440,7 +437,7 @@ func resourceSddcUpdate(d *schema.ResourceData, m interface{}) error {
 					return err
 				}
 			} else {
-				return fmt.Errorf("Convert sddc error from %d to %d is not supported", oldNum, newNum)
+				return fmt.Errorf("scaling SDDC is not supported. please check sddc_type and num_host")
 			}
 		}
 	}
