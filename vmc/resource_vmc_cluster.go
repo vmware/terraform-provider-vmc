@@ -27,9 +27,9 @@ func resourceCluster() *schema.Resource {
 			State: schema.ImportStatePassthrough,
 		},
 		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(35 * time.Minute),
-			Delete: schema.DefaultTimeout(20 * time.Minute),
-			Update: schema.DefaultTimeout(40 * time.Minute),
+			Create: schema.DefaultTimeout(60 * time.Minute),
+			Delete: schema.DefaultTimeout(40 * time.Minute),
+			Update: schema.DefaultTimeout(60 * time.Minute),
 		},
 		Schema: map[string]*schema.Schema{
 			"sddc_id": {
@@ -53,22 +53,48 @@ func resourceCluster() *schema.Resource {
 				Optional:    true,
 				Description: "The instance type for the esx hosts added to this cluster.",
 				ValidateFunc: validation.StringInSlice(
-					[]string{HostInstancetypeI3, HostInstancetypeR5}, false),
+					[]string{HostInstancetypeI3, HostInstancetypeR5, HostInstancetypeI3EN}, false),
 			},
 			"storage_capacity": {
-				Type:        schema.TypeInt,
-				Optional:    true,
-				Description: "For EBS-backed instances only, the requested storage capacity in GiB.",
+				Type:     schema.TypeString,
+				Optional: true,
+				ForceNew: true,
+				ValidateFunc: validation.StringInSlice([]string{
+					"15TB", "20TB", "25TB", "30TB", "35TB"}, false),
 			},
 			"cluster_info": {
 				Type:     schema.TypeMap,
 				Computed: true,
 			},
 		},
+		CustomizeDiff: func(d *schema.ResourceDiff, meta interface{}) error {
+			newInstanceType := d.Get("host_instance_type").(string)
+
+			switch newInstanceType {
+
+			case HostInstancetypeI3, HostInstancetypeI3EN:
+
+				if d.Get("storage_capacity").(string) != "" {
+
+					return fmt.Errorf("storage_capacity is not supported for host_instance_type %q", newInstanceType)
+
+				}
+			case HostInstancetypeR5:
+
+				if d.Get("storage_capacity").(string) == "" {
+
+					return fmt.Errorf("storage_capacity is required for host_instance_type %q", newInstanceType)
+
+				}
+
+			}
+			return nil
+		},
 	}
 }
 
 func resourceClusterCreate(d *schema.ResourceData, m interface{}) error {
+	var storageCapacityConverted int64
 	sddcID := d.Get("sddc_id").(string)
 	numHosts := int64(d.Get("num_hosts").(int))
 	hostCPUCoresCount := int64(d.Get("host_cpu_cores_count").(int))
@@ -76,13 +102,16 @@ func resourceClusterCreate(d *schema.ResourceData, m interface{}) error {
 	connector := m.(*ConnectorWrapper)
 	orgID := m.(*ConnectorWrapper).OrgID
 	clusterClient := sddcs.NewDefaultClustersClient(connector)
-
+	hostInstanceType := model.HostInstanceTypes(d.Get("host_instance_type").(string))
+	storageCapacity := d.Get("storage_capacity").(string)
+	if len(strings.TrimSpace(storageCapacity)) > 0 {
+		storageCapacityConverted = ConvertStorageCapacitytoInt(storageCapacity)
+	}
 	clusterConfig := &model.ClusterConfig{
 		NumHosts:          numHosts,
 		HostCpuCoresCount: &hostCPUCoresCount,
-		// To be added : support for other host instance types
-		//HostInstanceType:  &hostInstanceType,
-		//StorageCapacity:   &storageCapacityConverted,
+		HostInstanceType:  &hostInstanceType,
+		StorageCapacity:   &storageCapacityConverted,
 	}
 
 	task, err := clusterClient.Create(orgID, sddcID, *clusterConfig)

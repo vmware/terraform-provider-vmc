@@ -17,8 +17,9 @@ const (
 	SksNSXTManager string = "/sks-nsxt-manager"
 
 	// ESX Host instance types supported for SDDC creation.
-	HostInstancetypeI3 string = "I3_METAL"
-	HostInstancetypeR5 string = "R5_METAL"
+	HostInstancetypeI3   string = "I3_METAL"
+	HostInstancetypeR5   string = "R5_METAL"
+	HostInstancetypeI3EN string = "I3EN_METAL"
 
 	// Availability Zones
 	SingleAvailabilityZone string = "SingleAZ"

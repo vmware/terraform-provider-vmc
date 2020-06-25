@@ -1,4 +1,20 @@
-## 1.3.0 (Unreleased)
+## 1.4.0 (Unreleased)
+## 1.3.0 (June 18, 2020)
+
+FEATURES:
+
+* **New Resource:** `vmc_cluster` Added resource for cluster management. [\#25](https://github.com/terraform-providers/terraform-provider-vmc/pull/25)
+
+BUG FIXES: 
+
+* Modified code to store num_host in resourceSddcRead method [\#39](https://github.com/terraform-providers/terraform-provider-vmc/pull/39)
+
+ENHANCEMENTS:
+
+* Validation check added for MultiAZ SDDC [\#35](https://github.com/terraform-providers/terraform-provider-vmc/pull/29)
+* Added detailed error handler functions for CRUD operations on resources and data sources [\#35](https://github.com/terraform-providers/terraform-provider-vmc/pull/29)
+* Added documentation for vmc_cluster resource  [\#26](https://github.com/terraform-providers/terraform-provider-vmc/pull/26)
+
 ## 1.2.1 (May 04, 2020)
 
 BUG FIXES: 
