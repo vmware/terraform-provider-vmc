@@ -424,7 +424,7 @@ func resourceSddcUpdate(d *schema.ResourceData, m interface{}) error {
 							if err != nil {
 								return resource.NonRetryableError(fmt.Errorf("authentication error from Cloud Service Provider : %s", err))
 							}
-							return resource.RetryableError(fmt.Errorf("instance scaling still in progress"))
+							return resource.RetryableError(fmt.Errorf("sddc scaling still in progress"))
 						}
 						return resource.NonRetryableError(fmt.Errorf("error describing instance: %s", err))
 					}
@@ -437,7 +437,7 @@ func resourceSddcUpdate(d *schema.ResourceData, m interface{}) error {
 					return err
 				}
 			} else {
-				return fmt.Errorf("scaling SDDC is not supported. please check sddc_type and num_host")
+				return fmt.Errorf("scaling SDDC is not supported. Please check sddc_type and num_host")
 			}
 		}
 	}
