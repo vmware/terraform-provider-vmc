@@ -474,7 +474,7 @@ func resourceSddcUpdate(d *schema.ResourceData, m interface{}) error {
 		d.Set("sddc_name", sddc.Name)
 	}
 
-	if d.HasChange("edrs_policy_type") {
+	if d.HasChange("edrs_policy_type") || d.HasChange("enable_edrs") || d.HasChange("min_hosts") || d.HasChange("max_hosts") {
 		edrsPolicyClient := autoscaler_cluster.NewDefaultEdrsPolicyClient(connector)
 		clusterID := d.Get("cluster_id").(string)
 		minHosts := int64(d.Get("min_hosts").(int))
@@ -487,13 +487,11 @@ func resourceSddcUpdate(d *schema.ResourceData, m interface{}) error {
 			MinHosts:   &minHosts,
 			MaxHosts:   &maxHosts,
 		}
-		task, err := edrsPolicyClient.Post(orgID, sddcID, clusterID, *edrsPolicy)
+		_, err := edrsPolicyClient.Post(orgID, sddcID, clusterID, *edrsPolicy)
 		if err != nil {
 			return HandleUpdateError("EDRS Policy", err)
 		}
-		for *task.ProgressPercent != 100 {
-			time.Sleep(1 * time.Millisecond)
-		}
+		time.Sleep(2 * time.Minute)
 	}
 	return resourceSddcRead(d, m)
 }
