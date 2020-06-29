@@ -13,8 +13,8 @@ import (
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
 	"github.com/vmware/vsphere-automation-sdk-go/lib/vapi/std/errors"
-	autoscaler_cluster "github.com/vmware/vsphere-automation-sdk-go/services/vmc/autoscaler/api/orgs/sddcs/clusters"
-	autoscaler_model "github.com/vmware/vsphere-automation-sdk-go/services/vmc/autoscaler/model"
+	autoscalercluster "github.com/vmware/vsphere-automation-sdk-go/services/vmc/autoscaler/api/orgs/sddcs/clusters"
+	autoscalermodel "github.com/vmware/vsphere-automation-sdk-go/services/vmc/autoscaler/model"
 	"github.com/vmware/vsphere-automation-sdk-go/services/vmc/model"
 	"github.com/vmware/vsphere-automation-sdk-go/services/vmc/orgs"
 	"github.com/vmware/vsphere-automation-sdk-go/services/vmc/orgs/sddcs"
@@ -177,24 +177,32 @@ func resourceSddc() *schema.Resource {
 				Elem:     &schema.Schema{Type: schema.TypeString},
 			},
 			"edrs_policy_type": {
-				Type:        schema.TypeString,
-				Optional:    true,
+				Type:     schema.TypeString,
+				Optional: true,
+				//Default : StorageScaleUpPolicyType,
+				ValidateFunc: validation.StringInSlice(
+					[]string{StorageScaleUpPolicyType, CostPolicyType, PerformancePolicyType, RapidScaleUpPolicyType}, false),
 				Description: "",
 			},
 			"enable_edrs": {
-				Type:        schema.TypeBool,
-				Optional:    true,
+				Type:     schema.TypeBool,
+				Optional: true,
+				//Default : true,
 				Description: "",
 			},
 			"min_hosts": {
-				Type:        schema.TypeInt,
-				Optional:    true,
-				Description: "",
+				Type: schema.TypeInt,
+				//Default : 3,
+				Optional:     true,
+				ValidateFunc: validation.IntBetween(3, 16),
+				Description:  "",
 			},
 			"max_hosts": {
-				Type:        schema.TypeInt,
-				Optional:    true,
-				Description: "",
+				Type: schema.TypeInt,
+				//Default : 16,
+				Optional:     true,
+				ValidateFunc: validation.IntBetween(3, 16),
+				Description:  "",
 			},
 		},
 		CustomizeDiff: func(d *schema.ResourceDiff, meta interface{}) error {
@@ -378,7 +386,7 @@ func resourceSddcRead(d *schema.ResourceData, m interface{}) error {
 	cluster["host_instance_type"] = *primaryCluster.EsxHostInfo.InstanceType
 	d.Set("cluster_info", cluster)
 
-	edrsPolicyClient := autoscaler_cluster.NewDefaultEdrsPolicyClient(connector)
+	edrsPolicyClient := autoscalercluster.NewDefaultEdrsPolicyClient(connector)
 	edrsPolicy, err := edrsPolicyClient.Get(orgID, sddcID, primaryCluster.ClusterId)
 
 	d.Set("edrs_policy_type", *edrsPolicy.PolicyType)
@@ -475,13 +483,13 @@ func resourceSddcUpdate(d *schema.ResourceData, m interface{}) error {
 	}
 
 	if d.HasChange("edrs_policy_type") || d.HasChange("enable_edrs") || d.HasChange("min_hosts") || d.HasChange("max_hosts") {
-		edrsPolicyClient := autoscaler_cluster.NewDefaultEdrsPolicyClient(connector)
+		edrsPolicyClient := autoscalercluster.NewDefaultEdrsPolicyClient(connector)
 		clusterID := d.Get("cluster_id").(string)
 		minHosts := int64(d.Get("min_hosts").(int))
 		maxHosts := int64(d.Get("max_hosts").(int))
 		policyType := d.Get("edrs_policy_type").(string)
 		enableEDRS := d.Get("enable_edrs").(bool)
-		edrsPolicy := &autoscaler_model.EdrsPolicy{
+		edrsPolicy := &autoscalermodel.EdrsPolicy{
 			EnableEdrs: enableEDRS,
 			PolicyType: &policyType,
 			MinHosts:   &minHosts,

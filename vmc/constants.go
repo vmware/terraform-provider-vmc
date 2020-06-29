@@ -26,7 +26,11 @@ const (
 	MultiAvailabilityZone  string = "MultiAZ"
 	MinMultiAZHosts        int    = 6
 
-	ClusterIdFieldName = "clusterId"
+	ClusterIdFieldName       = "clusterId"
+	CostPolicyType           = "cost"
+	PerformancePolicyType    = "performance"
+	StorageScaleUpPolicyType = "storage-scaleup"
+	RapidScaleUpPolicyType   = "rapid-scaleup"
 
 	// Env variables used in acceptance tests
 	APIToken            string = "API_TOKEN"
