@@ -182,27 +182,27 @@ func resourceSddc() *schema.Resource {
 				Default:  StorageScaleUpPolicyType,
 				ValidateFunc: validation.StringInSlice(
 					[]string{StorageScaleUpPolicyType, CostPolicyType, PerformancePolicyType, RapidScaleUpPolicyType}, false),
-				Description: "",
+				Description: "The EDRS policy type. This can either be 'cost', 'performance', 'storage-scaleup' or 'rapid-scaleup'. Default value : storage-scaleup ",
 			},
 			"enable_edrs": {
 				Type:        schema.TypeBool,
 				Optional:    true,
 				Default:     true,
-				Description: "",
+				Description: "True if EDRS is enabled",
 			},
 			"min_hosts": {
 				Type:         schema.TypeInt,
 				Default:      3,
 				Optional:     true,
 				ValidateFunc: validation.IntBetween(3, 16),
-				Description:  "",
+				Description:  "The minimum number of hosts that the cluster can scale in to.",
 			},
 			"max_hosts": {
 				Type:         schema.TypeInt,
 				Default:      16,
 				Optional:     true,
 				ValidateFunc: validation.IntBetween(3, 16),
-				Description:  "",
+				Description:  "The maximum number of hosts that the cluster can scale out to.",
 			},
 		},
 		CustomizeDiff: func(d *schema.ResourceDiff, meta interface{}) error {
@@ -328,7 +328,7 @@ func resourceSddcCreate(d *schema.ResourceData, m interface{}) error {
 		if *task.Status != "FINISHED" {
 			return resource.RetryableError(fmt.Errorf("expected instance to be created but was in state %s", *task.Status))
 		}
-		return resource.NonRetryableError(resourceSddcRead(d, m))
+		return resource.NonRetryableError(resourceSddcUpdate(d, m))
 	})
 }
 
