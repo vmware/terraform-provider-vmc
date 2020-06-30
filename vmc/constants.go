@@ -26,7 +26,9 @@ const (
 	MultiAvailabilityZone  string = "MultiAZ"
 	MinMultiAZHosts        int    = 6
 
-	ClusterIdFieldName       = "clusterId"
+	ClusterIdFieldName = "clusterId"
+
+	// EDRS Policy types
 	CostPolicyType           = "cost"
 	PerformancePolicyType    = "performance"
 	StorageScaleUpPolicyType = "storage-scaleup"
