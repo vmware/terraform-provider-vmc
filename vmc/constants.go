@@ -35,6 +35,8 @@ const (
 	SRMPrefix          = "srm-"
 	SDDCSuffix         = ".sddc-"
 
+	// EDRS Policy types
+
 	CostPolicyType           = "cost"
 	PerformancePolicyType    = "performance"
 	StorageScaleUpPolicyType = "storage-scaleup"
