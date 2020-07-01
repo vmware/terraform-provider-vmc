@@ -44,6 +44,14 @@ The following arguments are supported for vmc_cluster resource:
 
 * `storage_capacity` - (Optional) For EBS-backed instances i.e: for R5_METAL only, the requested storage capacity in GiB.
 
+* `edrs_policy_type` - (Optional) The EDRS policy type. This can either be 'cost', 'performance', 'storage-scaleup' or 'rapid-scaleup'. Default : storage-scaleup.
+
+* `enable_edrs` - (Optional) True if EDRS is enabled.
+
+* `min_hosts` - (Optional) The minimum number of hosts that the cluster can scale in to.
+
+* `max_hosts` - (Optional) The maximum number of hosts that the cluster can scale out to.
+
 ## Attributes Reference
 
 In addition to arguments listed above, the following attributes are exported after cluster creation:
