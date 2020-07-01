@@ -565,6 +565,8 @@ func resourceSddcUpdate(d *schema.ResourceData, m interface{}) error {
 		if err != nil {
 			return HandleUpdateError("EDRS Policy", err)
 		}
+
+		// To be removed once the API spec has been fixed to return the task ID
 		time.Sleep(2 * time.Minute)
 	}
 	return resourceSddcRead(d, m)
