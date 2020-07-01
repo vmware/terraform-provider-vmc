@@ -183,7 +183,7 @@ func resourceSddc() *schema.Resource {
 				Default:  StorageScaleUpPolicyType,
 				ValidateFunc: validation.StringInSlice(
 					[]string{StorageScaleUpPolicyType, CostPolicyType, PerformancePolicyType, RapidScaleUpPolicyType}, false),
-				Description: "The EDRS policy type. This can either be 'cost', 'performance', 'storage-scaleup' or 'rapid-scaleup'. Default value : storage-scaleup ",
+				Description: "The EDRS policy type. This can either be 'cost', 'performance', 'storage-scaleup' or 'rapid-scaleup'. Default : storage-scaleup. ",
 			},
 			"enable_edrs": {
 				Type:        schema.TypeBool,
@@ -398,7 +398,9 @@ func resourceSddcRead(d *schema.ResourceData, m interface{}) error {
 
 	edrsPolicyClient := autoscalercluster.NewDefaultEdrsPolicyClient(connector)
 	edrsPolicy, err := edrsPolicyClient.Get(orgID, sddcID, primaryCluster.ClusterId)
-
+	if err != nil {
+		return HandleReadError(d, "SDDC", sddcID, err)
+	}
 	d.Set("edrs_policy_type", *edrsPolicy.PolicyType)
 	d.Set("enable_edrs", edrsPolicy.EnableEdrs)
 	d.Set("max_hosts", *edrsPolicy.MaxHosts)
