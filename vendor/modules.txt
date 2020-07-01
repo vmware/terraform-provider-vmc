@@ -239,10 +239,10 @@ github.com/ulikunitz/xz/lzma
 # github.com/vmihailenco/msgpack v4.0.1+incompatible
 github.com/vmihailenco/msgpack
 github.com/vmihailenco/msgpack/codes
-# github.com/vmware/vsphere-automation-sdk-go/lib v0.2.0
+# github.com/vmware/vsphere-automation-sdk-go/lib v0.3.1
 github.com/vmware/vsphere-automation-sdk-go/lib/vapi/std
 github.com/vmware/vsphere-automation-sdk-go/lib/vapi/std/errors
-# github.com/vmware/vsphere-automation-sdk-go/runtime v0.2.0
+# github.com/vmware/vsphere-automation-sdk-go/runtime v0.3.1
 github.com/vmware/vsphere-automation-sdk-go/runtime/bindings
 github.com/vmware/vsphere-automation-sdk-go/runtime/common
 github.com/vmware/vsphere-automation-sdk-go/runtime/core
@@ -262,16 +262,19 @@ github.com/vmware/vsphere-automation-sdk-go/runtime/protocol/client/metadata
 github.com/vmware/vsphere-automation-sdk-go/runtime/protocol/server
 github.com/vmware/vsphere-automation-sdk-go/runtime/protocol/server/rpc/msg
 github.com/vmware/vsphere-automation-sdk-go/runtime/security
-# github.com/vmware/vsphere-automation-sdk-go/services/nsxt-vmc-aws-integration v0.2.0
+# github.com/vmware/vsphere-automation-sdk-go/services/nsxt-vmc-aws-integration v0.3.0
 github.com/vmware/vsphere-automation-sdk-go/services/nsxt-vmc-aws-integration/api
 github.com/vmware/vsphere-automation-sdk-go/services/nsxt-vmc-aws-integration/model
-# github.com/vmware/vsphere-automation-sdk-go/services/vmc v0.2.0
+# github.com/vmware/vsphere-automation-sdk-go/services/vmc v0.3.0
 github.com/vmware/vsphere-automation-sdk-go/services/vmc
 github.com/vmware/vsphere-automation-sdk-go/services/vmc/model
 github.com/vmware/vsphere-automation-sdk-go/services/vmc/orgs
 github.com/vmware/vsphere-automation-sdk-go/services/vmc/orgs/account_link
 github.com/vmware/vsphere-automation-sdk-go/services/vmc/orgs/sddcs
-# github.com/vmware/vsphere-automation-sdk-go/services/vmc/draas v0.2.0
+# github.com/vmware/vsphere-automation-sdk-go/services/vmc/autoscaler v0.1.0
+github.com/vmware/vsphere-automation-sdk-go/services/vmc/autoscaler/api/orgs/sddcs/clusters
+github.com/vmware/vsphere-automation-sdk-go/services/vmc/autoscaler/model
+# github.com/vmware/vsphere-automation-sdk-go/services/vmc/draas v0.3.0
 github.com/vmware/vsphere-automation-sdk-go/services/vmc/draas
 github.com/vmware/vsphere-automation-sdk-go/services/vmc/draas/model
 # github.com/zclconf/go-cty v1.1.0
@@ -320,7 +323,7 @@ golang.org/x/crypto/openpgp/s2k
 golang.org/x/crypto/poly1305
 golang.org/x/crypto/ssh
 golang.org/x/crypto/ssh/internal/bcrypt_pbkdf
-# golang.org/x/net v0.0.0-20200324143707-d3edc9973b7e
+# golang.org/x/net v0.0.0-20200602114024-627f9648deb9
 golang.org/x/net/context
 golang.org/x/net/context/ctxhttp
 golang.org/x/net/http/httpguts
