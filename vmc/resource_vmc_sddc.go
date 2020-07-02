@@ -79,7 +79,6 @@ func resourceSddc() *schema.Resource {
 			"sddc_type": {
 				Type:     schema.TypeString,
 				Optional: true,
-				ForceNew: true,
 			},
 			"vxlan_subnet": {
 				Type:     schema.TypeString,
@@ -332,7 +331,6 @@ func resourceSddcRead(d *schema.ResourceData, m interface{}) error {
 	d.Set("provider", sddc.Provider)
 	d.Set("account_link_state", sddc.AccountLinkState)
 	d.Set("sddc_access_state", sddc.SddcAccessState)
-	d.Set("sddc_type", sddc.SddcType)
 	d.Set("sddc_state", sddc.SddcState)
 	d.Set("num_host", len(sddc.ResourceConfig.EsxHosts))
 
@@ -341,7 +339,12 @@ func resourceSddcRead(d *schema.ResourceData, m interface{}) error {
 		d.Set("cloud_username", sddc.ResourceConfig.CloudUsername)
 		d.Set("cloud_password", sddc.ResourceConfig.CloudPassword)
 		d.Set("nsxt_reverse_proxy_url", sddc.ResourceConfig.NsxApiPublicEndpointUrl)
+		d.Set("region", *sddc.ResourceConfig.Region)
 		d.Set("availability_zones", sddc.ResourceConfig.AvailabilityZones)
+		d.Set("deployment_type", ConvertDeployType(*sddc.ResourceConfig.DeploymentType))
+		d.Set("sso_domain", *sddc.ResourceConfig.SsoDomain)
+		d.Set("skip_creating_vxlan", *sddc.ResourceConfig.SkipCreatingVxlan)
+		d.Set("provider_type", sddc.ResourceConfig.Provider)
 	}
 	if len(sddc.ResourceConfig.Clusters) != 0 {
 		cluster := map[string]string{}
@@ -351,7 +354,6 @@ func resourceSddcRead(d *schema.ResourceData, m interface{}) error {
 		cluster["host_instance_type"] = *currentResourceConfig.EsxHostInfo.InstanceType
 		cluster["cluster_id"] = currentResourceConfig.ClusterId
 		d.Set("cluster_info", cluster)
-
 	}
 	return nil
 }
@@ -383,8 +385,62 @@ func resourceSddcDelete(d *schema.ResourceData, m interface{}) error {
 func resourceSddcUpdate(d *schema.ResourceData, m interface{}) error {
 	connector := (m.(*ConnectorWrapper)).Connector
 	esxsClient := sddcs.NewDefaultEsxsClient(connector)
+	sddcClient := orgs.NewDefaultSddcsClient(connector)
 	sddcID := d.Id()
 	orgID := (m.(*ConnectorWrapper)).OrgID
+
+	// Convert SDDC from 1NODE to DEFAULT
+	if d.HasChange("sddc_type") {
+		oldTmp, newTmp := d.GetChange("sddc_type")
+		oldType := oldTmp.(string)
+		newType := newTmp.(string)
+
+		// Validate for convert type params
+		if oldType == "1NODE" && (newType == "" || newType == "DEFAULT") {
+			_, newTmp := d.GetChange("num_host")
+			newNum := newTmp.(int)
+
+			if newNum == 2 { // 2node sddc creation
+				err := resourceSddcDelete(d, m)
+				if err != nil {
+					return err
+				}
+				return resourceSddcCreate(d, m)
+			} else if newNum == 3 { // 3node sddc scale up
+				convertClient := sddcs.NewDefaultConvertClient(connector)
+				task, err := convertClient.Create(orgID, sddcID)
+
+				if err != nil {
+					return HandleUpdateError("SDDC", err)
+				}
+				tasksClient := orgs.NewDefaultTasksClient(connector)
+				err = resource.Retry(d.Timeout(schema.TimeoutUpdate), func() *resource.RetryError {
+					task, err := tasksClient.Get(orgID, task.Id)
+
+					if err != nil {
+						if err.Error() == (errors.Unauthenticated{}.Error()) {
+							log.Print("Auth error", err.Error(), errors.Unauthenticated{}.Error())
+							err = m.(*ConnectorWrapper).authenticate()
+							if err != nil {
+								return resource.NonRetryableError(fmt.Errorf("authentication error from Cloud Service Provider : %s", err))
+							}
+							return resource.RetryableError(fmt.Errorf("sddc scaling still in progress"))
+						}
+						return resource.NonRetryableError(fmt.Errorf("error describing instance: %s", err))
+					}
+					if *task.Status != "FINISHED" {
+						return resource.RetryableError(fmt.Errorf("expected hosts to be updated but were in state %s", *task.Status))
+					}
+					return resource.NonRetryableError(resourceSddcRead(d, m))
+				})
+				if err != nil {
+					return err
+				}
+			} else {
+				return fmt.Errorf("scaling SDDC is not supported. Please check sddc_type and num_host")
+			}
+		}
+	}
 
 	// Add,remove hosts
 	if d.HasChange("num_host") {
@@ -427,9 +483,9 @@ func resourceSddcUpdate(d *schema.ResourceData, m interface{}) error {
 			return err
 		}
 	}
+
 	// Update sddc name
 	if d.HasChange("sddc_name") {
-		sddcClient := orgs.NewDefaultSddcsClient(connector)
 		newSDDCName := d.Get("sddc_name").(string)
 		sddcPatchRequest := model.SddcPatchRequest{
 			Name: &newSDDCName,
