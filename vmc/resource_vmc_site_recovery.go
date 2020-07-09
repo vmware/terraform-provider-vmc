@@ -96,7 +96,6 @@ func resourceSiteRecoveryCreate(d *schema.ResourceData, m interface{}) error {
 
 	// Wait until site recovery is activated
 	taskID := task.ResourceId
-	d.SetId(*taskID)
 	return resource.Retry(d.Timeout(schema.TimeoutCreate), func() *resource.RetryError {
 		tasksClient := draas.NewDefaultTaskClient(connector)
 		task, err := tasksClient.Get(orgID, task.Id)
@@ -116,6 +115,7 @@ func resourceSiteRecoveryCreate(d *schema.ResourceData, m interface{}) error {
 		if *task.Status != "FINISHED" {
 			return resource.RetryableError(fmt.Errorf("expected instance to be created but was in state %s", *task.Status))
 		}
+		d.SetId(*taskID)
 		return resource.NonRetryableError(resourceSiteRecoveryRead(d, m))
 	})
 }

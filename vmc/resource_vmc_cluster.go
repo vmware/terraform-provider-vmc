@@ -134,6 +134,10 @@ func resourceClusterCreate(d *schema.ResourceData, m interface{}) error {
 			return resource.NonRetryableError(fmt.Errorf("error describing instance: %s", err))
 
 		}
+		if *task.Status != "FINISHED" {
+			return resource.RetryableError(fmt.Errorf("expected instance to be created but was in state %s", *task.Status))
+		}
+
 		if task.Params.HasField(ClusterIdFieldName) {
 			clusterID, err := task.Params.String(ClusterIdFieldName)
 			if err != nil {
@@ -141,9 +145,6 @@ func resourceClusterCreate(d *schema.ResourceData, m interface{}) error {
 
 			}
 			d.SetId(clusterID)
-		}
-		if *task.Status != "FINISHED" {
-			return resource.RetryableError(fmt.Errorf("expected instance to be created but was in state %s", *task.Status))
 		}
 		return resource.NonRetryableError(resourceClusterRead(d, m))
 	})

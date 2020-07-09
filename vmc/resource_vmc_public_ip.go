@@ -5,6 +5,8 @@ package vmc
 
 import (
 	"fmt"
+	"github.com/vmware/vsphere-automation-sdk-go/lib/vapi/std/errors"
+	"log"
 	"net/http"
 	"os"
 	"strings"
@@ -86,7 +88,12 @@ func resourcePublicIpRead(d *schema.ResourceData, m interface{}) error {
 	if len(uuid) > 0 {
 		publicIp, err := nsxVmcAwsClient.GetPublicIp(uuid)
 		if err != nil {
-			return HandleReadError(d, "Public IP", uuid, err)
+			if err.Error() == errors.NewNotFound().Error() {
+				log.Printf("Public IP with ID %s not found", uuid)
+				d.SetId("")
+				return nil
+			}
+			return fmt.Errorf("error getting public IP with ID %s : %v", uuid, err)
 		}
 		d.Set("ip", publicIp.Ip)
 		d.Set("display_name", publicIp.DisplayName)
@@ -96,7 +103,7 @@ func resourcePublicIpRead(d *schema.ResourceData, m interface{}) error {
 			// get the list of IPs
 			publicIpResultList, err := nsxVmcAwsClient.ListPublicIps()
 			if err != nil {
-				return HandleListError("Public IP", err)
+				return fmt.Errorf("error getting list of public IPs : %v", err)
 			}
 			publicIpsList := publicIpResultList.Results
 			if publicIpsList != nil {

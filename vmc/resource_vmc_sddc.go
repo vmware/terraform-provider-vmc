@@ -278,8 +278,8 @@ func resourceSddcCreate(d *schema.ResourceData, m interface{}) error {
 
 	// Wait until Sddc is created
 	sddcID := task.ResourceId
-	d.SetId(*sddcID)
-	return resource.Retry(d.Timeout(schema.TimeoutCreate), func() *resource.RetryError {
+
+	resource.Retry(d.Timeout(schema.TimeoutCreate), func() *resource.RetryError {
 		tasksClient := orgs.NewDefaultTasksClient(connectorWrapper)
 		task, err := tasksClient.Get(orgID, task.Id)
 		if err != nil {
@@ -297,8 +297,10 @@ func resourceSddcCreate(d *schema.ResourceData, m interface{}) error {
 		if *task.Status != "FINISHED" {
 			return resource.RetryableError(fmt.Errorf("expected instance to be created but was in state %s", *task.Status))
 		}
+		d.SetId(*sddcID)
 		return resource.NonRetryableError(resourceSddcRead(d, m))
 	})
+	return nil
 }
 
 func resourceSddcRead(d *schema.ResourceData, m interface{}) error {
