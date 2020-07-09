@@ -156,9 +156,8 @@ func resourceClusterRead(d *schema.ResourceData, m interface{}) error {
 	sddcID := d.Get("sddc_id").(string)
 	orgID := (m.(*ConnectorWrapper)).OrgID
 	sddc, err := GetSDDC(connector, orgID, sddcID)
-	log.Printf("SDDC ID : %s", sddcID)
 	if err != nil {
-		return HandleReadError(d, "Cluster", clusterID, err)
+		return fmt.Errorf("error getting cluster with ID %s : %v", clusterID, err)
 	}
 
 	if *sddc.SddcState == "DELETED" {
