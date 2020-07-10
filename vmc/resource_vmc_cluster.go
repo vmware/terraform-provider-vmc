@@ -38,10 +38,10 @@ func resourceCluster() *schema.Resource {
 				Description: "SDDC identifier",
 			},
 			"num_hosts": {
-				Type:         schema.TypeInt,
-				Required:     true,
+				Type:     schema.TypeInt,
+				Required: true,
 				ValidateFunc: validation.IntBetween(3, 16),
-				Description:  "The number of hosts.",
+				Description: "The number of hosts.",
 			},
 			"host_cpu_cores_count": {
 				Type:        schema.TypeInt,
@@ -166,9 +166,9 @@ func resourceClusterRead(d *schema.ResourceData, m interface{}) error {
 		return nil
 	}
 	clusterExists := false
-	for i := 0; i < len(sddc.ResourceConfig.Clusters); i++ {
-		currentResourceConfig := sddc.ResourceConfig.Clusters[i]
-		if strings.Contains(currentResourceConfig.ClusterId, clusterID) {
+
+	for _, clusterConfig := range sddc.ResourceConfig.Clusters {
+		if strings.Contains(clusterConfig.ClusterId, clusterID) {
 			clusterExists = true
 		}
 	}
@@ -179,12 +179,11 @@ func resourceClusterRead(d *schema.ResourceData, m interface{}) error {
 	}
 	d.SetId(clusterID)
 	cluster := map[string]string{}
-	for i := 0; i < len(sddc.ResourceConfig.Clusters); i++ {
-		currentResourceConfig := sddc.ResourceConfig.Clusters[i]
-		if strings.Contains(currentResourceConfig.ClusterId, clusterID) {
-			cluster["cluster_name"] = *currentResourceConfig.ClusterName
-			cluster["cluster_state"] = *currentResourceConfig.ClusterState
-			cluster["host_instance_type"] = *currentResourceConfig.EsxHostInfo.InstanceType
+	for _, clusterConfig := range sddc.ResourceConfig.Clusters {
+		if strings.Contains(clusterConfig.ClusterId, clusterID) {
+			cluster["cluster_name"] = *clusterConfig.ClusterName
+			cluster["cluster_state"] = *clusterConfig.ClusterState
+			cluster["host_instance_type"] = *clusterConfig.EsxHostInfo.InstanceType
 			d.Set("cluster_info", cluster)
 			break
 		}
