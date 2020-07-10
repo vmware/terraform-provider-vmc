@@ -38,10 +38,10 @@ func resourceCluster() *schema.Resource {
 				Description: "SDDC identifier",
 			},
 			"num_hosts": {
-				Type:     schema.TypeInt,
-				Required: true,
+				Type:         schema.TypeInt,
+				Required:     true,
 				ValidateFunc: validation.IntBetween(3, 16),
-				Description: "The number of hosts.",
+				Description:  "The number of hosts.",
 			},
 			"host_cpu_cores_count": {
 				Type:        schema.TypeInt,
