@@ -38,10 +38,10 @@ func resourceCluster() *schema.Resource {
 				Description: "SDDC identifier",
 			},
 			"num_hosts": {
-				Type:         schema.TypeInt,
-				Required:     true,
+				Type:     schema.TypeInt,
+				Required: true,
 				ValidateFunc: validation.IntBetween(3, 16),
-				Description:  "The number of hosts.",
+				Description: "The number of hosts.",
 			},
 			"host_cpu_cores_count": {
 				Type:        schema.TypeInt,
@@ -165,7 +165,18 @@ func resourceClusterRead(d *schema.ResourceData, m interface{}) error {
 		d.SetId("")
 		return nil
 	}
-
+	clusterExists := false
+	for i := 0; i < len(sddc.ResourceConfig.Clusters); i++ {
+		currentResourceConfig := sddc.ResourceConfig.Clusters[i]
+		if strings.Contains(currentResourceConfig.ClusterId, clusterID) {
+			clusterExists = true
+		}
+	}
+	if !clusterExists {
+		log.Printf("Unable to retrieve cluster with ID %s", clusterID)
+		d.SetId("")
+		return nil
+	}
 	d.SetId(clusterID)
 	cluster := map[string]string{}
 	for i := 0; i < len(sddc.ResourceConfig.Clusters); i++ {
