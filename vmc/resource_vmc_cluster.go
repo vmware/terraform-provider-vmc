@@ -185,6 +185,7 @@ func resourceClusterRead(d *schema.ResourceData, m interface{}) error {
 			cluster["cluster_state"] = *clusterConfig.ClusterState
 			cluster["host_instance_type"] = *clusterConfig.EsxHostInfo.InstanceType
 			d.Set("cluster_info", cluster)
+			d.Set("num_hosts", len(clusterConfig.EsxHostList))
 			break
 		}
 	}
