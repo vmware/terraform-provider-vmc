@@ -150,7 +150,7 @@ func resourceSiteRecoveryRead(d *schema.ResourceData, m interface{}) error {
 				srm_node["vm_moref_id"] = *SRMNode.VmMorefId
 				break
 			}
-		} else if strings.Contains(*SRMNode.Hostname, srmExtensionKey) {
+		} else if strings.Contains(*SRMNode.Hostname, strings.TrimSpace(srmExtensionKey)) {
 			srm_node["id"] = *SRMNode.Id
 			srm_node["ip_address"] = *SRMNode.IpAddress
 			srm_node["host_name"] = *SRMNode.Hostname
