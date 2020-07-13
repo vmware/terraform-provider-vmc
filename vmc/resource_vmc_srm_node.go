@@ -113,15 +113,14 @@ func resourceSRMNodeRead(d *schema.ResourceData, m interface{}) error {
 	srmExtensionKey := d.Get("srm_node_extension_key_suffix").(string)
 	srm_node := map[string]string{}
 
-	for i := 0; i < len(siteRecovery.SrmNodes); i++ {
-		currentSRMNode := siteRecovery.SrmNodes[i]
-		if strings.Contains(*currentSRMNode.Hostname, srmExtensionKey) {
-			srm_node["id"] = *currentSRMNode.Id
-			srm_node["ip_address"] = *currentSRMNode.IpAddress
-			srm_node["host_name"] = *currentSRMNode.Hostname
-			srm_node["state"] = *currentSRMNode.State
-			srm_node["type"] = *currentSRMNode.Type_
-			srm_node["vm_moref_id"] = *currentSRMNode.VmMorefId
+	for _, SRMNode := range siteRecovery.SrmNodes {
+		if strings.Contains(*SRMNode.Hostname, srmExtensionKey) {
+			srm_node["id"] = *SRMNode.Id
+			srm_node["ip_address"] = *SRMNode.IpAddress
+			srm_node["host_name"] = *SRMNode.Hostname
+			srm_node["state"] = *SRMNode.State
+			srm_node["type"] = *SRMNode.Type_
+			srm_node["vm_moref_id"] = *SRMNode.VmMorefId
 			d.Set("srm_instance", srm_node)
 			break
 		}

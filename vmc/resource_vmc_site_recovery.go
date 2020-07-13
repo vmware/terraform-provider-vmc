@@ -138,26 +138,25 @@ func resourceSiteRecoveryRead(d *schema.ResourceData, m interface{}) error {
 
 	srmExtensionKey := d.Get("srm_extension_key_suffix").(string)
 	srm_node := map[string]string{}
-	for i := 0; i < len(siteRecovery.SrmNodes); i++ {
-		currentSRMNode := siteRecovery.SrmNodes[i]
+	for _, SRMNode := range siteRecovery.SrmNodes {
 		if len(strings.TrimSpace(srmExtensionKey)) == 0 {
-			tempStr := strings.Trim(*currentSRMNode.Hostname, ".")
+			tempStr := strings.Trim(*SRMNode.Hostname, ".")
 			if strings.Contains(tempStr, "-") {
-				srm_node["id"] = *currentSRMNode.Id
-				srm_node["ip_address"] = *currentSRMNode.IpAddress
-				srm_node["host_name"] = *currentSRMNode.Hostname
-				srm_node["state"] = *currentSRMNode.State
-				srm_node["type"] = *currentSRMNode.Type_
-				srm_node["vm_moref_id"] = *currentSRMNode.VmMorefId
+				srm_node["id"] = *SRMNode.Id
+				srm_node["ip_address"] = *SRMNode.IpAddress
+				srm_node["host_name"] = *SRMNode.Hostname
+				srm_node["state"] = *SRMNode.State
+				srm_node["type"] = *SRMNode.Type_
+				srm_node["vm_moref_id"] = *SRMNode.VmMorefId
 				break
 			}
-		} else if strings.Contains(*currentSRMNode.Hostname, srmExtensionKey) {
-			srm_node["id"] = *currentSRMNode.Id
-			srm_node["ip_address"] = *currentSRMNode.IpAddress
-			srm_node["host_name"] = *currentSRMNode.Hostname
-			srm_node["state"] = *currentSRMNode.State
-			srm_node["type"] = *currentSRMNode.Type_
-			srm_node["vm_moref_id"] = *currentSRMNode.VmMorefId
+		} else if strings.Contains(*SRMNode.Hostname, strings.TrimSpace(srmExtensionKey)) {
+			srm_node["id"] = *SRMNode.Id
+			srm_node["ip_address"] = *SRMNode.IpAddress
+			srm_node["host_name"] = *SRMNode.Hostname
+			srm_node["state"] = *SRMNode.State
+			srm_node["type"] = *SRMNode.Type_
+			srm_node["vm_moref_id"] = *SRMNode.VmMorefId
 			break
 		}
 	}
