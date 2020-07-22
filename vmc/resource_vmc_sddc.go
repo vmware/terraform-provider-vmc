@@ -332,7 +332,6 @@ func resourceSddcRead(d *schema.ResourceData, m interface{}) error {
 	d.Set("account_link_state", sddc.AccountLinkState)
 	d.Set("sddc_access_state", sddc.SddcAccessState)
 	d.Set("sddc_state", sddc.SddcState)
-
 	if sddc.ResourceConfig != nil {
 		d.Set("vc_url", sddc.ResourceConfig.VcUrl)
 		d.Set("cloud_username", sddc.ResourceConfig.CloudUsername)
