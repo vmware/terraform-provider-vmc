@@ -23,7 +23,15 @@ func resourcePublicIp() *schema.Resource {
 		Update: resourcePublicIpUpdate,
 		Delete: resourcePublicIpDelete,
 		Importer: &schema.ResourceImporter{
-			State: schema.ImportStatePassthrough,
+			State: func(d *schema.ResourceData, meta interface{}) ([]*schema.ResourceData, error) {
+				idParts := strings.Split(d.Id(), ",")
+				if len(idParts) != 2 || idParts[0] == "" || idParts[1] == "" {
+					return nil, fmt.Errorf("Unexpected format of ID (%q), expected nsxt_reverse_proxy_url,public_ip_id", d.Id())
+				}
+				d.Set("nsxt_reverse_proxy_url", idParts[0])
+				d.SetId(idParts[1])
+				return []*schema.ResourceData{d}, nil
+			},
 		},
 		Schema: map[string]*schema.Schema{
 			"nsxt_reverse_proxy_url": {

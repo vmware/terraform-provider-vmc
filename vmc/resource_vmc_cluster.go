@@ -25,9 +25,9 @@ func resourceCluster() *schema.Resource {
 		Read:   resourceClusterRead,
 		Importer: &schema.ResourceImporter{
 			State: func(d *schema.ResourceData, meta interface{}) ([]*schema.ResourceData, error) {
-				idParts := strings.Split(d.Id(), "/")
+				idParts := strings.Split(d.Id(), ",")
 				if len(idParts) != 2 || idParts[0] == "" || idParts[1] == "" {
-					return nil, fmt.Errorf("Unexpected format of ID (%q), expected sddc_id/cluster_id", d.Id())
+					return nil, fmt.Errorf("Unexpected format of ID (%q), expected sddc_id,cluster_id", d.Id())
 				}
 				d.Set("sddc_id", idParts[0])
 				d.SetId(idParts[1])
