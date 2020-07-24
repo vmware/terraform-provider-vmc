@@ -49,3 +49,13 @@ In addition to arguments listed above, the following attributes are exported aft
 * `srm_node` - Site recovery node information.
 
 * `vr_node` - VR node information.
+
+## Import
+
+SRM node resource can be imported using the `sddc_id` , e.g.
+
+`$ terraform import vmc_srm_node.srm_node_1 sddc_id`
+
+- sddc_id = SDDC Identifier
+
+`$ terraform import vmc_srm_node.srm_node_1 afe7a0fd-3f0a-48b2-9ddb-0489c22732ae`

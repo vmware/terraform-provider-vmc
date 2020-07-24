@@ -23,7 +23,14 @@ func resourceSRMNode() *schema.Resource {
 		Read:   resourceSRMNodeRead,
 		Delete: resourceSRMNodeDelete,
 		Importer: &schema.ResourceImporter{
-			State: schema.ImportStatePassthrough,
+			State: func(d *schema.ResourceData, meta interface{}) ([]*schema.ResourceData, error) {
+				sddcID := d.Id()
+				if len(strings.TrimSpace(sddcID)) == 0 {
+					return nil, fmt.Errorf("Unexpected format of ID (%q), expected sddc_id", sddcID)
+				}
+				d.Set("sddc_id", sddcID)
+				return []*schema.ResourceData{d}, nil
+			},
 		},
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(30 * time.Minute),

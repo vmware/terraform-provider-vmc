@@ -110,3 +110,14 @@ In addition to arguments listed above, the following attributes are exported:
 * `nsxt_reverse_proxy_url` - NSXT reverse proxy url for managing public IP.
 
 * `cluster_info` - Information about cluster like id, name, state, host instance type.
+
+## Import
+
+SDDC resource can be imported using the `id` , e.g.
+
+`$ terraform import vmc_sddc.sddc_1 id`
+
+For this example:
+- id = SDDC Identifier
+
+`$ terraform import vmc_sddc.sddc_1 afe7a0fd-3f0a-48b2-9ddb-0489c22732ae`

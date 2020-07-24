@@ -25,7 +25,7 @@ func resourcePublicIp() *schema.Resource {
 		Importer: &schema.ResourceImporter{
 			State: func(d *schema.ResourceData, meta interface{}) ([]*schema.ResourceData, error) {
 				idParts := strings.Split(d.Id(), ",")
-				if len(idParts) != 2 || idParts[0] == "" || idParts[1] == "" {
+				if len(idParts) != 2 || idParts[0] == "" || idParts[1] == "" || !IsValidUUID(idParts[1]) {
 					return nil, fmt.Errorf("Unexpected format of ID (%q), expected nsxt_reverse_proxy_url,public_ip_id", d.Id())
 				}
 				d.Set("nsxt_reverse_proxy_url", idParts[0])
