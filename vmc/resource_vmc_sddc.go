@@ -383,9 +383,9 @@ func resourceSddcDelete(d *schema.ResourceData, m interface{}) error {
 }
 
 func resourceSddcUpdate(d *schema.ResourceData, m interface{}) error {
-	connector := (m.(*ConnectorWrapper)).Connector
-	esxsClient := sddcs.NewDefaultEsxsClient(connector)
-	sddcClient := orgs.NewDefaultSddcsClient(connector)
+	connectorWrapper := m.(*ConnectorWrapper)
+	esxsClient := sddcs.NewDefaultEsxsClient(connectorWrapper)
+	sddcClient := orgs.NewDefaultSddcsClient(connectorWrapper)
 	sddcID := d.Id()
 	orgID := (m.(*ConnectorWrapper)).OrgID
 
@@ -400,27 +400,27 @@ func resourceSddcUpdate(d *schema.ResourceData, m interface{}) error {
 			_, newTmp := d.GetChange("num_host")
 			newNum := newTmp.(int)
 
-			if newNum == 2 { // 2node sddc creation
+			if newNum == 2 { // 2node SDDC creation
 				err := resourceSddcDelete(d, m)
 				if err != nil {
 					return err
 				}
 				return resourceSddcCreate(d, m)
-			} else if newNum == 3 { // 3node sddc scale up
-				convertClient := sddcs.NewDefaultConvertClient(connector)
+			} else if newNum == 3 { // 3node SDDC scale up
+				convertClient := sddcs.NewDefaultConvertClient(connectorWrapper)
 				task, err := convertClient.Create(orgID, sddcID)
 
 				if err != nil {
 					return HandleUpdateError("SDDC", err)
 				}
-				tasksClient := orgs.NewDefaultTasksClient(connector)
 				err = resource.Retry(d.Timeout(schema.TimeoutUpdate), func() *resource.RetryError {
+					tasksClient := orgs.NewDefaultTasksClient(connectorWrapper)
 					task, err := tasksClient.Get(orgID, task.Id)
 
 					if err != nil {
 						if err.Error() == (errors.Unauthenticated{}.Error()) {
 							log.Print("Auth error", err.Error(), errors.Unauthenticated{}.Error())
-							err = m.(*ConnectorWrapper).authenticate()
+							err = connectorWrapper.authenticate()
 							if err != nil {
 								return resource.NonRetryableError(fmt.Errorf("authentication error from Cloud Service Provider : %s", err))
 							}
@@ -440,6 +440,7 @@ func resourceSddcUpdate(d *schema.ResourceData, m interface{}) error {
 				return fmt.Errorf("scaling SDDC is not supported. Please check sddc_type and num_host")
 			}
 		}
+		return resourceSddcRead(d, m)
 	}
 
 	// Add,remove hosts
@@ -468,7 +469,7 @@ func resourceSddcUpdate(d *schema.ResourceData, m interface{}) error {
 		if err != nil {
 			return HandleUpdateError("SDDC", err)
 		}
-		tasksClient := orgs.NewDefaultTasksClient(connector)
+		tasksClient := orgs.NewDefaultTasksClient(connectorWrapper)
 		err = resource.Retry(d.Timeout(schema.TimeoutUpdate), func() *resource.RetryError {
 			task, err := tasksClient.Get(orgID, task.Id)
 			if err != nil {
@@ -482,6 +483,7 @@ func resourceSddcUpdate(d *schema.ResourceData, m interface{}) error {
 		if err != nil {
 			return err
 		}
+		return resourceSddcRead(d, m)
 	}
 
 	// Update sddc name
