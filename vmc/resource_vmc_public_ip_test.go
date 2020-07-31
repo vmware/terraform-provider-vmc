@@ -19,6 +19,7 @@ import (
 func TestAccResourceVmcPublicIp_basic(t *testing.T) {
 	var publicIpResource model.PublicIp
 	displayName := acctest.RandStringFromCharSet(10, acctest.CharSetAlphaNum)
+	resourceName := "vmc_public_ip.public_ip_1"
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
@@ -30,6 +31,12 @@ func TestAccResourceVmcPublicIp_basic(t *testing.T) {
 					testAccCheckVmcPublicIpExists("vmc_public_ip.public_ip_1", &publicIpResource),
 					resource.TestCheckResourceAttrSet("vmc_public_ip.public_ip_1", "display_name"),
 				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportStateIdFunc: testAccVmcPublicIPResourceImportStateIdFunc(resourceName),
+				ImportState:       true,
+				ImportStateVerify: true,
 			},
 		},
 	})
@@ -43,6 +50,8 @@ func testAccCheckVmcPublicIpExists(name string, publicIpResource *model.PublicIp
 		}
 		uuid := rs.Primary.Attributes["id"]
 		displayName := rs.Primary.Attributes["display_name"]
+		fmt.Printf("Display name : %s", displayName)
+		fmt.Printf("Display name : %s", uuid)
 		connector, err := getNSXTReverseProxyUrlConnector(os.Getenv(NSXTReverseProxyUrl))
 		if err != nil {
 			return fmt.Errorf("error creating client connector : %v ", err)
@@ -62,6 +71,7 @@ func testAccCheckVmcPublicIpExists(name string, publicIpResource *model.PublicIp
 }
 
 func testCheckVmcPublicIpDestroy(s *terraform.State) error {
+	fmt.Printf("Reverse proxy : %s", os.Getenv(NSXTReverseProxyUrl))
 	connector, err := getNSXTReverseProxyUrlConnector(os.Getenv(NSXTReverseProxyUrl))
 	if err != nil {
 		return fmt.Errorf("error creating client connector : %v ", err)
@@ -74,7 +84,9 @@ func testCheckVmcPublicIpDestroy(s *terraform.State) error {
 		}
 
 		uuid := rs.Primary.Attributes["id"]
+		fmt.Printf("UUID : %s ", uuid)
 		publicIp, err := nsxVmcAwsClient.GetPublicIp(uuid)
+		fmt.Printf("publicIP : %v", publicIp.Id)
 		if err == nil {
 			if *publicIp.Id == uuid {
 				return fmt.Errorf("public IP %s with ID %s still exits", *publicIp.DisplayName, uuid)
@@ -101,4 +113,14 @@ resource "vmc_public_ip" "public_ip_1" {
 		displayName,
 		os.Getenv(NSXTReverseProxyUrl),
 	)
+}
+
+func testAccVmcPublicIPResourceImportStateIdFunc(resourceName string) resource.ImportStateIdFunc {
+	return func(s *terraform.State) (string, error) {
+		rs, ok := s.RootModule().Resources[resourceName]
+		if !ok {
+			return "", fmt.Errorf("Not found: %s", resourceName)
+		}
+		return fmt.Sprintf("%s,%s", rs.Primary.Attributes["nsxt_reverse_proxy_url"], rs.Primary.ID), nil
+	}
 }

@@ -5,15 +5,14 @@ package vmc
 
 import (
 	"fmt"
-	"net/http"
-	"os"
-	"strings"
-
 	"github.com/hashicorp/terraform/helper/schema"
 	uuid "github.com/satori/go.uuid"
 	"github.com/vmware/vsphere-automation-sdk-go/runtime/protocol/client"
 	"github.com/vmware/vsphere-automation-sdk-go/services/nsxt-vmc-aws-integration/api"
 	"github.com/vmware/vsphere-automation-sdk-go/services/nsxt-vmc-aws-integration/model"
+	"net/http"
+	"os"
+	"strings"
 )
 
 func resourcePublicIp() *schema.Resource {

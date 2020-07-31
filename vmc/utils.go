@@ -4,7 +4,7 @@
 package vmc
 
 import (
-	"github.com/google/uuid"
+	uuid "github.com/satori/go.uuid"
 	"github.com/vmware/vsphere-automation-sdk-go/runtime/protocol/client"
 	"github.com/vmware/vsphere-automation-sdk-go/services/vmc/model"
 	"github.com/vmware/vsphere-automation-sdk-go/services/vmc/orgs"
@@ -43,6 +43,6 @@ func ConvertDeployType(s string) string {
 }
 
 func IsValidUUID(u string) bool {
-	_, err := uuid.Parse(u)
+	_, err := uuid.FromString(u)
 	return err == nil
 }
