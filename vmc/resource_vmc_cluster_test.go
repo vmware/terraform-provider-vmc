@@ -166,6 +166,6 @@ func testAccVmcClusterResourceImportStateIdFunc(resourceName string) resource.Im
 		if !ok {
 			return "", fmt.Errorf("Not found: %s", resourceName)
 		}
-		return fmt.Sprintf("%s,%s", rs.Primary.Attributes["sddc_id"], rs.Primary.ID), nil
+		return fmt.Sprintf("%s,%s", rs.Primary.ID, rs.Primary.Attributes["sddc_id"]), nil
 	}
 }

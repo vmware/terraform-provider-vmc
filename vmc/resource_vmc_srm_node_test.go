@@ -26,15 +26,16 @@ func TestAccResourceVmcSRMNode_basic(t *testing.T) {
 			{
 				Config: testAccVmcSRMNodeConfigBasic(srmExtensionKeySuffix),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckVmcSRMNodeExists("vmc_srm_node.srm_node_1"),
-					resource.TestCheckResourceAttrSet("vmc_srm_node.srm_node_1", "srm_node_extension_key_suffix"),
+					testCheckVmcSRMNodeExists(resourceName),
+					resource.TestCheckResourceAttrSet(resourceName, "srm_node_extension_key_suffix"),
 				),
 			},
 			{
-				ResourceName:      resourceName,
-				ImportStateIdFunc: testAccVmcSRMResourceImportStateIdFunc(resourceName),
-				ImportState:       true,
-				ImportStateVerify: true,
+				ResourceName:            resourceName,
+				ImportStateIdFunc:       testAccVmcSRMResourceImportStateIdFunc(resourceName),
+				ImportStateVerifyIgnore: []string{"srm_node_extension_key_suffix"},
+				ImportState:             true,
+				ImportStateVerify:       true,
 			},
 		},
 	})
@@ -117,6 +118,6 @@ func testAccVmcSRMResourceImportStateIdFunc(resourceName string) resource.Import
 		if !ok {
 			return "", fmt.Errorf("Not found: %s", resourceName)
 		}
-		return fmt.Sprintf("%s", rs.Primary.Attributes["sddc_id"]), nil
+		return fmt.Sprintf("%s,%s", rs.Primary.ID, rs.Primary.Attributes["sddc_id"]), nil
 	}
 }

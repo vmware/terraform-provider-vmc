@@ -52,10 +52,12 @@ In addition to arguments listed above, the following attributes are exported aft
 
 ## Import
 
-SRM node resource can be imported using the `sddc_id` , e.g.
+SRM node resource can be imported using the `id` and `sddc_id` , e.g.
 
-`$ terraform import vmc_srm_node.srm_node_1 sddc_id`
+`$ terraform import vmc_srm_node.srm_node_1 id,sddc_id`
 
+- id = SRM Node Identifier
 - sddc_id = SDDC Identifier
 
-`$ terraform import vmc_srm_node.srm_node_1 afe7a0fd-3f0a-48b2-9ddb-0489c22732ae`
+
+`$ terraform import vmc_srm_node.srm_node_1 7aad97e9-9a4f-4e43-8817-5c8d8c0e87a5,afe7a0fd-3f0a-48b2-9ddb-0489c22732ae`

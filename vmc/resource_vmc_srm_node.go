@@ -24,11 +24,12 @@ func resourceSRMNode() *schema.Resource {
 		Delete: resourceSRMNodeDelete,
 		Importer: &schema.ResourceImporter{
 			State: func(d *schema.ResourceData, meta interface{}) ([]*schema.ResourceData, error) {
-				sddcID := d.Id()
-				if len(strings.TrimSpace(sddcID)) == 0 {
-					return nil, fmt.Errorf("Unexpected format of ID (%q), expected sddc_id", sddcID)
+				idParts := strings.Split(d.Id(), ",")
+				if len(idParts) != 2 || idParts[0] == "" || idParts[1] == "" || !IsValidUUID(idParts[0]) || !IsValidUUID(idParts[1]) {
+					return nil, fmt.Errorf("Unexpected format of ID (%q), expected id,sddc_id", d.Id())
 				}
-				d.Set("sddc_id", sddcID)
+				d.SetId(idParts[0])
+				d.Set("sddc_id", idParts[1])
 				return []*schema.ResourceData{d}, nil
 			},
 		},
@@ -82,8 +83,7 @@ func resourceSRMNodeCreate(d *schema.ResourceData, m interface{}) error {
 		return HandleCreateError("SRM Node", err)
 	}
 
-	taskID := task.ResourceId
-	d.SetId(*taskID)
+	d.SetId(*task.ResourceId)
 	return resource.Retry(d.Timeout(schema.TimeoutCreate), func() *resource.RetryError {
 		tasksClient := draas.NewDefaultTaskClient(connector)
 		task, err := tasksClient.Get(orgID, task.Id)
@@ -107,31 +107,29 @@ func resourceSRMNodeCreate(d *schema.ResourceData, m interface{}) error {
 }
 
 func resourceSRMNodeRead(d *schema.ResourceData, m interface{}) error {
-
 	connector := (m.(*ConnectorWrapper)).Connector
 	orgID := (m.(*ConnectorWrapper)).OrgID
 	sddcID := d.Get("sddc_id").(string)
-
+	srmNodeID := d.Id()
 	siteRecoveryClient := draas.NewDefaultSiteRecoveryClient(connector)
 	siteRecovery, err := siteRecoveryClient.Get(orgID, sddcID)
 	if err != nil {
 		return HandleReadError(d, "SRM Node", sddcID, err)
 	}
-	srmExtensionKey := d.Get("srm_node_extension_key_suffix").(string)
 	srm_node := map[string]string{}
-
+	d.Set("sddc_id", *siteRecovery.SddcId)
 	for _, SRMNode := range siteRecovery.SrmNodes {
-		if strings.Contains(*SRMNode.Hostname, srmExtensionKey) {
+		if *SRMNode.Id == srmNodeID {
 			srm_node["id"] = *SRMNode.Id
 			srm_node["ip_address"] = *SRMNode.IpAddress
 			srm_node["host_name"] = *SRMNode.Hostname
 			srm_node["state"] = *SRMNode.State
 			srm_node["type"] = *SRMNode.Type_
 			srm_node["vm_moref_id"] = *SRMNode.VmMorefId
-			d.Set("srm_instance", srm_node)
 			break
 		}
 	}
+	d.Set("srm_instance", srm_node)
 	return nil
 }
 
