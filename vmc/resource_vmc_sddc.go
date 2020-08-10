@@ -79,6 +79,8 @@ func resourceSddc() *schema.Resource {
 			"sddc_type": {
 				Type:     schema.TypeString,
 				Optional: true,
+				ValidateFunc: validation.StringInSlice([]string{
+					OneNodeSDDC, DefaultSDDC}, false),
 			},
 			"vxlan_subnet": {
 				Type:     schema.TypeString,
@@ -183,14 +185,17 @@ func resourceSddc() *schema.Resource {
 				return fmt.Errorf("for MulitAZ deployment type number of hosts must be atleast %d ", MinMultiAZHosts)
 			}
 
-			if deploymentType == MultiAvailabilityZone {
-				accountLinkSddcConfig := d.Get("account_link_sddc_config").([]interface{})
-				for _, config := range accountLinkSddcConfig {
-					c := config.(map[string]interface{})
-					if len(c["customer_subnet_ids"].([]interface{})) < 2 {
-						return fmt.Errorf("deployment type %s requires 2 subnets one in each availability zone ", deploymentType)
-					}
-				}
+			var c map[string]interface{}
+			accountLinkSddcConfig := d.Get("account_link_sddc_config").([]interface{})
+			for _, config := range accountLinkSddcConfig {
+				c = config.(map[string]interface{})
+			}
+			if deploymentType == MultiAvailabilityZone && len(c["customer_subnet_ids"].([]interface{})) != 2 {
+				return fmt.Errorf("deployment type %s requires 2 subnet IDs, one in each availability zone ", deploymentType)
+			}
+
+			if deploymentType == SingleAvailabilityZone && len(c["customer_subnet_ids"].([]interface{})) != 1 {
+				return fmt.Errorf("deployment type %s requires 1 subnet ID ", deploymentType)
 			}
 
 			newInstanceType := d.Get("host_instance_type").(string)
