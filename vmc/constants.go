@@ -27,6 +27,8 @@ const (
 	MinMultiAZHosts        int    = 6
 
 	ClusterIdFieldName = "clusterId"
+	SRMPrefix          = "srm-"
+	SDDCSuffix         = ".sddc-"
 
 	// Env variables used in acceptance tests
 	APIToken            string = "API_TOKEN"

@@ -24,11 +24,17 @@ func resourcePublicIp() *schema.Resource {
 		Importer: &schema.ResourceImporter{
 			State: func(d *schema.ResourceData, meta interface{}) ([]*schema.ResourceData, error) {
 				idParts := strings.Split(d.Id(), ",")
-				if len(idParts) != 2 || idParts[0] == "" || idParts[1] == "" || !IsValidUUID(idParts[1]) {
-					return nil, fmt.Errorf("Unexpected format of ID (%q), expected nsxt_reverse_proxy_url,public_ip_id", d.Id())
+				if len(idParts) != 2 || idParts[0] == "" || idParts[1] == "" {
+					return nil, fmt.Errorf("unexpected format of ID (%q), expected public_ip_id,nsxt_reverse_proxy_url", d.Id())
 				}
-				d.Set("nsxt_reverse_proxy_url", idParts[0])
-				d.SetId(idParts[1])
+				if err := IsValidUUID(idParts[0]); err != nil {
+					return nil, fmt.Errorf("invalid format for public_ip_id : %v", err)
+				}
+				if err := IsValidURL(idParts[1]); err != nil {
+					return nil, fmt.Errorf("invalid format for nsxt_reverse_proxy_url : %v", err)
+				}
+				d.SetId(idParts[0])
+				d.Set("nsxt_reverse_proxy_url", idParts[1])
 				return []*schema.ResourceData{d}, nil
 			},
 		},
