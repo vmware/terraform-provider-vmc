@@ -19,6 +19,7 @@ import (
 
 func TestAccResourceVmcCluster_basic(t *testing.T) {
 	var sddcResource model.Sddc
+	resourceName := "vmc_cluster.cluster_1"
 	sddcName := "terraform_test_sddc_" + acctest.RandStringFromCharSet(10, acctest.CharSetAlphaNum)
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -31,6 +32,12 @@ func TestAccResourceVmcCluster_basic(t *testing.T) {
 					testAccCheckVmcClusterExists("vmc_cluster.cluster_1", &sddcResource),
 					resource.TestCheckResourceAttrSet("vmc_cluster.cluster_1", "id"),
 				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportStateIdFunc: testAccVmcClusterResourceImportStateIdFunc(resourceName),
+				ImportState:       true,
+				ImportStateVerify: true,
 			},
 		},
 	})
@@ -151,4 +158,14 @@ resource "vmc_cluster" "cluster_1" {
 		os.Getenv(AWSAccountNumber),
 		sddcName,
 	)
+}
+
+func testAccVmcClusterResourceImportStateIdFunc(resourceName string) resource.ImportStateIdFunc {
+	return func(s *terraform.State) (string, error) {
+		rs, ok := s.RootModule().Resources[resourceName]
+		if !ok {
+			return "", fmt.Errorf("Not found: %s", resourceName)
+		}
+		return fmt.Sprintf("%s,%s", rs.Primary.ID, rs.Primary.Attributes["sddc_id"]), nil
+	}
 }

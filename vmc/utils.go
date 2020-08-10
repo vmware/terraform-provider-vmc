@@ -4,9 +4,11 @@
 package vmc
 
 import (
+	uuid "github.com/satori/go.uuid"
 	"github.com/vmware/vsphere-automation-sdk-go/runtime/protocol/client"
 	"github.com/vmware/vsphere-automation-sdk-go/services/vmc/model"
 	"github.com/vmware/vsphere-automation-sdk-go/services/vmc/orgs"
+	"net/url"
 )
 
 var storageCapacityMap = map[string]int64{
@@ -39,4 +41,20 @@ func ConvertDeployType(s string) string {
 	} else {
 		return ""
 	}
+}
+
+func IsValidUUID(u string) error {
+	_, err := uuid.FromString(u)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func IsValidURL(s string) error {
+	_, err := url.ParseRequestURI(s)
+	if err != nil {
+		return err
+	}
+	return nil
 }

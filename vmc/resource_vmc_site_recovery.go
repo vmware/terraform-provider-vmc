@@ -168,7 +168,7 @@ func resourceSiteRecoveryRead(d *schema.ResourceData, m interface{}) error {
 	vr_node["type"] = *siteRecovery.VrNode.Type_
 	vr_node["state"] = *siteRecovery.VrNode.State
 	vr_node["ip_address"] = *siteRecovery.VrNode.IpAddress
-
+	d.Set("sddc_id", *siteRecovery.SddcId)
 	d.Set("srm_node", srm_node)
 	d.Set("vr_node", vr_node)
 	return nil

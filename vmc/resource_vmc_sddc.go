@@ -332,8 +332,6 @@ func resourceSddcRead(d *schema.ResourceData, m interface{}) error {
 	d.Set("account_link_state", sddc.AccountLinkState)
 	d.Set("sddc_access_state", sddc.SddcAccessState)
 	d.Set("sddc_state", sddc.SddcState)
-	d.Set("num_host", len(sddc.ResourceConfig.EsxHosts))
-
 	if sddc.ResourceConfig != nil {
 		d.Set("vc_url", sddc.ResourceConfig.VcUrl)
 		d.Set("cloud_username", sddc.ResourceConfig.CloudUsername)
@@ -345,6 +343,9 @@ func resourceSddcRead(d *schema.ResourceData, m interface{}) error {
 		d.Set("sso_domain", *sddc.ResourceConfig.SsoDomain)
 		d.Set("skip_creating_vxlan", *sddc.ResourceConfig.SkipCreatingVxlan)
 		d.Set("provider_type", sddc.ResourceConfig.Provider)
+		d.Set("num_host", len(sddc.ResourceConfig.EsxHosts))
+		d.Set("vpc_cidr", *sddc.ResourceConfig.VpcInfo.VpcCidr)
+		d.Set("vxlan_subnet", sddc.ResourceConfig.VxlanSubnet)
 	}
 	if len(sddc.ResourceConfig.Clusters) != 0 {
 		cluster := map[string]string{}

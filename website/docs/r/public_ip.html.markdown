@@ -46,3 +46,16 @@ In addition to arguments listed above, the following attributes are exported aft
 * `ip` - Public IP.
 
 * `display_name` - Display name for public IP.
+
+## Import
+
+Public IP resource can be imported using the `nsxt_reverse_proxy_url` and `id` , e.g.
+
+`$ terraform import vmc_public_ip.public_ip_1 nsxt_reverse_proxy_url,id`
+
+- nsxt_reverse_proxy_url = NSX API public endpoint url used for public IP resource management
+- id = Public IP Identifier
+
+`$ terraform import vmc_public_ip.public_ip_1 'https://nsx-44-228-76-55.rp.vmwarevmc.com/vmc/reverse-proxy/api/orgs/{orgI}/sddcs/afe7a0fd-3f0a-48b2-9ddb-0489c22732ae/sks-nsxt-manager,8d730ad4-aa6b-4f9f-9679-ec17beeaceaf'
+`
+

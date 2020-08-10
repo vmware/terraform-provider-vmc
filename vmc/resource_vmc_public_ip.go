@@ -5,15 +5,14 @@ package vmc
 
 import (
 	"fmt"
-	"net/http"
-	"os"
-	"strings"
-
 	"github.com/hashicorp/terraform/helper/schema"
 	uuid "github.com/satori/go.uuid"
 	"github.com/vmware/vsphere-automation-sdk-go/runtime/protocol/client"
 	"github.com/vmware/vsphere-automation-sdk-go/services/nsxt-vmc-aws-integration/api"
 	"github.com/vmware/vsphere-automation-sdk-go/services/nsxt-vmc-aws-integration/model"
+	"net/http"
+	"os"
+	"strings"
 )
 
 func resourcePublicIp() *schema.Resource {
@@ -23,7 +22,21 @@ func resourcePublicIp() *schema.Resource {
 		Update: resourcePublicIpUpdate,
 		Delete: resourcePublicIpDelete,
 		Importer: &schema.ResourceImporter{
-			State: schema.ImportStatePassthrough,
+			State: func(d *schema.ResourceData, meta interface{}) ([]*schema.ResourceData, error) {
+				idParts := strings.Split(d.Id(), ",")
+				if len(idParts) != 2 || idParts[0] == "" || idParts[1] == "" {
+					return nil, fmt.Errorf("unexpected format of ID (%q), expected public_ip_id,nsxt_reverse_proxy_url", d.Id())
+				}
+				if err := IsValidUUID(idParts[0]); err != nil {
+					return nil, fmt.Errorf("invalid format for public_ip_id : %v", err)
+				}
+				if err := IsValidURL(idParts[1]); err != nil {
+					return nil, fmt.Errorf("invalid format for nsxt_reverse_proxy_url : %v", err)
+				}
+				d.SetId(idParts[0])
+				d.Set("nsxt_reverse_proxy_url", idParts[1])
+				return []*schema.ResourceData{d}, nil
+			},
 		},
 		Schema: map[string]*schema.Schema{
 			"nsxt_reverse_proxy_url": {

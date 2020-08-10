@@ -8,33 +8,40 @@ import (
 	"os"
 	"testing"
 
-	"github.com/vmware/vsphere-automation-sdk-go/services/vmc/draas"
-
 	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
 	"github.com/vmware/vsphere-automation-sdk-go/lib/vapi/std/errors"
+	"github.com/vmware/vsphere-automation-sdk-go/services/vmc/draas"
 )
 
-func TestAccResourceVmcSRMNodes_basic(t *testing.T) {
+func TestAccResourceVmcSRMNode_basic(t *testing.T) {
+	resourceName := "vmc_srm_node.srm_node_1"
 	srmExtensionKeySuffix := acctest.RandStringFromCharSet(10, acctest.CharSetAlphaNum)
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
-		CheckDestroy: testCheckVmcSRMNodesDestroy,
+		CheckDestroy: testCheckVmcSRMNodeDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccVmcSRMNodeConfigBasic(srmExtensionKeySuffix),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckVmcSRMNodesExists("vmc_srm_nodes.srm_nodes_1"),
-					resource.TestCheckResourceAttrSet("vmc_srm_nodes.srm_nodes_1", "srm_nodes"),
+					testCheckVmcSRMNodeExists(resourceName),
+					resource.TestCheckResourceAttrSet(resourceName, "srm_node_extension_key_suffix"),
 				),
+			},
+			{
+				ResourceName:            resourceName,
+				ImportStateIdFunc:       testAccVmcSRMResourceImportStateIdFunc(resourceName),
+				ImportStateVerifyIgnore: []string{"srm_node_extension_key_suffix"},
+				ImportState:             true,
+				ImportStateVerify:       true,
 			},
 		},
 	})
 }
 
-func testCheckVmcSRMNodesExists(name string) resource.TestCheckFunc {
+func testCheckVmcSRMNodeExists(name string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		rs, ok := s.RootModule().Resources[name]
 		if !ok {
@@ -60,14 +67,13 @@ func testCheckVmcSRMNodesExists(name string) resource.TestCheckFunc {
 	}
 }
 
-func testCheckVmcSRMNodesDestroy(s *terraform.State) error {
-
+func testCheckVmcSRMNodeDestroy(s *terraform.State) error {
 	connectorWrapper := testAccProvider.Meta().(*ConnectorWrapper)
 	connector := connectorWrapper.Connector
 	draasClient := draas.NewDefaultSiteRecoveryClient(connector)
 
 	for _, rs := range s.RootModule().Resources {
-		if rs.Type != "vmc_srm_nodes" {
+		if rs.Type != "vmc_srm_node" {
 			continue
 		}
 
@@ -92,10 +98,10 @@ func testCheckVmcSRMNodesDestroy(s *terraform.State) error {
 func testAccVmcSRMNodeConfigBasic(srmExtensionKeySuffix string) string {
 	return fmt.Sprintf(`
 resource "vmc_site_recovery" "site_recovery_1" {
-  sddc_id = %q
+ sddc_id = %q
 }
 
-resource "vmc_srm_nodes" "srm_node_1"{
+resource "vmc_srm_node" "srm_node_1"{
   sddc_id = %q
   srm_node_extension_key_suffix = %q
   depends_on = [vmc_site_recovery.site_recovery_1]
@@ -104,4 +110,14 @@ resource "vmc_srm_nodes" "srm_node_1"{
 		os.Getenv(TestSDDCId),
 		srmExtensionKeySuffix,
 	)
+}
+
+func testAccVmcSRMResourceImportStateIdFunc(resourceName string) resource.ImportStateIdFunc {
+	return func(s *terraform.State) (string, error) {
+		rs, ok := s.RootModule().Resources[resourceName]
+		if !ok {
+			return "", fmt.Errorf("Not found: %s", resourceName)
+		}
+		return fmt.Sprintf("%s,%s", rs.Primary.ID, rs.Primary.Attributes["sddc_id"]), nil
+	}
 }

@@ -24,7 +24,22 @@ func resourceCluster() *schema.Resource {
 		Update: resourceClusterUpdate,
 		Read:   resourceClusterRead,
 		Importer: &schema.ResourceImporter{
-			State: schema.ImportStatePassthrough,
+			State: func(d *schema.ResourceData, meta interface{}) ([]*schema.ResourceData, error) {
+				idParts := strings.Split(d.Id(), ",")
+				if len(idParts) != 2 || idParts[0] == "" || idParts[1] == "" {
+					return nil, fmt.Errorf("unexpected format of ID (%q), expected id,sddc_id", d.Id())
+				}
+				if err := IsValidUUID(idParts[0]); err != nil {
+					return nil, fmt.Errorf("invalid format for id : %v", err)
+				}
+				if err := IsValidUUID(idParts[1]); err != nil {
+					return nil, fmt.Errorf("invalid format for sddc_id : %v", err)
+				}
+
+				d.SetId(idParts[0])
+				d.Set("sddc_id", idParts[1])
+				return []*schema.ResourceData{d}, nil
+			},
 		},
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(60 * time.Minute),

@@ -51,3 +51,14 @@ In addition to arguments listed above, the following attributes are exported aft
 * `id` - Cluster identifier.
 
 * `cluster_info` - Information about cluster like name, state, host instance type and cluster identifier.
+
+## Import
+
+Cluster resource can be imported using the `id` and `sddc_id`, e.g.
+
+`$ terraform import vmc_cluster.cluster_1 id,sddc_id`
+
+- id = Cluster Identifier
+- sddc_id = SDDC Identifier
+
+`$ terraform import vmc_cluster.cluster_1 afe7a0fd-3f0a-48b2-9ddb-0489c22732ae,45495963-d24d-469b-830a-9003bfe132b5`

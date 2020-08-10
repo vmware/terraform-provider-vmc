@@ -19,6 +19,7 @@ import (
 
 func TestAccResourceVmcSiteRecovery_basic(t *testing.T) {
 	var siteRecovery model.SiteRecovery
+	resourceName := "vmc_site_recovery.site_recovery_1"
 	srmExtensionKeySuffix := acctest.RandStringFromCharSet(10, acctest.CharSetAlphaNum)
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -31,6 +32,13 @@ func TestAccResourceVmcSiteRecovery_basic(t *testing.T) {
 					testCheckVmcSiteRecoveryExists("vmc_site_recovery.site_recovery_1", &siteRecovery),
 					resource.TestCheckResourceAttr("vmc_site_recovery.site_recovery_1", "site_recovery_state", "ACTIVATED"),
 				),
+			},
+			{
+				ResourceName:            resourceName,
+				ImportStateIdFunc:       testAccVmcSiteRecoveryResourceImportStateIdFunc(resourceName),
+				ImportStateVerifyIgnore: []string{"sddc_id", "srm_extension_key_suffix"},
+				ImportState:             true,
+				ImportStateVerify:       true,
 			},
 		},
 	})
@@ -100,4 +108,14 @@ func testAccVmcSiteConfigBasic(srmExtensionKeySuffix string) string {
 		os.Getenv(TestSDDCId),
 		srmExtensionKeySuffix,
 	)
+}
+
+func testAccVmcSiteRecoveryResourceImportStateIdFunc(resourceName string) resource.ImportStateIdFunc {
+	return func(s *terraform.State) (string, error) {
+		rs, ok := s.RootModule().Resources[resourceName]
+		if !ok {
+			return "", fmt.Errorf("Not found: %s", resourceName)
+		}
+		return fmt.Sprintf("%s", rs.Primary.Attributes["sddc_id"]), nil
+	}
 }
