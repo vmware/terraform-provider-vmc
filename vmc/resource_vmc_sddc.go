@@ -13,6 +13,7 @@ import (
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
 	"github.com/vmware/vsphere-automation-sdk-go/lib/vapi/std/errors"
+	autoscalerapi "github.com/vmware/vsphere-automation-sdk-go/services/vmc/autoscaler/api"
 	autoscalercluster "github.com/vmware/vsphere-automation-sdk-go/services/vmc/autoscaler/api/orgs/sddcs/clusters"
 	autoscalermodel "github.com/vmware/vsphere-automation-sdk-go/services/vmc/autoscaler/model"
 	"github.com/vmware/vsphere-automation-sdk-go/services/vmc/model"
@@ -423,8 +424,8 @@ func resourceSddcDelete(d *schema.ResourceData, m interface{}) error {
 }
 
 func resourceSddcUpdate(d *schema.ResourceData, m interface{}) error {
-	connector := (m.(*ConnectorWrapper)).Connector
-	esxsClient := sddcs.NewDefaultEsxsClient(connector)
+	connectorWrapper := (m.(*ConnectorWrapper))
+	esxsClient := sddcs.NewDefaultEsxsClient(connectorWrapper)
 	sddcID := d.Id()
 	orgID := (m.(*ConnectorWrapper)).OrgID
 
@@ -450,11 +451,10 @@ func resourceSddcUpdate(d *schema.ResourceData, m interface{}) error {
 		}
 
 		task, err := esxsClient.Create(orgID, sddcID, esxConfig, &action)
-
 		if err != nil {
 			return HandleUpdateError("SDDC", err)
 		}
-		tasksClient := orgs.NewDefaultTasksClient(connector)
+		tasksClient := orgs.NewDefaultTasksClient(connectorWrapper)
 		err = resource.Retry(d.Timeout(schema.TimeoutUpdate), func() *resource.RetryError {
 			task, err := tasksClient.Get(orgID, task.Id)
 			if err != nil {
@@ -471,7 +471,7 @@ func resourceSddcUpdate(d *schema.ResourceData, m interface{}) error {
 	}
 	// Update sddc name
 	if d.HasChange("sddc_name") {
-		sddcClient := orgs.NewDefaultSddcsClient(connector)
+		sddcClient := orgs.NewDefaultSddcsClient(connectorWrapper)
 		newSDDCName := d.Get("sddc_name").(string)
 		sddcPatchRequest := model.SddcPatchRequest{
 			Name: &newSDDCName,
@@ -485,7 +485,7 @@ func resourceSddcUpdate(d *schema.ResourceData, m interface{}) error {
 	}
 
 	if d.HasChange("edrs_policy_type") || d.HasChange("enable_edrs") || d.HasChange("min_hosts") || d.HasChange("max_hosts") {
-		edrsPolicyClient := autoscalercluster.NewDefaultEdrsPolicyClient(connector)
+		edrsPolicyClient := autoscalercluster.NewDefaultEdrsPolicyClient(connectorWrapper)
 		clusterID := d.Get("cluster_id").(string)
 		minHosts := int64(d.Get("min_hosts").(int))
 		maxHosts := int64(d.Get("max_hosts").(int))
@@ -497,13 +497,31 @@ func resourceSddcUpdate(d *schema.ResourceData, m interface{}) error {
 			MinHosts:   &minHosts,
 			MaxHosts:   &maxHosts,
 		}
-		_, err := edrsPolicyClient.Post(orgID, sddcID, clusterID, *edrsPolicy)
+		task, err := edrsPolicyClient.Post(orgID, sddcID, clusterID, *edrsPolicy)
 		if err != nil {
 			return HandleUpdateError("EDRS Policy", err)
 		}
 
-		// To be removed once the API spec has been fixed to return the task ID
-		time.Sleep(2 * time.Minute)
+		return resource.Retry(d.Timeout(schema.TimeoutUpdate), func() *resource.RetryError {
+			taskClient := autoscalerapi.NewDefaultAutoscalerClient(connectorWrapper)
+			task, err := taskClient.Get(orgID, task.Id)
+			if err != nil {
+				if err.Error() == (errors.Unauthenticated{}.Error()) {
+					log.Print("Auth error", err.Error(), errors.Unauthenticated{}.Error())
+					err = connectorWrapper.authenticate()
+					if err != nil {
+						return resource.NonRetryableError(fmt.Errorf("authentication error from Cloud Service Provider : %s", err))
+					}
+					return resource.RetryableError(fmt.Errorf("instance creation still in progress"))
+				}
+				return resource.NonRetryableError(fmt.Errorf("error describing instance: %s", err))
+
+			}
+			if *task.Status != "FINISHED" {
+				return resource.RetryableError(fmt.Errorf("expected instance to be created but was in state %s", *task.Status))
+			}
+			return resource.NonRetryableError(resourceSddcRead(d, m))
+		})
 	}
 	return resourceSddcRead(d, m)
 }
