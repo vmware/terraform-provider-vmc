@@ -48,6 +48,7 @@ You can select a different policy if it provides better support for your workloa
 ## Example
 
 ```hcl
+<<<<<<< HEAD
 
 provider "vmc" {
   refresh_token = var.api_token
@@ -58,6 +59,18 @@ data "vmc_connected_accounts" "my_accounts" {
   account_number = var.aws_account_number
 }
 
+=======
+
+provider "vmc" {
+  refresh_token = var.api_token
+  org_id = var.org_id
+}
+
+data "vmc_connected_accounts" "my_accounts" {
+  account_number = var.aws_account_number
+}
+
+>>>>>>> b701cd50834f2188cc063059acb3de0de7b73247
 data "vmc_customer_subnets" "my_subnets" {
   connected_account_id = data.vmc_connected_accounts.my_accounts.ids[0]
   region               = var.sddc_region

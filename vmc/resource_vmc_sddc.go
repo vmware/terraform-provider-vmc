@@ -434,8 +434,7 @@ func resourceSddcDelete(d *schema.ResourceData, m interface{}) error {
 }
 
 func resourceSddcUpdate(d *schema.ResourceData, m interface{}) error {
-
-	connectorWrapper := m.(*ConnectorWrapper)
+	connectorWrapper := (m.(*ConnectorWrapper))
 	esxsClient := sddcs.NewDefaultEsxsClient(connectorWrapper)
 	sddcID := d.Id()
 	orgID := (m.(*ConnectorWrapper)).OrgID
