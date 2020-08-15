@@ -11,3 +11,4 @@ terraform.tfstate
 *~
 /*.tf
 .terraform.tfstate.lock.info
+dist/
