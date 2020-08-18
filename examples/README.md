@@ -4,7 +4,7 @@ This is an example that demonstrates the creation of VMC resources like SDDC, cl
 
 For site recovery activation, a 10 minute delay must be added after SDDC is created and before site recovery can be activated.
 
-To add delay after SDDC has been created, update SDDC resource in [main.tf](https://github.com/terraform-providers/terraform-provider-vmc/blob/master/examples/main.tf) with local-exec provisioner:
+To add delay after SDDC has been created, update SDDC resource in [main.tf](https://github.com/vmware/terraform-provider-vmc/blob/master/examples/main.tf) with local-exec provisioner:
 
 ```sh
     resource "vmc_sddc" "sddc_1" { 
@@ -47,7 +47,7 @@ To run the example:
 
 * Generate an API token using [VMware Cloud on AWS console] (https://vmc.vmware.com/console/)
 
-* Update the required parameters api_token and org_id in [variables.tf](https://github.com/terraform-providers/terraform-provider-vmc/blob/master/examples/variables.tf) with your infrastructure settings. 
+* Update the required parameters api_token and org_id in [variables.tf](https://github.com/vmware/terraform-provider-vmc/blob/master/examples/variables.tf) with your infrastructure settings.
  
 * Load the provider
 

@@ -14,20 +14,20 @@ Terraform to work with [VMware Cloud on AWS](https://vmc.vmware.com/).
 
 The instructions outlined below are specific to Mac OS or Linux OS only.
 
-If you wish to work on the provider, you'll first need [Go](http://www.golang.org) installed on your machine (please check the [requirements](https://github.com/terraform-providers/terraform-provider-vmc#requirements) before proceeding).
+If you wish to work on the provider, you'll first need [Go](http://www.golang.org) installed on your machine (please check the [requirements](https://github.com/vmware/terraform-provider-vmc#requirements) before proceeding).
 
-First, you will want to clone the repository to : `$GOPATH/src/github.com/terraform-providers/terraform-provider-vmc`
+First, you will want to clone the repository to : `$GOPATH/src/github.com/vmware/terraform-provider-vmc`
 
 ```sh
 mkdir -p $GOPATH/src/github.com/terraform-providers
 cd $GOPATH/src/github.com/terraform-providers
-git clone git@github.com:terraform-providers/terraform-provider-vmc.git
+git clone git@github.com:vmware/terraform-provider-vmc.git
 ```
 
 After the clone has been completed, you can enter the provider directory and build the provider. 
 
 ```sh
-cd $GOPATH/src/github.com/terraform-providers/terraform-provider-vmc
+cd $GOPATH/src/github.com/vmware/terraform-provider-vmc
 go get
 go build -o terraform-provider-vmc
 ```
@@ -103,8 +103,8 @@ In addition, this may cause difficulties in housekeeping and issue reporting.
 work is not being duplicated. For further clarification, you can also ask in a
 new issue.
 
-[gh-issues]: https://github.com/terraform-providers/terraform-provider-vmc/issues
-[gh-prs]: https://github.com/terraform-providers/terraform-provider-vmc/pulls
+[gh-issues]: https://github.com/vmware/terraform-provider-vmc/issues
+[gh-prs]: https://github.com/vmware/terraform-provider-vmc/pulls
 
 See [the section above](#building-the-provider) for details on building the
 provider.
@@ -138,4 +138,4 @@ $ make testacc TESTARGS="-run=TestAccResourceVmcSddc_basic"
 
 Copyright 2019 VMware, Inc.
 
-The Terraform provider for VMware Cloud on AWS is available under [MPL2.0 license](https://github.com/terraform-providers/terraform-provider-vmc/blob/master/LICENSE).
+The Terraform provider for VMware Cloud on AWS is available under [MPL2.0 license](https://github.com/vmware/terraform-provider-vmc/blob/master/LICENSE).

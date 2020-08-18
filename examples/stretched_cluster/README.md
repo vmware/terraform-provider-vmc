@@ -12,7 +12,7 @@ To run the example:
 
 * Generate an API token using [VMware Cloud on AWS console] (https://vmc.vmware.com/console/)
 
-* Update the required parameters api_token and org_id in [variables.tf](https://github.com/terraform-providers/terraform-provider-vmc/blob/master/examples/sddc/variables.tf) with your infrastructure settings. 
+* Update the required parameters api_token and org_id in [variables.tf](https://github.com/vmware/terraform-provider-vmc/blob/master/examples/sddc/variables.tf) with your infrastructure settings.
 
 * Load the provider
 
