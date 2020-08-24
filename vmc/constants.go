@@ -34,6 +34,12 @@ const (
 	SRMPrefix          = "srm-"
 	SDDCSuffix         = ".sddc-"
 
+	// EDRS Policy types
+	CostPolicyType           = "cost"
+	PerformancePolicyType    = "performance"
+	StorageScaleUpPolicyType = "storage-scaleup"
+	RapidScaleUpPolicyType   = "rapid-scaleup"
+
 	// Env variables used in acceptance tests
 	APIToken            string = "API_TOKEN"
 	OrgID               string = "ORG_ID"

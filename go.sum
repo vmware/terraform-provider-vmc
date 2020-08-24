@@ -503,6 +503,8 @@ github.com/vmware/vsphere-automation-sdk-go/services/nsxt-vmc-aws-integration v0
 github.com/vmware/vsphere-automation-sdk-go/services/nsxt-vmc-aws-integration v0.3.0/go.mod h1:LXS7Ig+8cPcKIzG7I2Ap3yhjuQxlSJxhSF2RhW4BN/k=
 github.com/vmware/vsphere-automation-sdk-go/services/vmc v0.3.0 h1:0CiR1LBgkRKTp62UwcpN6j3EgQMRzMbcHxcABVZXPiU=
 github.com/vmware/vsphere-automation-sdk-go/services/vmc v0.3.0/go.mod h1:JCGbR5OnX1g5Qw8eMQvE6XM8rEC5h388J/TLF8uHbtA=
+github.com/vmware/vsphere-automation-sdk-go/services/vmc/autoscaler v0.2.0 h1:rPwBJW8/Z21+vpbT3qL2hNOzM91kmYCR+qWBBvi1vbY=
+github.com/vmware/vsphere-automation-sdk-go/services/vmc/autoscaler v0.2.0/go.mod h1:w9oSLHs2n5yoUzcLKLvgxB4I8e4v5MpoktdMuwsVGt0=
 github.com/vmware/vsphere-automation-sdk-go/services/vmc/draas v0.3.0 h1:lZYaWkA4xf2b9mVpTq84nbyKvDrlav4tTIXDZFeoXAA=
 github.com/vmware/vsphere-automation-sdk-go/services/vmc/draas v0.3.0/go.mod h1:Rm/j6/0eyU6CH8efdLLzKl/1yqHQkc+rJsnqVz2luJk=
 github.com/xanzy/ssh-agent v0.2.1/go.mod h1:mLlQY/MoOhWBj+gOGMQkOeiEvkx+8pJSI+0Bx9h2kr4=

@@ -30,6 +30,7 @@ require (
 	github.com/vmware/vsphere-automation-sdk-go/lib v0.3.1
 	github.com/vmware/vsphere-automation-sdk-go/runtime v0.3.1
 	github.com/vmware/vsphere-automation-sdk-go/services/nsxt-vmc-aws-integration v0.3.0
+	github.com/vmware/vsphere-automation-sdk-go/services/vmc/autoscaler v0.2.0
 	github.com/vmware/vsphere-automation-sdk-go/services/vmc v0.3.0
 	github.com/vmware/vsphere-automation-sdk-go/services/vmc/draas v0.3.0
 	go.starlark.net v0.0.0-20200203144150-6677ee5c7211 // indirect
