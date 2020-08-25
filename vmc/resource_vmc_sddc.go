@@ -190,11 +190,12 @@ func resourceSddc() *schema.Resource {
 			for _, config := range accountLinkSddcConfig {
 				c = config.(map[string]interface{})
 			}
-			if deploymentType == MultiAvailabilityZone && len(c["customer_subnet_ids"].([]interface{})) != 2 {
+
+			if deploymentType == MultiAvailabilityZone && c != nil && len(c["customer_subnet_ids"].([]interface{})) != 2 {
 				return fmt.Errorf("deployment type %s requires 2 subnet IDs, one in each availability zone ", deploymentType)
 			}
 
-			if deploymentType == SingleAvailabilityZone && len(c["customer_subnet_ids"].([]interface{})) != 1 {
+			if deploymentType == SingleAvailabilityZone && c != nil && len(c["customer_subnet_ids"].([]interface{})) != 1 {
 				return fmt.Errorf("deployment type %s requires 1 subnet ID ", deploymentType)
 			}
 
