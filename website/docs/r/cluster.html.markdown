@@ -13,10 +13,9 @@ description: |-
 Provides a resource to manage clusters.
 ~> **Note:** Cluster resource implicitly depends on SDDC resource creation. SDDC must be provisioned before a cluster can be created. For details on how to provision a SDDC refer to [vmc_sddc](https://www.terraform.io/docs/providers/vmc/r/sddc.html).
 
-## Example Usage
+## Example for creating a cluster
 
 ```hcl
-
 provider "vmc" {
   refresh_token = var.api_token
   org_id = var.org_id
@@ -26,8 +25,47 @@ provider "vmc" {
     sddc_id = vmc_sddc.sddc_1.id
     num_hosts= var.num_hosts
 }
+```
 
+## Modifying an Elastic DRS policy for vmc_cluster
 
+For a new cluster, elastic DRS uses the Default Storage Scale-Out policy, adding hosts only when storage utilization exceeds the threshold of 75%. 
+
+You can select a different policy if it provides better support for your workload VMs by updating the vmc_cluster resource using the following arguments :
+
+* `edrs_policy_type` - (Optional) The EDRS policy type. This can either be 'cost', 'performance', 'storage-scaleup' or 'rapid-scaleup'. Default : storage-scaleup.
+
+* `enable_edrs` - (Optional) True if EDRS is enabled.
+
+* `min_hosts` - (Optional) The minimum number of hosts that the cluster can scale in to.
+
+* `max_hosts` - (Optional) The maximum number of hosts that the cluster can scale out to.
+
+## Example
+
+```hcl
+
+provider "vmc" {
+  refresh_token = var.api_token
+  org_id = var.org_id
+}
+
+data "vmc_connected_accounts" "my_accounts" {
+  account_number = var.aws_account_number
+}
+
+data "vmc_customer_subnets" "my_subnets" {
+  connected_account_id = data.vmc_connected_accounts.my_accounts.ids[0]
+  region               = var.sddc_region
+}
+resource "vmc_cluster" "Cluster-1"{
+     sddc_id = vmc_sddc.sddc_1.id
+     num_hosts= var.num_hosts
+     edrs_policy_type = "cost"
+     enable_edrs = true
+     min_hosts = 3
+     max_hosts = 8
+ }
 ```
 
 ## Argument Reference

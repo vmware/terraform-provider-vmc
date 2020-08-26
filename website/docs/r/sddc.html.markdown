@@ -10,12 +10,64 @@ description: |-
 
 # vmc_sddc
 
-Provides a resource to provision SDDC.
+Provides a resource to provision a SingleAZ or MultiAZ SDDC.
 
-## Example Usage
+## Deploying a SingleAZ SDDC
+
+For deployment_type SingleAZ,the sddc_type can be 1NODE with num_host argument set to 1 for a single node SDDC. The sddc_type for 2Node (num_host = 2) and 3 or more nodes is "DEFAULT". 
+
+## Example
 
 ```hcl
+provider "vmc" {
+  refresh_token = var.api_token
+  org_id = var.org_id
+}
 
+data "vmc_connected_accounts" "my_accounts" {
+  account_number = var.aws_account_number
+}
+
+data "vmc_customer_subnets" "my_subnets" {
+  connected_account_id = data.vmc_connected_accounts.my_accounts.ids[0]
+  region               = var.sddc_region
+}
+
+resource "vmc_sddc" "sddc_1" {
+  sddc_name           = var.sddc_name
+  vpc_cidr            = var.vpc_cidr
+  num_host            = 1
+  provider_type       = "AWS"
+  region              = data.vmc_customer_subnets.my_subnets.region
+  vxlan_subnet        = var.vxlan_subnet
+  delay_account_link  = false
+  skip_creating_vxlan = false
+  sso_domain          = "vmc.local"
+  deployment_type = "SingleAZ"
+  sddc_type ="1NODE"
+  account_link_sddc_config {
+    customer_subnet_ids  = [data.vmc_customer_subnets.my_subnets.ids[0]]
+    connected_account_id = data.vmc_connected_accounts.my_accounts.ids[0]
+  }
+}
+```
+## Modifying an Elastic DRS policy for vmc_sddc
+
+In a new SDDC, elastic DRS uses the Default Storage Scale-Out policy, adding hosts only when storage utilization exceeds the threshold of 75%. For two-host SDDCs, only the Default Storage Scale-Out policy is available. Elastic DRS is not supported for Single host (1Node) SDDCs.
+
+You can select a different policy if it provides better support for your workload VMs by updating the vmc_sddc resource using the following arguments :
+
+* `edrs_policy_type` - (Optional) The EDRS policy type. This can either be 'cost', 'performance', 'storage-scaleup' or 'rapid-scaleup'. Default : storage-scaleup.
+
+* `enable_edrs` - (Optional) True if EDRS is enabled.
+
+* `min_hosts` - (Optional) The minimum number of hosts that the cluster can scale in to.
+
+* `max_hosts` - (Optional) The maximum number of hosts that the cluster can scale out to.
+
+## Example
+
+```hcl
 provider "vmc" {
   refresh_token = var.api_token
   org_id = var.org_id
@@ -34,26 +86,64 @@ resource "vmc_sddc" "sddc_1" {
   sddc_name           = var.sddc_name
   vpc_cidr            = var.vpc_cidr
   num_host            = var.sddc_num_hosts
-  provider_type       = "AWS"
+  provider_type       = "AWS" 
   region              = data.vmc_customer_subnets.my_subnets.region
   vxlan_subnet        = var.vxlan_subnet
   delay_account_link  = false
   skip_creating_vxlan = false
   sso_domain          = "vmc.local"
-
-  deployment_type = "SingleAZ"
+  deployment_type = "SingleAZ" 
 
   account_link_sddc_config {
     customer_subnet_ids  = [data.vmc_customer_subnets.my_subnets.ids[0]]
     connected_account_id = data.vmc_connected_accounts.my_accounts.ids[0]
   }
-  timeouts {
-    create = "300m"
-    update = "300m"
-    delete = "180m"
-  }
+  edrs_policy_type = "cost"
+  enable_edrs = true
+  min_hosts = 3
+  max_hosts = 8
+}
+```
+## Deploying a MultiAZ SDDC (Stretched cluster)
+
+For deployment type "MultiAZ", a single SDDC can be deployed across two AWS availability zones. 
+
+When enabled the default number of ESXi hosts supported in a MultiAZ SDDC is 6. Additional hosts can be added later but must to be done in pairs across AWS availability zones.The MultiAZ SDDC requires an AWS VPC with two subnets, one subnet per availability zone.
+
+## Example
+
+```hcl
+provider "vmc" {
+  refresh_token = var.api_token
+  org_id = var.org_id
 }
 
+data "vmc_connected_accounts" "my_accounts" {
+  account_number = var.aws_account_number
+}
+
+data "vmc_customer_subnets" "my_subnets" {
+  connected_account_id = data.vmc_connected_accounts.my_accounts.ids[0]
+  region               = var.sddc_region
+}
+
+resource "vmc_sddc" "sddc_1" {
+  sddc_name           = var.sddc_name
+  vpc_cidr            = var.vpc_cidr
+  num_host            = 6
+  provider_type       = var.provider_type
+  region              = data.vmc_customer_subnets.my_subnets.region
+  vxlan_subnet        = var.vxlan_subnet
+  delay_account_link  = false
+  skip_creating_vxlan = false
+  sso_domain          = "vmc.local"
+  deployment_type = "MultiAZ"
+  host_instance_type = var.host_instance_type
+  account_link_sddc_config {
+    customer_subnet_ids  = [data.vmc_customer_subnets.my_subnets.ids[0],data.vmc_customer_subnets.my_subnets.ids[1]]
+    connected_account_id = data.vmc_connected_accounts.my_accounts.id
+  }
+}
 ```
 
 ## Argument Reference

@@ -13,6 +13,9 @@ import (
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
 	"github.com/vmware/vsphere-automation-sdk-go/lib/vapi/std/errors"
+	autoscalerapi "github.com/vmware/vsphere-automation-sdk-go/services/vmc/autoscaler/api"
+	autoscalercluster "github.com/vmware/vsphere-automation-sdk-go/services/vmc/autoscaler/api/orgs/sddcs/clusters"
+	autoscalermodel "github.com/vmware/vsphere-automation-sdk-go/services/vmc/autoscaler/model"
 	"github.com/vmware/vsphere-automation-sdk-go/services/vmc/model"
 	"github.com/vmware/vsphere-automation-sdk-go/services/vmc/orgs"
 	"github.com/vmware/vsphere-automation-sdk-go/services/vmc/orgs/sddcs"
@@ -145,6 +148,34 @@ func resourceSddc() *schema.Resource {
 				ForceNew: true,
 				ValidateFunc: validation.StringInSlice(
 					[]string{HostInstancetypeI3, HostInstancetypeR5, HostInstancetypeI3EN}, false),
+			},
+			"edrs_policy_type": {
+				Type:     schema.TypeString,
+				Optional: true,
+				Default:  StorageScaleUpPolicyType,
+				ValidateFunc: validation.StringInSlice(
+					[]string{StorageScaleUpPolicyType, CostPolicyType, PerformancePolicyType, RapidScaleUpPolicyType}, false),
+				Description: "The EDRS policy type. This can either be 'cost', 'performance', 'storage-scaleup' or 'rapid-scaleup'. Default : storage-scaleup. ",
+			},
+			"enable_edrs": {
+				Type:        schema.TypeBool,
+				Optional:    true,
+				Default:     true,
+				Description: "True if EDRS is enabled",
+			},
+			"min_hosts": {
+				Type:         schema.TypeInt,
+				Default:      3,
+				Optional:     true,
+				ValidateFunc: validation.IntBetween(3, 16),
+				Description:  "The minimum number of hosts that the cluster can scale in to.",
+			},
+			"max_hosts": {
+				Type:         schema.TypeInt,
+				Default:      16,
+				Optional:     true,
+				ValidateFunc: validation.IntBetween(3, 16),
+				Description:  "The maximum number of hosts that the cluster can scale out to.",
 			},
 			"sddc_state": {
 				Type:     schema.TypeString,
@@ -353,15 +384,30 @@ func resourceSddcRead(d *schema.ResourceData, m interface{}) error {
 		d.Set("vpc_cidr", *sddc.ResourceConfig.VpcInfo.VpcCidr)
 		d.Set("vxlan_subnet", sddc.ResourceConfig.VxlanSubnet)
 	}
-	if len(sddc.ResourceConfig.Clusters) != 0 {
-		cluster := map[string]string{}
-		currentResourceConfig := sddc.ResourceConfig.Clusters[0]
-		cluster["cluster_name"] = *currentResourceConfig.ClusterName
-		cluster["cluster_state"] = *currentResourceConfig.ClusterState
-		cluster["host_instance_type"] = *currentResourceConfig.EsxHostInfo.InstanceType
-		cluster["cluster_id"] = currentResourceConfig.ClusterId
-		d.Set("cluster_info", cluster)
+
+	sddcClient := sddcs.NewDefaultPrimaryclusterClient(connector)
+	primaryCluster, err := sddcClient.Get(orgID, sddcID)
+	if err != nil {
+		return HandleReadError(d, "Primary Cluster", sddcID, err)
 	}
+
+	d.Set("cluster_id", primaryCluster.ClusterId)
+	cluster := map[string]string{}
+	cluster["cluster_name"] = *primaryCluster.ClusterName
+	cluster["cluster_state"] = *primaryCluster.ClusterState
+	cluster["host_instance_type"] = *primaryCluster.EsxHostInfo.InstanceType
+	d.Set("cluster_info", cluster)
+
+	edrsPolicyClient := autoscalercluster.NewDefaultEdrsPolicyClient(connector)
+	edrsPolicy, err := edrsPolicyClient.Get(orgID, sddcID, primaryCluster.ClusterId)
+	if err != nil {
+		return HandleReadError(d, "SDDC", sddcID, err)
+	}
+	d.Set("edrs_policy_type", *edrsPolicy.PolicyType)
+	d.Set("enable_edrs", edrsPolicy.EnableEdrs)
+	d.Set("max_hosts", *edrsPolicy.MaxHosts)
+	d.Set("min_hosts", *edrsPolicy.MinHosts)
+
 	return nil
 }
 
@@ -505,6 +551,45 @@ func resourceSddcUpdate(d *schema.ResourceData, m interface{}) error {
 			return HandleUpdateError("SDDC", err)
 		}
 		d.Set("sddc_name", sddc.Name)
+	}
+	if d.HasChange("edrs_policy_type") || d.HasChange("enable_edrs") || d.HasChange("min_hosts") || d.HasChange("max_hosts") {
+		edrsPolicyClient := autoscalercluster.NewDefaultEdrsPolicyClient(connectorWrapper)
+		clusterID := d.Get("cluster_id").(string)
+		minHosts := int64(d.Get("min_hosts").(int))
+		maxHosts := int64(d.Get("max_hosts").(int))
+		policyType := d.Get("edrs_policy_type").(string)
+		enableEDRS := d.Get("enable_edrs").(bool)
+		edrsPolicy := &autoscalermodel.EdrsPolicy{
+			EnableEdrs: enableEDRS,
+			PolicyType: &policyType,
+			MinHosts:   &minHosts,
+			MaxHosts:   &maxHosts,
+		}
+		task, err := edrsPolicyClient.Post(orgID, sddcID, clusterID, *edrsPolicy)
+		if err != nil {
+			return HandleUpdateError("EDRS Policy", err)
+		}
+
+		return resource.Retry(d.Timeout(schema.TimeoutUpdate), func() *resource.RetryError {
+			taskClient := autoscalerapi.NewDefaultAutoscalerClient(connectorWrapper)
+			task, err := taskClient.Get(orgID, task.Id)
+			if err != nil {
+				if err.Error() == (errors.Unauthenticated{}.Error()) {
+					log.Print("Auth error", err.Error(), errors.Unauthenticated{}.Error())
+					err = connectorWrapper.authenticate()
+					if err != nil {
+						return resource.NonRetryableError(fmt.Errorf("authentication error from Cloud Service Provider : %s", err))
+					}
+					return resource.RetryableError(fmt.Errorf("instance creation still in progress"))
+				}
+				return resource.NonRetryableError(fmt.Errorf("error describing instance: %s", err))
+
+			}
+			if *task.Status != "FINISHED" {
+				return resource.RetryableError(fmt.Errorf("expected instance to be created but was in state %s", *task.Status))
+			}
+			return resource.NonRetryableError(resourceSddcRead(d, m))
+		})
 	}
 	return resourceSddcRead(d, m)
 }
