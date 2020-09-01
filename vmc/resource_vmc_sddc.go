@@ -48,6 +48,14 @@ func resourceSddc() *schema.Resource {
 				Required:     true,
 				ValidateFunc: validation.NoZeroValues,
 			},
+			"size": {
+				Type:     schema.TypeString,
+				Optional: true,
+				Default:  MediumSDDCSize,
+				ValidateFunc: validation.StringInSlice([]string{
+					MediumSDDCSize, LargeSDDCSize}, false),
+				Description: "The size of the vCenter and NSX appliances. 'large' SDDC size corresponds to a 'large' vCenter appliance and 'large' NSX appliance. 'medium' SDDC size corresponds to 'medium' vCenter appliance and 'medium' NSX appliance. Default : 'medium'.",
+			},
 			"account_link_sddc_config": {
 				Type: schema.TypeList,
 				Elem: &schema.Resource{
@@ -56,7 +64,6 @@ func resourceSddc() *schema.Resource {
 							Type: schema.TypeList,
 							Elem: &schema.Schema{
 								Type: schema.TypeString,
-								// Optional: true,
 							},
 							Optional: true,
 						},
@@ -201,6 +208,10 @@ func resourceSddc() *schema.Resource {
 				Type:     schema.TypeMap,
 				Computed: true,
 			},
+			"sddc_size": {
+				Type:     schema.TypeMap,
+				Computed: true,
+			},
 			"availability_zones": {
 				Type:     schema.TypeList,
 				Computed: true,
@@ -270,7 +281,7 @@ func resourceSddcCreate(d *schema.ResourceData, m interface{}) error {
 	vpcCidr := d.Get("vpc_cidr").(string)
 	numHost := d.Get("num_host").(int)
 	sddcType := d.Get("sddc_type").(string)
-
+	sddcSize := d.Get("size").(string)
 	var sddcTypePtr *string
 	if sddcType != "" {
 		sddcTypePtr = &sddcType
@@ -305,6 +316,7 @@ func resourceSddcCreate(d *schema.ResourceData, m interface{}) error {
 		DeploymentType:        &deploymentType,
 		Region:                region,
 		HostInstanceType:      &hostInstanceType,
+		Size:                  &sddcSize,
 	}
 
 	// Create a Sddc
@@ -383,8 +395,12 @@ func resourceSddcRead(d *schema.ResourceData, m interface{}) error {
 		d.Set("num_host", len(sddc.ResourceConfig.EsxHosts))
 		d.Set("vpc_cidr", *sddc.ResourceConfig.VpcInfo.VpcCidr)
 		d.Set("vxlan_subnet", sddc.ResourceConfig.VxlanSubnet)
+		sddcSizeInfo := map[string]string{}
+		sddcSizeInfo["vc_size"] = *sddc.ResourceConfig.SddcSize.VcSize
+		sddcSizeInfo["nsx_size"] = *sddc.ResourceConfig.SddcSize.NsxSize
+		sddcSizeInfo["size"] = *sddc.ResourceConfig.SddcSize.Size
+		d.Set("sddc_size", sddcSizeInfo)
 	}
-
 	sddcClient := sddcs.NewDefaultPrimaryclusterClient(connector)
 	primaryCluster, err := sddcClient.Get(orgID, sddcID)
 	if err != nil {

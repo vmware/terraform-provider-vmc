@@ -1,4 +1,4 @@
-module github.com/terraform-providers/terraform-provider-vmc
+module github.com/vmware/terraform-provider-vmc
 
 go 1.13
 
@@ -25,12 +25,13 @@ require (
 	github.com/spf13/pflag v1.0.5 // indirect
 	github.com/stretchr/objx v0.3.0 // indirect
 	github.com/tdakkota/asciicheck v0.0.0-20200416200610-e657995f937b // indirect
+	github.com/terraform-providers/terraform-provider-vmc v1.3.0
 	github.com/tetafro/godot v0.4.6 // indirect
 	github.com/timakin/bodyclose v0.0.0-20200424151742-cb6215831a94 // indirect
 	github.com/vmware/vsphere-automation-sdk-go/lib v0.3.1
 	github.com/vmware/vsphere-automation-sdk-go/runtime v0.3.1
 	github.com/vmware/vsphere-automation-sdk-go/services/nsxt-vmc-aws-integration v0.3.0
-	github.com/vmware/vsphere-automation-sdk-go/services/vmc v0.3.0
+	github.com/vmware/vsphere-automation-sdk-go/services/vmc v0.4.0
 	github.com/vmware/vsphere-automation-sdk-go/services/vmc/autoscaler v0.2.0
 	github.com/vmware/vsphere-automation-sdk-go/services/vmc/draas v0.3.0
 	go.starlark.net v0.0.0-20200203144150-6677ee5c7211 // indirect

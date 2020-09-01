@@ -26,9 +26,13 @@ const (
 	MultiAvailabilityZone  string = "MultiAZ"
 	MinMultiAZHosts        int    = 6
 
-	//SDDC Types
+	// SDDC Types
 	OneNodeSDDC = "1NODE"
 	DefaultSDDC = "DEFAULT"
+
+	// SDDC Size
+	MediumSDDCSize = "medium"
+	LargeSDDCSize  = "large"
 
 	ClusterIdFieldName = "clusterId"
 	SRMPrefix          = "srm-"
