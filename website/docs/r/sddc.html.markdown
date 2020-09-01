@@ -203,7 +203,7 @@ In addition to arguments listed above, the following attributes are exported:
 
 * `cluster_info` - Information about cluster like id, name, state, host instance type.
 
-* `sddc_size` - Information about SDDC size like vc_size, nsx_size and SDDC size.
+* `sddc_size` - Size information of SDDC, vCenter appliance and NSX appliance.
 
 ## Import
 

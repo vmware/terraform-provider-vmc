@@ -52,6 +52,7 @@ func resourceSddc() *schema.Resource {
 				Type:     schema.TypeString,
 				Optional: true,
 				Default:  MediumSDDCSize,
+				ForceNew: true,
 				ValidateFunc: validation.StringInSlice([]string{
 					MediumSDDCSize, LargeSDDCSize}, false),
 				Description: "The size of the vCenter and NSX appliances. 'large' SDDC size corresponds to a 'large' vCenter appliance and 'large' NSX appliance. 'medium' SDDC size corresponds to 'medium' vCenter appliance and 'medium' NSX appliance. Default : 'medium'.",
