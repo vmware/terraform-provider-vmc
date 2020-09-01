@@ -399,7 +399,6 @@ func resourceSddcRead(d *schema.ResourceData, m interface{}) error {
 		sddcSizeInfo := map[string]string{}
 		sddcSizeInfo["vc_size"] = *sddc.ResourceConfig.SddcSize.VcSize
 		sddcSizeInfo["nsx_size"] = *sddc.ResourceConfig.SddcSize.NsxSize
-		sddcSizeInfo["size"] = *sddc.ResourceConfig.SddcSize.Size
 		d.Set("sddc_size", sddcSizeInfo)
 	}
 	sddcClient := sddcs.NewDefaultPrimaryclusterClient(connector)
