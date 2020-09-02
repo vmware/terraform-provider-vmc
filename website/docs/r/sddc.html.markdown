@@ -161,7 +161,7 @@ The following arguments are supported:
 
 * `num_host` - (Required) The number of hosts.
 
-* `size` - (Optional) The size of the vCenter and NSX appliances. 'large' SDDC size corresponds to a 'large' vCenter appliance and 'large' NSX appliance. 'medium' SDDC size corresponds to 'medium' vCenter appliance and 'medium' NSX appliance. Default : 'medium'.
+* `size` - (Optional) The size of the vCenter and NSX appliances. 'large' or 'LARGE' SDDC size corresponds to a large vCenter appliance and large NSX appliance. 'medium' or 'MEDIUM' SDDC size corresponds to medium vCenter appliance and medium NSX appliance. Default : 'medium'.
                      			
 * `account_link_sddc_config` - (Optional) The account linking configuration object.
 
