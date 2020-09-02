@@ -31,8 +31,10 @@ const (
 	DefaultSDDC = "DEFAULT"
 
 	// SDDC Size
-	MediumSDDCSize = "medium"
-	LargeSDDCSize  = "large"
+	MediumSDDCSize        = "medium"
+	CapitalMediumSDDCSize = "MEDIUM"
+	LargeSDDCSize         = "large"
+	CapitalLargeSDDCSize  = "LARGE"
 
 	ClusterIdFieldName = "clusterId"
 	SRMPrefix          = "srm-"
