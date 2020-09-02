@@ -27,9 +27,8 @@ resource "vmc_sddc" "sddc_1" {
   sso_domain          = "vmc.local"
   sddc_type = var.sddc_type
   deployment_type = "SingleAZ"
-
+  size = "large"
   host_instance_type = var.host_instance_type
-
   storage_capacity = var.storage_capacity
 
   account_link_sddc_config {

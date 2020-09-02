@@ -161,6 +161,8 @@ The following arguments are supported:
 
 * `num_host` - (Required) The number of hosts.
 
+* `size` - (Optional) The size of the vCenter and NSX appliances. 'large' or 'LARGE' SDDC size corresponds to a large vCenter appliance and large NSX appliance. 'medium' or 'MEDIUM' SDDC size corresponds to medium vCenter appliance and medium NSX appliance. Default : 'medium'.
+                     			
 * `account_link_sddc_config` - (Optional) The account linking configuration object.
 
 * `host_instance_type` -  (Optional) The instance type for the esx hosts in the primary cluster of the SDDC. Possible values : I3_METAL, I3EN_METAL and R5_METAL. Default value : I3_METAL. Currently I3EN_METAL host_instance_type does not support 1NODE and 2 node SDDC deployment. 
@@ -200,6 +202,8 @@ In addition to arguments listed above, the following attributes are exported:
 * `nsxt_reverse_proxy_url` - NSXT reverse proxy url for managing public IP.
 
 * `cluster_info` - Information about cluster like id, name, state, host instance type.
+
+* `sddc_size` - Size information of vCenter appliance and NSX appliance.
 
 ## Import
 
