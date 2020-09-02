@@ -19,8 +19,8 @@ If you wish to work on the provider, you'll first need [Go](http://www.golang.or
 First, you will want to clone the repository to : `$GOPATH/src/github.com/vmware/terraform-provider-vmc`
 
 ```sh
-mkdir -p $GOPATH/src/github.com/terraform-providers
-cd $GOPATH/src/github.com/terraform-providers
+mkdir -p $GOPATH/src/github.com/vmware
+cd $GOPATH/src/github.com/vmware
 git clone git@github.com:vmware/terraform-provider-vmc.git
 ```
 
