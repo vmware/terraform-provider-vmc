@@ -607,7 +607,7 @@ func resourceSddcUpdate(d *schema.ResourceData, m interface{}) error {
 		})
 	}
 	if d.HasChange("size") {
-		return fmt.Errorf("SDDC size cannot be updated.")
+		return fmt.Errorf("SDDC size update operation is not supported")
 	}
 	return resourceSddcRead(d, m)
 }
