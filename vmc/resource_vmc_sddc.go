@@ -52,7 +52,6 @@ func resourceSddc() *schema.Resource {
 				Type:     schema.TypeString,
 				Optional: true,
 				Default:  MediumSDDCSize,
-				ForceNew: true,
 				ValidateFunc: validation.StringInSlice([]string{
 					MediumSDDCSize, CapitalMediumSDDCSize, LargeSDDCSize, CapitalLargeSDDCSize}, false),
 				Description: "The size of the vCenter and NSX appliances. 'large' or 'LARGE' SDDC size corresponds to a large vCenter appliance and large NSX appliance. 'medium' or 'MEDIUM' SDDC size corresponds to medium vCenter appliance and medium NSX appliance. Default : 'medium'.",
@@ -606,6 +605,9 @@ func resourceSddcUpdate(d *schema.ResourceData, m interface{}) error {
 			}
 			return resource.NonRetryableError(resourceSddcRead(d, m))
 		})
+	}
+	if d.HasChange("size") {
+		return fmt.Errorf("SDDC size cannot be updated.")
 	}
 	return resourceSddcRead(d, m)
 }
