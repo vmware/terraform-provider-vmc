@@ -116,6 +116,6 @@ func testAccVmcSiteRecoveryResourceImportStateIdFunc(resourceName string) resour
 		if !ok {
 			return "", fmt.Errorf("Not found: %s", resourceName)
 		}
-		return fmt.Sprintf("%s", rs.Primary.Attributes["sddc_id"]), nil
+		return rs.Primary.Attributes["sddc_id"], nil
 	}
 }
