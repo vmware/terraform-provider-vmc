@@ -4,7 +4,6 @@
 package vmc
 
 import (
-	"fmt"
 	"os"
 	"testing"
 
@@ -27,9 +26,5 @@ func TestAccDataSourceVmcOrg_basic(t *testing.T) {
 }
 
 func testAccDataSourceVmcOrgConfig() string {
-	return fmt.Sprintf(`
-data "vmc_org" "my_org" {
-}
-`,
-	)
+	return `data "vmc_org" "my_org" {}`
 }

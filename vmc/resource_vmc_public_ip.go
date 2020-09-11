@@ -112,13 +112,11 @@ func resourcePublicIpRead(d *schema.ResourceData, m interface{}) error {
 				return HandleListError("Public IP", err)
 			}
 			publicIpsList := publicIpResultList.Results
-			if publicIpsList != nil {
-				for _, publicIp := range publicIpsList {
-					if displayName == *publicIp.DisplayName {
-						d.Set("ip", publicIp.Ip)
-						d.Set("display_name", publicIp.DisplayName)
-						break
-					}
+			for _, publicIp := range publicIpsList {
+				if displayName == *publicIp.DisplayName {
+					d.Set("ip", publicIp.Ip)
+					d.Set("display_name", publicIp.DisplayName)
+					break
 				}
 			}
 		}
@@ -178,9 +176,7 @@ func getNSXTReverseProxyUrlConnector(nsxtReverseProxyUrl string) (client.Connect
 	if len(nsxtReverseProxyUrl) == 0 {
 		return nil, fmt.Errorf("NSX reverse proxy url is required for public IP resource creation")
 	}
-	if strings.Contains(nsxtReverseProxyUrl, SksNSXTManager) {
-		nsxtReverseProxyUrl = strings.Replace(nsxtReverseProxyUrl, SksNSXTManager, "", -1)
-	}
+	nsxtReverseProxyUrl = strings.Replace(nsxtReverseProxyUrl, SksNSXTManager, "", -1)
 	httpClient := http.Client{}
 	connector, err := NewClientConnectorByRefreshToken(apiToken, nsxtReverseProxyUrl, DefaultCSPUrl, httpClient)
 	if err != nil {

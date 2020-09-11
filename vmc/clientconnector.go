@@ -67,7 +67,10 @@ func SecurityContextByRefreshToken(refreshToken string, cspURL string) (core.Sec
 	defer res.Body.Close()
 
 	var jsondata map[string]interface{}
-	json.NewDecoder(res.Body).Decode(&jsondata)
+	err = json.NewDecoder(res.Body).Decode(&jsondata)
+	if err != nil {
+		return nil, fmt.Errorf("error decoding response : %v", err)
+	}
 
 	var accessToken string
 	if token, ok := jsondata["access_token"]; ok {

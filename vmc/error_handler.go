@@ -130,7 +130,7 @@ func HandleReadError(d *schema.ResourceData, resourceType string, resourceID str
 	msg := fmt.Sprintf("Failed to read %s %s", resourceType, resourceID)
 	if isNotFoundError(err) {
 		d.SetId("")
-		log.Printf(msg)
+		log.Printf("%v", msg)
 		return nil
 	}
 	return logAPIError(msg, err)
