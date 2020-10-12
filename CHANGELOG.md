@@ -1,4 +1,20 @@
-## 1.4.0 (Unreleased)
+## 1.4.0 (October 12, 2020)
+
+FEATURES:
+
+* `vmc_sddc` Added I3EN_METAL host instance type support.  [\#42](https://github.com/vmware/terraform-provider-vmc/pull/42)
+* `vmc_sddc` Modified code to enable EDRS policy configuration. [\#43](https://github.com/vmware/terraform-provider-vmc/pull/43)
+* `vmc_sddc` Added size parameter in resource schema to enable users to deploy large SDDC. [\#59](https://github.com/vmware/terraform-provider-vmc/pull/59)
+
+BUG FIXES: 
+
+* Added check in resourceClusterRead to see if cluster exists and remove cluster information from terraform state file. [\#48](https://github.com/vmware/terraform-provider-vmc/pull/48)
+* Added validation check for customer subnet IDs based on the deployment type. [\#54](https://github.com/vmware/terraform-provider-vmc/pull/54)
+
+ENHANCEMENTS:
+
+* Modified Importer State in `vmc_cluster` and `vmc_public_ip` resources for terraform import command. [\#49](https://github.com/vmware/terraform-provider-vmc/pull/49)
+
 ## 1.3.0 (June 18, 2020)
 
 FEATURES:
