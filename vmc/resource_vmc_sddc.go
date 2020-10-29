@@ -184,6 +184,32 @@ func resourceSddc() *schema.Resource {
 				ValidateFunc: validation.IntBetween(3, 16),
 				Description:  "The maximum number of hosts that the cluster can scale out to.",
 			},
+			"microsoft_licensing_config": {
+				Type: schema.TypeList,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"mssql_licensing": {
+							Type:        schema.TypeString,
+							Optional:    true,
+							Description: "The status of MSSQL licensing for this SDDC’s clusters. Possible values : ENABLED or DISABLED.",
+							ValidateFunc: validation.StringInSlice([]string{
+								LicenseConfigEnabled, LicenseConfigDisabled,
+							}, false),
+						},
+						"windows_licensing": {
+							Type:        schema.TypeString,
+							Optional:    true,
+							Description: "The status of Windows licensing for this SDDC's clusters. Possible values : ENABLED, DISABLED or CUSTOMER'S ",
+							ValidateFunc: validation.StringInSlice([]string{
+								LicenseConfigEnabled, LicenseConfigDisabled,
+							}, false),
+						},
+					},
+				},
+				Optional:    true,
+				ForceNew:    true,
+				Description: "Indicates the desired licensing support, if any, of Microsoft software.",
+			},
 			"sddc_state": {
 				Type:     schema.TypeString,
 				Computed: true,
@@ -299,6 +325,7 @@ func resourceSddcCreate(d *schema.ResourceData, m interface{}) error {
 	region := d.Get("region").(string)
 	accountLinkSddcConfig := expandAccountLinkSddcConfig(d.Get("account_link_sddc_config").([]interface{}))
 	hostInstanceType := model.HostInstanceTypes(d.Get("host_instance_type").(string))
+	msftLicensingConfig := expandMsftLicenseConfig(d.Get("microsoft_licensing_config").([]interface{}))
 
 	var awsSddcConfig = &model.AwsSddcConfig{
 		StorageCapacity:       &storageCapacityConverted,
@@ -317,6 +344,7 @@ func resourceSddcCreate(d *schema.ResourceData, m interface{}) error {
 		Region:                region,
 		HostInstanceType:      &hostInstanceType,
 		Size:                  &sddcSize,
+		MsftLicenseConfig:     msftLicensingConfig,
 	}
 
 	// Create a Sddc
@@ -399,6 +427,10 @@ func resourceSddcRead(d *schema.ResourceData, m interface{}) error {
 		sddcSizeInfo["vc_size"] = *sddc.ResourceConfig.SddcSize.VcSize
 		sddcSizeInfo["nsx_size"] = *sddc.ResourceConfig.SddcSize.NsxSize
 		d.Set("sddc_size", sddcSizeInfo)
+		msftLicensingConfig := map[string]string{}
+		msftLicensingConfig["mssql_licensing"] = *sddc.ResourceConfig.MsftLicenseConfig.MssqlLicensing
+		msftLicensingConfig["windows_licensing"] = *sddc.ResourceConfig.MsftLicenseConfig.WindowsLicensing
+		d.Set("microsoft-licensing-config", msftLicensingConfig)
 	}
 	sddcClient := sddcs.NewDefaultPrimaryclusterClient(connector)
 	primaryCluster, err := sddcClient.Get(orgID, sddcID)
@@ -635,4 +667,16 @@ func expandAccountLinkSddcConfig(l []interface{}) []model.AccountLinkSddcConfig 
 		configs = append(configs, con)
 	}
 	return configs
+}
+
+func expandMsftLicenseConfig(l []interface{}) *model.MsftLicensingConfig {
+	if len(l) == 0 {
+		return nil
+	}
+	var licenseConfig model.MsftLicensingConfig
+	licenseConfigMap := l[0].(map[string]interface{})
+	mssqlLicensing := licenseConfigMap["mssql_licensing"].(string)
+	windowsLicensing := licenseConfigMap["windows_licensing"].(string)
+	licenseConfig = model.MsftLicensingConfig{MssqlLicensing: &mssqlLicensing, WindowsLicensing: &windowsLicensing}
+	return &licenseConfig
 }

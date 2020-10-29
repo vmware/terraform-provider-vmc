@@ -57,3 +57,13 @@ variable sddc_type {
   description = "Denotes the sddc type, if the value is null or empty, the type is considered as default. Possible values : '1NODE', 'DEFAULT'. "
   default = "1NODE"
 }
+
+variable size {
+  description = "The size of the vCenter and NSX appliances. 'large' or 'LARGE' SDDC size corresponds to a large vCenter appliance and large NSX appliance. 'medium' or 'MEDIUM' SDDC size corresponds to medium vCenter appliance and medium NSX appliance. Default : 'medium'."
+  default = "medium"
+}
+
+variable deployment_type {
+  description = "Denotes if request is for a SingleAZ or a MultiAZ SDDC. Default : SingleAZ."
+  default = "SingleAZ"
+}
