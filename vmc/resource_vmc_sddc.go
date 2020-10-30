@@ -89,8 +89,6 @@ func resourceSddc() *schema.Resource {
 			"sddc_type": {
 				Type:     schema.TypeString,
 				Optional: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					OneNodeSDDC, DefaultSDDC}, false),
 			},
 			"vxlan_subnet": {
 				Type:     schema.TypeString,
