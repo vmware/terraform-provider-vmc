@@ -50,8 +50,8 @@ resource "vmc_sddc" "sddc_1" {
     connected_account_id = data.vmc_connected_accounts.my_accounts.ids[0]
   }
   microsoft_licensing_config {
-   mssql_licensing="ENABLED"
-   windows_licensing ="DISABLED"
+   mssql_licensing = "ENABLED"
+   windows_licensing = "DISABLED"
   }
 }
 ```
@@ -103,8 +103,8 @@ resource "vmc_sddc" "sddc_1" {
     connected_account_id = data.vmc_connected_accounts.my_accounts.ids[0]
   }
   microsoft_licensing_config {
-   mssql_licensing="ENABLED"
-   windows_licensing ="DISABLED"
+   mssql_licensing = "ENABLED"
+   windows_licensing = "DISABLED"
   }
   edrs_policy_type = "cost"
   enable_edrs = true
@@ -152,8 +152,8 @@ resource "vmc_sddc" "sddc_1" {
     connected_account_id = data.vmc_connected_accounts.my_accounts.id
   }
   microsoft_licensing_config {
-   mssql_licensing="ENABLED"
-   windows_licensing ="DISABLED"
+   mssql_licensing = "ENABLED"
+   windows_licensing = "DISABLED"
   }
 }
 ```

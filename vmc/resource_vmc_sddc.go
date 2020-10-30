@@ -423,14 +423,16 @@ func resourceSddcRead(d *schema.ResourceData, m interface{}) error {
 		d.Set("num_host", len(sddc.ResourceConfig.EsxHosts))
 		d.Set("vpc_cidr", *sddc.ResourceConfig.VpcInfo.VpcCidr)
 		d.Set("vxlan_subnet", sddc.ResourceConfig.VxlanSubnet)
+
 		sddcSizeInfo := map[string]string{}
 		sddcSizeInfo["vc_size"] = *sddc.ResourceConfig.SddcSize.VcSize
 		sddcSizeInfo["nsx_size"] = *sddc.ResourceConfig.SddcSize.NsxSize
 		d.Set("sddc_size", sddcSizeInfo)
+
 		msftLicensingConfig := map[string]string{}
 		msftLicensingConfig["mssql_licensing"] = *sddc.ResourceConfig.MsftLicenseConfig.MssqlLicensing
 		msftLicensingConfig["windows_licensing"] = *sddc.ResourceConfig.MsftLicenseConfig.WindowsLicensing
-		d.Set("microsoft-licensing-config", msftLicensingConfig)
+		d.Set("microsoft_licensing_config", msftLicensingConfig)
 	}
 	sddcClient := sddcs.NewDefaultPrimaryclusterClient(connector)
 	primaryCluster, err := sddcClient.Get(orgID, sddcID)
@@ -669,12 +671,12 @@ func expandAccountLinkSddcConfig(l []interface{}) []model.AccountLinkSddcConfig 
 	return configs
 }
 
-func expandMsftLicenseConfig(l []interface{}) *model.MsftLicensingConfig {
-	if len(l) == 0 {
+func expandMsftLicenseConfig(config []interface{}) *model.MsftLicensingConfig {
+	if len(config) == 0 {
 		return nil
 	}
 	var licenseConfig model.MsftLicensingConfig
-	licenseConfigMap := l[0].(map[string]interface{})
+	licenseConfigMap := config[0].(map[string]interface{})
 	mssqlLicensing := licenseConfigMap["mssql_licensing"].(string)
 	windowsLicensing := licenseConfigMap["windows_licensing"].(string)
 	licenseConfig = model.MsftLicensingConfig{MssqlLicensing: &mssqlLicensing, WindowsLicensing: &windowsLicensing}
