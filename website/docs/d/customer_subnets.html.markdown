@@ -12,7 +12,7 @@ The customer subnets data source provides information about customer's compatibl
 
 ```hcl
 data "vmc_customer_subnets" "my_subnets" {
-  connected_account_id = data.vmc_connected_accounts.my_accounts.ids[0]
+  connected_account_id = data.vmc_connected_accounts.my_accounts.id
   region               = var.sddc_region
 }
 ```
