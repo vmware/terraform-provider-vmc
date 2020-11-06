@@ -19,6 +19,7 @@ import (
 	"github.com/vmware/vsphere-automation-sdk-go/services/vmc/model"
 	"github.com/vmware/vsphere-automation-sdk-go/services/vmc/orgs"
 	"github.com/vmware/vsphere-automation-sdk-go/services/vmc/orgs/sddcs"
+	"github.com/vmware/vsphere-automation-sdk-go/services/vmc/orgs/sddcs/clusters/msft_licensing"
 )
 
 func resourceSddc() *schema.Resource {
@@ -207,7 +208,6 @@ func resourceSddc() *schema.Resource {
 					},
 				},
 				Optional:    true,
-				ForceNew:    true,
 				Description: "Indicates the desired licensing support, if any, of Microsoft software.",
 			},
 			"sddc_state": {
@@ -428,11 +428,6 @@ func resourceSddcRead(d *schema.ResourceData, m interface{}) error {
 		sddcSizeInfo["vc_size"] = *sddc.ResourceConfig.SddcSize.VcSize
 		sddcSizeInfo["nsx_size"] = *sddc.ResourceConfig.SddcSize.NsxSize
 		d.Set("sddc_size", sddcSizeInfo)
-
-		msftLicensingConfig := map[string]string{}
-		msftLicensingConfig["mssql_licensing"] = *sddc.ResourceConfig.MsftLicenseConfig.MssqlLicensing
-		msftLicensingConfig["windows_licensing"] = *sddc.ResourceConfig.MsftLicenseConfig.WindowsLicensing
-		d.Set("microsoft_licensing_config", msftLicensingConfig)
 	}
 	sddcClient := sddcs.NewDefaultPrimaryclusterClient(connector)
 	primaryCluster, err := sddcClient.Get(orgID, sddcID)
@@ -445,6 +440,8 @@ func resourceSddcRead(d *schema.ResourceData, m interface{}) error {
 	cluster["cluster_name"] = *primaryCluster.ClusterName
 	cluster["cluster_state"] = *primaryCluster.ClusterState
 	cluster["host_instance_type"] = *primaryCluster.EsxHostInfo.InstanceType
+	cluster["mssql_licensing"] = *primaryCluster.MsftLicenseConfig.MssqlLicensing
+	cluster["windows_licensing"] = *primaryCluster.MsftLicenseConfig.WindowsLicensing
 	d.Set("cluster_info", cluster)
 
 	edrsPolicyClient := autoscalercluster.NewDefaultEdrsPolicyClient(connector)
@@ -601,6 +598,7 @@ func resourceSddcUpdate(d *schema.ResourceData, m interface{}) error {
 		}
 		d.Set("sddc_name", sddc.Name)
 	}
+
 	if d.HasChange("edrs_policy_type") || d.HasChange("enable_edrs") || d.HasChange("min_hosts") || d.HasChange("max_hosts") {
 		edrsPolicyClient := autoscalercluster.NewDefaultEdrsPolicyClient(connectorWrapper)
 		clusterID := d.Get("cluster_id").(string)
@@ -642,6 +640,42 @@ func resourceSddcUpdate(d *schema.ResourceData, m interface{}) error {
 	}
 	if d.HasChange("size") {
 		return fmt.Errorf("SDDC size update operation is not supported")
+	}
+
+	// Update microsoft licensing config
+	if d.HasChange("microsoft_licensing_config") {
+		configChangeParam := expandMsftLicenseConfig(d.Get("microsoft_licensing_config").([]interface{}))
+		primaryClusterClient := sddcs.NewDefaultPrimaryclusterClient(connectorWrapper)
+		primaryCluster, err := primaryClusterClient.Get(orgID, sddcID)
+		if err != nil {
+			return HandleReadError(d, "Primary Cluster", sddcID, err)
+		}
+		publishClient := msft_licensing.NewDefaultPublishClient(connectorWrapper)
+		task, err := publishClient.Post(orgID, sddcID, primaryCluster.ClusterId, *configChangeParam)
+		if err != nil {
+			return fmt.Errorf("Error updating license : %s", err)
+		}
+		return resource.Retry(d.Timeout(schema.TimeoutCreate), func() *resource.RetryError {
+			tasksClient := orgs.NewDefaultTasksClient(connectorWrapper)
+			task, err := tasksClient.Get(orgID, task.Id)
+			if err != nil {
+				if err.Error() == (errors.Unauthenticated{}.Error()) {
+					log.Print("Auth error", err.Error(), errors.Unauthenticated{}.Error())
+					err = connectorWrapper.authenticate()
+					if err != nil {
+						return resource.NonRetryableError(fmt.Errorf("authentication error from Cloud Service Provider : %s", err))
+					}
+					return resource.RetryableError(fmt.Errorf("instance creation still in progress"))
+				}
+				return resource.NonRetryableError(fmt.Errorf("error describing instance: %s", err))
+
+			}
+			if *task.Status != "FINISHED" {
+				return resource.RetryableError(fmt.Errorf("expected instance to be created but was in state %s", *task.Status))
+			}
+			return resource.NonRetryableError(resourceSddcRead(d, m))
+		})
+
 	}
 	return resourceSddcRead(d, m)
 }

@@ -24,6 +24,10 @@ provider "vmc" {
  resource "vmc_cluster" "Cluster-1"{
     sddc_id = vmc_sddc.sddc_1.id
     num_hosts= var.num_hosts
+    microsoft_licensing_config {
+        mssql_licensing = "DISABLED"
+        windows_licensing = "ENABLED"
+    }
 }
 ```
 
@@ -81,6 +85,8 @@ The following arguments are supported for vmc_cluster resource:
 * `host_instance_type` - (Optional) The instance type for the esx hosts added to this cluster. Possible values are: I3_METAL, I3EN_METAL and R5_METAL. Default value: I3_METAL.
 
 * `storage_capacity` - (Optional) For EBS-backed instances i.e: for R5_METAL only, the requested storage capacity in GiB.
+
+* `microsoft_licensing_config` - (Optional) Indicates the desired licensing support, if any, of Microsoft software.
 
 ## Attributes Reference
 
