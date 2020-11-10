@@ -46,4 +46,8 @@ resource "vmc_sddc" "sddc_1" {
 resource "vmc_cluster" "cluster_1" {
   sddc_id = vmc_sddc.sddc_1.id
   num_hosts = var.cluster_num_hosts
+  microsoft_licensing_config {
+        mssql_licensing = "DISABLED"
+        windows_licensing = "ENABLED"
+    }
 }

@@ -4,11 +4,13 @@
 package vmc
 
 import (
+	"net/url"
+	"strings"
+
 	uuid "github.com/satori/go.uuid"
 	"github.com/vmware/vsphere-automation-sdk-go/runtime/protocol/client"
 	"github.com/vmware/vsphere-automation-sdk-go/services/vmc/model"
 	"github.com/vmware/vsphere-automation-sdk-go/services/vmc/orgs"
-	"net/url"
 )
 
 var storageCapacityMap = map[string]int64{
@@ -57,4 +59,15 @@ func IsValidURL(s string) error {
 		return err
 	}
 	return nil
+}
+func expandMsftLicenseConfig(config []interface{}) *model.MsftLicensingConfig {
+	if len(config) == 0 {
+		return nil
+	}
+	var licenseConfig model.MsftLicensingConfig
+	licenseConfigMap := config[0].(map[string]interface{})
+	mssqlLicensing := strings.ToUpper(licenseConfigMap["mssql_licensing"].(string))
+	windowsLicensing := strings.ToUpper(licenseConfigMap["windows_licensing"].(string))
+	licenseConfig = model.MsftLicensingConfig{MssqlLicensing: &mssqlLicensing, WindowsLicensing: &windowsLicensing}
+	return &licenseConfig
 }

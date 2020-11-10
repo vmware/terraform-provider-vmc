@@ -42,6 +42,12 @@ const (
 	StorageScaleUpPolicyType = "storage-scaleup"
 	RapidScaleUpPolicyType   = "rapid-scaleup"
 
+	// Microsoft licensing config actions
+	LicenseConfigEnabled         = "enabled"
+	LicenseConfigDisabled        = "disabled"
+	CapitalLicenseConfigEnabled  = "ENABLED"
+	CapitalLicenseConfigDisabled = "DISABLED"
+
 	// Env variables used in acceptance tests
 	APIToken            string = "API_TOKEN"
 	OrgID               string = "ORG_ID"

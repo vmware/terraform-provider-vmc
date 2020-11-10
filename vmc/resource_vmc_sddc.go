@@ -19,6 +19,7 @@ import (
 	"github.com/vmware/vsphere-automation-sdk-go/services/vmc/model"
 	"github.com/vmware/vsphere-automation-sdk-go/services/vmc/orgs"
 	"github.com/vmware/vsphere-automation-sdk-go/services/vmc/orgs/sddcs"
+	"github.com/vmware/vsphere-automation-sdk-go/services/vmc/orgs/sddcs/clusters/msft_licensing"
 )
 
 func resourceSddc() *schema.Resource {
@@ -182,6 +183,29 @@ func resourceSddc() *schema.Resource {
 				ValidateFunc: validation.IntBetween(3, 16),
 				Description:  "The maximum number of hosts that the cluster can scale out to.",
 			},
+			"microsoft_licensing_config": {
+				Type: schema.TypeList,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"mssql_licensing": {
+							Type:        schema.TypeString,
+							Optional:    true,
+							Description: "The status of MSSQL licensing for this SDDC’s clusters. Possible values : enabled, ENABLED, disabled, DISABLED.",
+							ValidateFunc: validation.StringInSlice([]string{
+								LicenseConfigEnabled, LicenseConfigDisabled, CapitalLicenseConfigEnabled, CapitalLicenseConfigDisabled}, false),
+						},
+						"windows_licensing": {
+							Type:        schema.TypeString,
+							Optional:    true,
+							Description: "The status of Windows licensing for this SDDC's clusters. Possible values : enabled, ENABLED, disabled, DISABLED.",
+							ValidateFunc: validation.StringInSlice([]string{
+								LicenseConfigEnabled, LicenseConfigDisabled, CapitalLicenseConfigEnabled, CapitalLicenseConfigDisabled}, false),
+						},
+					},
+				},
+				Optional:    true,
+				Description: "Indicates the desired licensing support, if any, of Microsoft software.",
+			},
 			"sddc_state": {
 				Type:     schema.TypeString,
 				Computed: true,
@@ -297,6 +321,7 @@ func resourceSddcCreate(d *schema.ResourceData, m interface{}) error {
 	region := d.Get("region").(string)
 	accountLinkSddcConfig := expandAccountLinkSddcConfig(d.Get("account_link_sddc_config").([]interface{}))
 	hostInstanceType := model.HostInstanceTypes(d.Get("host_instance_type").(string))
+	msftLicensingConfig := expandMsftLicenseConfig(d.Get("microsoft_licensing_config").([]interface{}))
 
 	var awsSddcConfig = &model.AwsSddcConfig{
 		StorageCapacity:       &storageCapacityConverted,
@@ -315,6 +340,7 @@ func resourceSddcCreate(d *schema.ResourceData, m interface{}) error {
 		Region:                region,
 		HostInstanceType:      &hostInstanceType,
 		Size:                  &sddcSize,
+		MsftLicenseConfig:     msftLicensingConfig,
 	}
 
 	// Create a Sddc
@@ -393,6 +419,7 @@ func resourceSddcRead(d *schema.ResourceData, m interface{}) error {
 		d.Set("num_host", len(sddc.ResourceConfig.EsxHosts))
 		d.Set("vpc_cidr", *sddc.ResourceConfig.VpcInfo.VpcCidr)
 		d.Set("vxlan_subnet", sddc.ResourceConfig.VxlanSubnet)
+
 		sddcSizeInfo := map[string]string{}
 		sddcSizeInfo["vc_size"] = *sddc.ResourceConfig.SddcSize.VcSize
 		sddcSizeInfo["nsx_size"] = *sddc.ResourceConfig.SddcSize.NsxSize
@@ -409,6 +436,8 @@ func resourceSddcRead(d *schema.ResourceData, m interface{}) error {
 	cluster["cluster_name"] = *primaryCluster.ClusterName
 	cluster["cluster_state"] = *primaryCluster.ClusterState
 	cluster["host_instance_type"] = *primaryCluster.EsxHostInfo.InstanceType
+	cluster["mssql_licensing"] = *primaryCluster.MsftLicenseConfig.MssqlLicensing
+	cluster["windows_licensing"] = *primaryCluster.MsftLicenseConfig.WindowsLicensing
 	d.Set("cluster_info", cluster)
 
 	edrsPolicyClient := autoscalercluster.NewDefaultEdrsPolicyClient(connector)
@@ -565,6 +594,7 @@ func resourceSddcUpdate(d *schema.ResourceData, m interface{}) error {
 		}
 		d.Set("sddc_name", sddc.Name)
 	}
+
 	if d.HasChange("edrs_policy_type") || d.HasChange("enable_edrs") || d.HasChange("min_hosts") || d.HasChange("max_hosts") {
 		edrsPolicyClient := autoscalercluster.NewDefaultEdrsPolicyClient(connectorWrapper)
 		clusterID := d.Get("cluster_id").(string)
@@ -593,19 +623,55 @@ func resourceSddcUpdate(d *schema.ResourceData, m interface{}) error {
 					if err != nil {
 						return resource.NonRetryableError(fmt.Errorf("authentication error from Cloud Service Provider : %s", err))
 					}
-					return resource.RetryableError(fmt.Errorf("instance creation still in progress"))
+					return resource.RetryableError(fmt.Errorf("instance update still in progress"))
 				}
 				return resource.NonRetryableError(fmt.Errorf("error describing instance: %s", err))
 
 			}
 			if *task.Status != "FINISHED" {
-				return resource.RetryableError(fmt.Errorf("expected instance to be created but was in state %s", *task.Status))
+				return resource.RetryableError(fmt.Errorf("expected instance to be updated but was in state %s", *task.Status))
 			}
 			return resource.NonRetryableError(resourceSddcRead(d, m))
 		})
 	}
 	if d.HasChange("size") {
 		return fmt.Errorf("SDDC size update operation is not supported")
+	}
+
+	// Update microsoft licensing config
+	if d.HasChange("microsoft_licensing_config") {
+		configChangeParam := expandMsftLicenseConfig(d.Get("microsoft_licensing_config").([]interface{}))
+		primaryClusterClient := sddcs.NewDefaultPrimaryclusterClient(connectorWrapper)
+		primaryCluster, err := primaryClusterClient.Get(orgID, sddcID)
+		if err != nil {
+			return HandleReadError(d, "Primary Cluster", sddcID, err)
+		}
+		publishClient := msft_licensing.NewDefaultPublishClient(connectorWrapper)
+		task, err := publishClient.Post(orgID, sddcID, primaryCluster.ClusterId, *configChangeParam)
+		if err != nil {
+			return fmt.Errorf("Error updating license : %s", err)
+		}
+		return resource.Retry(d.Timeout(schema.TimeoutCreate), func() *resource.RetryError {
+			tasksClient := orgs.NewDefaultTasksClient(connectorWrapper)
+			task, err := tasksClient.Get(orgID, task.Id)
+			if err != nil {
+				if err.Error() == (errors.Unauthenticated{}.Error()) {
+					log.Print("Auth error", err.Error(), errors.Unauthenticated{}.Error())
+					err = connectorWrapper.authenticate()
+					if err != nil {
+						return resource.NonRetryableError(fmt.Errorf("authentication error from Cloud Service Provider : %s", err))
+					}
+					return resource.RetryableError(fmt.Errorf("instance update still in progress"))
+				}
+				return resource.NonRetryableError(fmt.Errorf("error describing instance: %s", err))
+
+			}
+			if *task.Status != "FINISHED" {
+				return resource.RetryableError(fmt.Errorf("expected instance to be updated but was in state %s", *task.Status))
+			}
+			return resource.NonRetryableError(resourceSddcRead(d, m))
+		})
+
 	}
 	return resourceSddcRead(d, m)
 }

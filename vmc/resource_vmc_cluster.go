@@ -5,6 +5,10 @@ package vmc
 
 import (
 	"fmt"
+	"log"
+	"strings"
+	"time"
+
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
@@ -15,9 +19,7 @@ import (
 	"github.com/vmware/vsphere-automation-sdk-go/services/vmc/model"
 	"github.com/vmware/vsphere-automation-sdk-go/services/vmc/orgs"
 	"github.com/vmware/vsphere-automation-sdk-go/services/vmc/orgs/sddcs"
-	"log"
-	"strings"
-	"time"
+	"github.com/vmware/vsphere-automation-sdk-go/services/vmc/orgs/sddcs/clusters/msft_licensing"
 )
 
 func resourceCluster() *schema.Resource {
@@ -47,7 +49,7 @@ func resourceCluster() *schema.Resource {
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(60 * time.Minute),
 			Delete: schema.DefaultTimeout(40 * time.Minute),
-			Update: schema.DefaultTimeout(60 * time.Minute),
+			Update: schema.DefaultTimeout(20 * time.Minute),
 		},
 		Schema: map[string]*schema.Schema{
 			"sddc_id": {
@@ -108,6 +110,29 @@ func resourceCluster() *schema.Resource {
 				ValidateFunc: validation.IntBetween(3, 16),
 				Description:  "The maximum number of hosts that the cluster can scale out to.",
 			},
+			"microsoft_licensing_config": {
+				Type: schema.TypeList,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"mssql_licensing": {
+							Type:        schema.TypeString,
+							Optional:    true,
+							Description: "The status of MSSQL licensing for this SDDC’s clusters. Possible values : enabled, ENABLED, disabled, DISABLED.",
+							ValidateFunc: validation.StringInSlice([]string{
+								LicenseConfigEnabled, LicenseConfigDisabled, CapitalLicenseConfigEnabled, CapitalLicenseConfigDisabled}, false),
+						},
+						"windows_licensing": {
+							Type:        schema.TypeString,
+							Optional:    true,
+							Description: "The status of Windows licensing for this SDDC's clusters. Possible values : enabled, ENABLED, disabled, DISABLED.",
+							ValidateFunc: validation.StringInSlice([]string{
+								LicenseConfigEnabled, LicenseConfigDisabled, CapitalLicenseConfigEnabled, CapitalLicenseConfigDisabled}, false),
+						},
+					},
+				},
+				Optional:    true,
+				Description: "Indicates the desired licensing support, if any, of Microsoft software.",
+			},
 			"cluster_info": {
 				Type:     schema.TypeMap,
 				Computed: true,
@@ -153,11 +178,13 @@ func resourceClusterCreate(d *schema.ResourceData, m interface{}) error {
 	if len(strings.TrimSpace(storageCapacity)) > 0 {
 		storageCapacityConverted = ConvertStorageCapacitytoInt(storageCapacity)
 	}
+	msftLicensingConfig := expandMsftLicenseConfig(d.Get("microsoft_licensing_config").([]interface{}))
 	clusterConfig := &model.ClusterConfig{
 		NumHosts:          numHosts,
 		HostCpuCoresCount: &hostCPUCoresCount,
 		HostInstanceType:  &hostInstanceType,
 		StorageCapacity:   &storageCapacityConverted,
+		MsftLicenseConfig: msftLicensingConfig,
 	}
 
 	task, err := clusterClient.Create(orgID, sddcID, *clusterConfig)
@@ -201,7 +228,6 @@ func resourceClusterRead(d *schema.ResourceData, m interface{}) error {
 	sddcID := d.Get("sddc_id").(string)
 	orgID := (m.(*ConnectorWrapper)).OrgID
 	sddc, err := GetSDDC(connector, orgID, sddcID)
-	log.Printf("SDDC ID : %s", sddcID)
 	if err != nil {
 		return HandleReadError(d, "Cluster", clusterID, err)
 	}
@@ -230,6 +256,8 @@ func resourceClusterRead(d *schema.ResourceData, m interface{}) error {
 			cluster["cluster_name"] = *clusterConfig.ClusterName
 			cluster["cluster_state"] = *clusterConfig.ClusterState
 			cluster["host_instance_type"] = *clusterConfig.EsxHostInfo.InstanceType
+			cluster["mssql_licensing"] = *clusterConfig.MsftLicenseConfig.MssqlLicensing
+			cluster["windows_licensing"] = *clusterConfig.MsftLicenseConfig.WindowsLicensing
 			d.Set("cluster_info", cluster)
 			d.Set("num_hosts", len(clusterConfig.EsxHostList))
 			break
@@ -345,16 +373,46 @@ func resourceClusterUpdate(d *schema.ResourceData, m interface{}) error {
 					if err != nil {
 						return resource.NonRetryableError(fmt.Errorf("authentication error from Cloud Service Provider : %s", err))
 					}
-					return resource.RetryableError(fmt.Errorf("instance creation still in progress"))
+					return resource.RetryableError(fmt.Errorf("instance update still in progress"))
 				}
 				return resource.NonRetryableError(fmt.Errorf("error describing instance: %s", err))
 
 			}
 			if *task.Status != "FINISHED" {
-				return resource.RetryableError(fmt.Errorf("expected instance to be created but was in state %s", *task.Status))
+				return resource.RetryableError(fmt.Errorf("expected instance to be updated but was in state %s", *task.Status))
 			}
 			return resource.NonRetryableError(resourceClusterRead(d, m))
 		})
+	}
+	// Update microsoft licensing config
+	if d.HasChange("microsoft_licensing_config") {
+		configChangeParam := expandMsftLicenseConfig(d.Get("microsoft_licensing_config").([]interface{}))
+		publishClient := msft_licensing.NewDefaultPublishClient(connectorWrapper)
+		task, err := publishClient.Post(orgID, sddcID, clusterID, *configChangeParam)
+		if err != nil {
+			return HandleUpdateError("Microsoft Licensing Config", err)
+		}
+		return resource.Retry(d.Timeout(schema.TimeoutCreate), func() *resource.RetryError {
+			tasksClient := orgs.NewDefaultTasksClient(connectorWrapper)
+			task, err := tasksClient.Get(orgID, task.Id)
+			if err != nil {
+				if err.Error() == (errors.Unauthenticated{}.Error()) {
+					log.Print("Auth error", err.Error(), errors.Unauthenticated{}.Error())
+					err = connectorWrapper.authenticate()
+					if err != nil {
+						return resource.NonRetryableError(fmt.Errorf("authentication error from Cloud Service Provider : %s", err))
+					}
+					return resource.RetryableError(fmt.Errorf("instance update still in progress"))
+				}
+				return resource.NonRetryableError(fmt.Errorf("error describing instance: %s", err))
+
+			}
+			if *task.Status != "FINISHED" {
+				return resource.RetryableError(fmt.Errorf("expected instance to be updated but was in state %s", *task.Status))
+			}
+			return resource.NonRetryableError(resourceClusterRead(d, m))
+		})
+
 	}
 	return nil
 }

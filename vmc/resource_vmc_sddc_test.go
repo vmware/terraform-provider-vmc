@@ -133,12 +133,17 @@ resource "vmc_sddc" "sddc_1" {
 	delay_account_link  = false
 	skip_creating_vxlan = false
 	sso_domain          = "vmc.local"
-    size = "large"
+	size = "large"
 
 	deployment_type = "SingleAZ"
-    account_link_sddc_config {
+	
+	account_link_sddc_config {
     customer_subnet_ids  = [data.vmc_customer_subnets.my_subnets.ids[0]]
     connected_account_id = data.vmc_connected_accounts.my_accounts.id
+	}
+	microsoft_licensing_config {
+        mssql_licensing = "DISABLED"
+        windows_licensing = "ENABLED"
     }
     timeouts {
       create = "300m"

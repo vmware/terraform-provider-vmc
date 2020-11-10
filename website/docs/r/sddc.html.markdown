@@ -49,6 +49,10 @@ resource "vmc_sddc" "sddc_1" {
     customer_subnet_ids  = [data.vmc_customer_subnets.my_subnets.ids[0]]
     connected_account_id = data.vmc_connected_accounts.my_accounts.id
   }
+  microsoft_licensing_config {
+   mssql_licensing = "ENABLED"
+   windows_licensing = "DISABLED"
+  }
 }
 ```
 ## Modifying an Elastic DRS policy for vmc_sddc
@@ -98,6 +102,10 @@ resource "vmc_sddc" "sddc_1" {
     customer_subnet_ids  = [data.vmc_customer_subnets.my_subnets.ids[0]]
     connected_account_id = data.vmc_connected_accounts.my_accounts.id
   }
+  microsoft_licensing_config {
+   mssql_licensing = "ENABLED"
+   windows_licensing = "DISABLED"
+  }
   edrs_policy_type = "cost"
   enable_edrs = true
   min_hosts = 3
@@ -142,6 +150,10 @@ resource "vmc_sddc" "sddc_1" {
   account_link_sddc_config {
     customer_subnet_ids  = [data.vmc_customer_subnets.my_subnets.ids[0],data.vmc_customer_subnets.my_subnets.ids[1]]
     connected_account_id = data.vmc_connected_accounts.my_accounts.id
+  }
+  microsoft_licensing_config {
+   mssql_licensing = "ENABLED"
+   windows_licensing = "DISABLED"
   }
 }
 ```
@@ -192,6 +204,8 @@ The following arguments are supported:
 * `deployment_type` - (Optional) Denotes if request is for a SingleAZ or a MultiAZ SDDC. Default : SingleAZ.
 
 * `cluster_id` - (Optional) Cluster identifier.
+
+* `microsoft_licensing_config` - (Optional) Indicates the desired licensing support, if any, of Microsoft software.
 
 ## Attributes Reference
 

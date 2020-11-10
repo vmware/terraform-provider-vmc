@@ -26,8 +26,8 @@ resource "vmc_sddc" "sddc_1" {
   skip_creating_vxlan = false
   sso_domain          = "vmc.local"
   sddc_type = var.sddc_type
-  deployment_type = "SingleAZ"
-  size = "large"
+  deployment_type = var.deployment_type
+  size = var.size
   host_instance_type = var.host_instance_type
   storage_capacity = var.storage_capacity
 
@@ -35,6 +35,12 @@ resource "vmc_sddc" "sddc_1" {
     customer_subnet_ids  = [data.vmc_customer_subnets.my_subnets.ids[0]]
     connected_account_id = data.vmc_connected_accounts.my_accounts.id
   }
+
+  microsoft_licensing_config {
+    mssql_licensing = "ENABLED"
+    windows_licensing = "DISABLED"
+  }
+
   timeouts {
     create = "300m"
     update = "300m"
