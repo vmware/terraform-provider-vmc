@@ -47,8 +47,10 @@ const (
 	RapidScaleUpPolicyType   = "rapid-scaleup"
 
 	// Microsoft licensing config actions
-	LicenseConfigEnabled  = "ENABLED"
-	LicenseConfigDisabled = "DISABLED"
+	LicenseConfigEnabled         = "enabled"
+	LicenseConfigDisabled        = "disabled"
+	CapitalLicenseConfigEnabled  = "ENABLED"
+	CapitalLicenseConfigDisabled = "DISABLED"
 
 	// Env variables used in acceptance tests
 	APIToken            string = "API_TOKEN"

@@ -193,17 +193,15 @@ func resourceSddc() *schema.Resource {
 							Type:        schema.TypeString,
 							Optional:    true,
 							Description: "The status of MSSQL licensing for this SDDC’s clusters. Possible values : ENABLED or DISABLED.",
-							/*ValidateFunc: validation.StringInSlice([]string{
-								LicenseConfigEnabled, LicenseConfigDisabled,
-							}, false),*/
+							ValidateFunc: validation.StringInSlice([]string{
+								LicenseConfigEnabled, LicenseConfigDisabled, CapitalLicenseConfigEnabled, CapitalLicenseConfigDisabled}, false),
 						},
 						"windows_licensing": {
 							Type:        schema.TypeString,
 							Optional:    true,
 							Description: "The status of Windows licensing for this SDDC's clusters. Possible values : ENABLED, DISABLED or CUSTOMER'S ",
 							ValidateFunc: validation.StringInSlice([]string{
-								LicenseConfigEnabled, LicenseConfigDisabled,
-							}, false),
+								LicenseConfigEnabled, LicenseConfigDisabled, CapitalLicenseConfigEnabled, CapitalLicenseConfigDisabled}, false),
 						},
 					},
 				},
@@ -703,16 +701,4 @@ func expandAccountLinkSddcConfig(l []interface{}) []model.AccountLinkSddcConfig 
 		configs = append(configs, con)
 	}
 	return configs
-}
-
-func expandMsftLicenseConfig(config []interface{}) *model.MsftLicensingConfig {
-	if len(config) == 0 {
-		return nil
-	}
-	var licenseConfig model.MsftLicensingConfig
-	licenseConfigMap := config[0].(map[string]interface{})
-	mssqlLicensing := licenseConfigMap["mssql_licensing"].(string)
-	windowsLicensing := licenseConfigMap["windows_licensing"].(string)
-	licenseConfig = model.MsftLicensingConfig{MssqlLicensing: &mssqlLicensing, WindowsLicensing: &windowsLicensing}
-	return &licenseConfig
 }
