@@ -117,14 +117,14 @@ func resourceCluster() *schema.Resource {
 						"mssql_licensing": {
 							Type:        schema.TypeString,
 							Optional:    true,
-							Description: "The status of MSSQL licensing for this SDDC’s clusters. Possible values : ENABLED or DISABLED.",
+							Description: "The status of MSSQL licensing for this SDDC’s clusters. Possible values : enabled, ENABLED, disabled, DISABLED.",
 							ValidateFunc: validation.StringInSlice([]string{
 								LicenseConfigEnabled, LicenseConfigDisabled, CapitalLicenseConfigEnabled, CapitalLicenseConfigDisabled}, false),
 						},
 						"windows_licensing": {
 							Type:        schema.TypeString,
 							Optional:    true,
-							Description: "The status of Windows licensing for this SDDC's clusters. Possible values : ENABLED, DISABLED or CUSTOMER'S ",
+							Description: "The status of Windows licensing for this SDDC's clusters. Possible values : enabled, ENABLED, disabled, DISABLED.",
 							ValidateFunc: validation.StringInSlice([]string{
 								LicenseConfigEnabled, LicenseConfigDisabled, CapitalLicenseConfigEnabled, CapitalLicenseConfigDisabled}, false),
 						},
