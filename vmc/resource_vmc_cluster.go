@@ -375,13 +375,13 @@ func resourceClusterUpdate(d *schema.ResourceData, m interface{}) error {
 					if err != nil {
 						return resource.NonRetryableError(fmt.Errorf("authentication error from Cloud Service Provider : %s", err))
 					}
-					return resource.RetryableError(fmt.Errorf("instance creation still in progress"))
+					return resource.RetryableError(fmt.Errorf("instance update still in progress"))
 				}
 				return resource.NonRetryableError(fmt.Errorf("error describing instance: %s", err))
 
 			}
 			if *task.Status != "FINISHED" {
-				return resource.RetryableError(fmt.Errorf("expected instance to be created but was in state %s", *task.Status))
+				return resource.RetryableError(fmt.Errorf("expected instance to be updated but was in state %s", *task.Status))
 			}
 			return resource.NonRetryableError(resourceClusterRead(d, m))
 		})
@@ -404,13 +404,13 @@ func resourceClusterUpdate(d *schema.ResourceData, m interface{}) error {
 					if err != nil {
 						return resource.NonRetryableError(fmt.Errorf("authentication error from Cloud Service Provider : %s", err))
 					}
-					return resource.RetryableError(fmt.Errorf("instance creation still in progress"))
+					return resource.RetryableError(fmt.Errorf("instance update still in progress"))
 				}
 				return resource.NonRetryableError(fmt.Errorf("error describing instance: %s", err))
 
 			}
 			if *task.Status != "FINISHED" {
-				return resource.RetryableError(fmt.Errorf("expected instance to be created but was in state %s", *task.Status))
+				return resource.RetryableError(fmt.Errorf("expected instance to be updated but was in state %s", *task.Status))
 			}
 			return resource.NonRetryableError(resourceClusterRead(d, m))
 		})
