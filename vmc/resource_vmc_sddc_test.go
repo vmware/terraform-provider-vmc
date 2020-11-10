@@ -133,7 +133,7 @@ resource "vmc_sddc" "sddc_1" {
 	delay_account_link  = false
 	skip_creating_vxlan = false
 	sso_domain          = "vmc.local"
-    size = "large"
+	size = "large"
 
 	deployment_type = "SingleAZ"
 	
