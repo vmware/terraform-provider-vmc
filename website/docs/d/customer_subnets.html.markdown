@@ -33,6 +33,8 @@ data "vmc_customer_subnets" "my_subnets" {
 
 * `instance_type` - (Optional) The server instance type to be used.
 
+* `sddc_type` - (Optional) The sddc type to be used. (1NODE, SingleAZ, MultiAZ)
+
 ## Attributes Reference
 
 In addition to arguments listed above, the following attributes are exported:
