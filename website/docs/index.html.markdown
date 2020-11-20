@@ -34,8 +34,8 @@ The following arguments are used to configure the VMware Cloud on AWS Provider:
 * `api_token` - (Required) API token is used to authenticate when calling VMware Cloud Services APIs.
    This token is scoped within the organization.
 *  `org_id` - (Required) Organization Identifier.
-*  `vmc_url` - (Required) VMware Cloud on AWS URL.
-*  `csp_url` - (Required) Cloud Service Provider URL.
+*  `vmc_url` - (Optional) VMware Cloud on AWS URL. Default : https://vmc.vmware.com
+*  `csp_url` - (Optional) Cloud Service Provider URL. Default : https://console.cloud.vmware.com
 
 #### Example main.tf file
 

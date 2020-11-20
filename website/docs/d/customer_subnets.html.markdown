@@ -25,13 +25,15 @@ data "vmc_customer_subnets" "my_subnets" {
 
 * `num_hosts` - (Optional) The number of hosts.
 
-* `connected_account_id` - (Optional) The linked connected account identifier.
+* `connected_account_id` - (Required) The linked connected account identifier.
 
 * `sddc_id` - (Optional) SDDC identifier.
 
-* `force_refresh` - (Optional) Boolean value when set to true, forces the mappings for datacenters to be refreshed for the connected account.
+* `force_refresh` - (Optional) When true, forces the mappings for datacenters to be refreshed for the connected account.
 
 * `instance_type` - (Optional) The server instance type to be used.
+
+* `sddc_type` - (Optional) The sddc type to be used. (1NODE, SingleAZ, MultiAZ)
 
 ## Attributes Reference
 
