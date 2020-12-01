@@ -5,10 +5,11 @@ package vmc
 
 import (
 	"fmt"
-	"github.com/hashicorp/terraform/helper/validation"
 	"log"
 	"strings"
 	"time"
+
+	"github.com/hashicorp/terraform/helper/validation"
 
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/helper/schema"
@@ -110,9 +111,10 @@ func resourceSiteRecoveryCreate(d *schema.ResourceData, m interface{}) error {
 				return resource.RetryableError(fmt.Errorf("instance creation still in progress"))
 			}
 			return resource.NonRetryableError(fmt.Errorf("error describing instance: %s", err))
-
 		}
-
+		if *task.Status == "FAILED" {
+			return resource.NonRetryableError(fmt.Errorf("expected instance to be created but was in state %s", *task.Status))
+		}
 		if *task.Status != "FINISHED" {
 			return resource.RetryableError(fmt.Errorf("expected instance to be created but was in state %s", *task.Status))
 		}
@@ -190,6 +192,9 @@ func resourceSiteRecoveryDelete(d *schema.ResourceData, m interface{}) error {
 		task, err := tasksClient.Get(orgID, task.Id)
 		if err != nil {
 			return resource.NonRetryableError(fmt.Errorf("error deactivating site recovery for SDDC %s : %v", sddcID, err))
+		}
+		if *task.Status == "FAILED" {
+			return resource.NonRetryableError(fmt.Errorf("expected instance to be deleted but was in state %s", *task.Status))
 		}
 		if *task.Status != "FINISHED" {
 			return resource.RetryableError(fmt.Errorf("expected instance to be deleted but was in state %s", *task.Status))

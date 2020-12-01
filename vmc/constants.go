@@ -48,6 +48,9 @@ const (
 	CapitalLicenseConfigEnabled  = "ENABLED"
 	CapitalLicenseConfigDisabled = "DISABLED"
 
+	//SDDC Type
+	OneNodeSDDCType = "1NODE"
+
 	// Env variables used in acceptance tests
 	APIToken            string = "API_TOKEN"
 	OrgID               string = "ORG_ID"

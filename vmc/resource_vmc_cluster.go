@@ -215,6 +215,9 @@ func resourceClusterCreate(d *schema.ResourceData, m interface{}) error {
 			}
 			d.SetId(clusterID)
 		}
+		if *task.Status == "FAILED" {
+			return resource.NonRetryableError(fmt.Errorf("expected instance to be created but was in state %s", *task.Status))
+		}
 		if *task.Status != "FINISHED" {
 			return resource.RetryableError(fmt.Errorf("expected instance to be created but was in state %s", *task.Status))
 		}
@@ -256,8 +259,10 @@ func resourceClusterRead(d *schema.ResourceData, m interface{}) error {
 			cluster["cluster_name"] = *clusterConfig.ClusterName
 			cluster["cluster_state"] = *clusterConfig.ClusterState
 			cluster["host_instance_type"] = *clusterConfig.EsxHostInfo.InstanceType
-			cluster["mssql_licensing"] = *clusterConfig.MsftLicenseConfig.MssqlLicensing
-			cluster["windows_licensing"] = *clusterConfig.MsftLicenseConfig.WindowsLicensing
+			if clusterConfig.MsftLicenseConfig != nil {
+				cluster["mssql_licensing"] = *clusterConfig.MsftLicenseConfig.MssqlLicensing
+				cluster["windows_licensing"] = *clusterConfig.MsftLicenseConfig.WindowsLicensing
+			}
 			d.Set("cluster_info", cluster)
 			d.Set("num_hosts", len(clusterConfig.EsxHostList))
 			break
@@ -292,6 +297,9 @@ func resourceClusterDelete(d *schema.ResourceData, m interface{}) error {
 		task, err := tasksClient.Get(orgID, task.Id)
 		if err != nil {
 			return resource.NonRetryableError(fmt.Errorf("error while deleting SDDC %s: %v", sddcID, err))
+		}
+		if *task.Status == "FAILED" {
+			return resource.NonRetryableError(fmt.Errorf("expected instance to be deleted but was in state %s", *task.Status))
 		}
 		if *task.Status != "FINISHED" {
 			return resource.RetryableError(fmt.Errorf("expected instance to be deleted but was in state %s", *task.Status))
@@ -338,6 +346,9 @@ func resourceClusterUpdate(d *schema.ResourceData, m interface{}) error {
 			if err != nil {
 				return resource.NonRetryableError(fmt.Errorf("error while waiting for task %s: %v", task.Id, err))
 			}
+			if *task.Status == "FAILED" {
+				return resource.NonRetryableError(fmt.Errorf("expected instance to be updated but was in state %s", *task.Status))
+			}
 			if *task.Status != "FINISHED" {
 				return resource.RetryableError(fmt.Errorf("expected hosts to be updated but were in state %s", *task.Status))
 			}
@@ -359,6 +370,9 @@ func resourceClusterUpdate(d *schema.ResourceData, m interface{}) error {
 			MinHosts:   &minHosts,
 			MaxHosts:   &maxHosts,
 		}
+		if policyType == StorageScaleUpPolicyType && enableEDRS == false {
+			return fmt.Errorf("EDRS policy %s is the default and cannot be disabled", StorageScaleUpPolicyType)
+		}
 		task, err := edrsPolicyClient.Post(orgID, sddcID, clusterID, *edrsPolicy)
 		if err != nil {
 			return HandleUpdateError("EDRS Policy", err)
@@ -376,7 +390,9 @@ func resourceClusterUpdate(d *schema.ResourceData, m interface{}) error {
 					return resource.RetryableError(fmt.Errorf("instance update still in progress"))
 				}
 				return resource.NonRetryableError(fmt.Errorf("error describing instance: %s", err))
-
+			}
+			if *task.Status == "FAILED" {
+				return resource.NonRetryableError(fmt.Errorf("expected instance to be updated but was in state %s", *task.Status))
 			}
 			if *task.Status != "FINISHED" {
 				return resource.RetryableError(fmt.Errorf("expected instance to be updated but was in state %s", *task.Status))
@@ -405,7 +421,9 @@ func resourceClusterUpdate(d *schema.ResourceData, m interface{}) error {
 					return resource.RetryableError(fmt.Errorf("instance update still in progress"))
 				}
 				return resource.NonRetryableError(fmt.Errorf("error describing instance: %s", err))
-
+			}
+			if *task.Status == "FAILED" {
+				return resource.NonRetryableError(fmt.Errorf("expected instance to be updated but was in state %s", *task.Status))
 			}
 			if *task.Status != "FINISHED" {
 				return resource.RetryableError(fmt.Errorf("expected instance to be updated but was in state %s", *task.Status))
