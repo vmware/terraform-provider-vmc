@@ -615,7 +615,7 @@ func resourceSddcUpdate(d *schema.ResourceData, m interface{}) error {
 		maxHosts := int64(d.Get("max_hosts").(int))
 		policyType := d.Get("edrs_policy_type").(string)
 		enableEDRS := d.Get("enable_edrs").(bool)
-		if policyType == StorageScaleUpPolicyType && enableEDRS == false {
+		if policyType == StorageScaleUpPolicyType && !enableEDRS {
 			return fmt.Errorf("EDRS policy %s is the default and cannot be disabled", StorageScaleUpPolicyType)
 		}
 		edrsPolicy := &autoscalermodel.EdrsPolicy{

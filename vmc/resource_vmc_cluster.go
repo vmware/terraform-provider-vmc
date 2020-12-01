@@ -370,7 +370,7 @@ func resourceClusterUpdate(d *schema.ResourceData, m interface{}) error {
 			MinHosts:   &minHosts,
 			MaxHosts:   &maxHosts,
 		}
-		if policyType == StorageScaleUpPolicyType && enableEDRS == false {
+		if policyType == StorageScaleUpPolicyType && !enableEDRS {
 			return fmt.Errorf("EDRS policy %s is the default and cannot be disabled", StorageScaleUpPolicyType)
 		}
 		task, err := edrsPolicyClient.Post(orgID, sddcID, clusterID, *edrsPolicy)
