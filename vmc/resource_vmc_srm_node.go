@@ -97,20 +97,19 @@ func resourceSRMNodeCreate(d *schema.ResourceData, m interface{}) error {
 		task, err := tasksClient.Get(orgID, task.Id)
 		if err != nil {
 			if err.Error() == (errors.Unauthenticated{}.Error()) {
-				log.Print("Auth error", err.Error(), errors.Unauthenticated{}.Error())
+				log.Printf("Authentication error : %v", errors.Unauthenticated{}.Error())
 				err = (m.(*ConnectorWrapper)).authenticate()
 				if err != nil {
 					return resource.NonRetryableError(fmt.Errorf("authentication error from Cloud Service Provider: %s", err))
 				}
 				return resource.RetryableError(fmt.Errorf("instance creation still in progress"))
 			}
-			return resource.NonRetryableError(fmt.Errorf("error describing instance: %s", err))
+			return resource.NonRetryableError(fmt.Errorf("error creating SRM node : %v", err))
 		}
 		if *task.Status == "FAILED" {
-			return resource.NonRetryableError(fmt.Errorf("task failed to create instance"))
-		}
-		if *task.Status != "FINISHED" {
-			return resource.RetryableError(fmt.Errorf("expected instance to be created but was in state %s", *task.Status))
+			return resource.NonRetryableError(fmt.Errorf("task failed to create SRM node"))
+		} else if *task.Status != "FINISHED" {
+			return resource.RetryableError(fmt.Errorf("expected SRM node to be created but was in state %s", *task.Status))
 		}
 		return resource.NonRetryableError(resourceSRMNodeRead(d, m))
 	})
@@ -126,23 +125,23 @@ func resourceSRMNodeRead(d *schema.ResourceData, m interface{}) error {
 	if err != nil {
 		return HandleReadError(d, "SRM Node", sddcID, err)
 	}
-	srm_node := map[string]string{}
+	srmNodeMap := map[string]string{}
 	d.Set("sddc_id", *siteRecovery.SddcId)
 	for _, SRMNode := range siteRecovery.SrmNodes {
 		if *SRMNode.Id == srmNodeID {
-			srm_node["id"] = *SRMNode.Id
-			srm_node["ip_address"] = *SRMNode.IpAddress
-			srm_node["host_name"] = *SRMNode.Hostname
-			srm_node["state"] = *SRMNode.State
-			srm_node["type"] = *SRMNode.Type_
-			srm_node["vm_moref_id"] = *SRMNode.VmMorefId
+			srmNodeMap["id"] = *SRMNode.Id
+			srmNodeMap["ip_address"] = *SRMNode.IpAddress
+			srmNodeMap["host_name"] = *SRMNode.Hostname
+			srmNodeMap["state"] = *SRMNode.State
+			srmNodeMap["type"] = *SRMNode.Type_
+			srmNodeMap["vm_moref_id"] = *SRMNode.VmMorefId
 			hostName := strings.TrimPrefix(*SRMNode.Hostname, SRMPrefix)
 			partStr := strings.Split(hostName, SDDCSuffix)
 			d.Set("srm_node_extension_key_suffix", partStr[0])
 			break
 		}
 	}
-	d.Set("srm_instance", srm_node)
+	d.Set("srm_instance", srmNodeMap)
 	return nil
 }
 
@@ -161,13 +160,12 @@ func resourceSRMNodeDelete(d *schema.ResourceData, m interface{}) error {
 	return resource.Retry(d.Timeout(schema.TimeoutDelete), func() *resource.RetryError {
 		task, err := tasksClient.Get(orgID, task.Id)
 		if err != nil {
-			return resource.NonRetryableError(fmt.Errorf("error deactivating site recovery instance for SDDC %s : %v", sddcID, err))
+			return resource.NonRetryableError(fmt.Errorf("error deleting SRM node for SDDC %s : %v", sddcID, err))
 		}
 		if *task.Status == "FAILED" {
-			return resource.NonRetryableError(fmt.Errorf("task failed to delete instance"))
-		}
-		if *task.Status != "FINISHED" {
-			return resource.RetryableError(fmt.Errorf("expected instance to be deleted but was in state %s", *task.Status))
+			return resource.NonRetryableError(fmt.Errorf("task failed to delete SRM node"))
+		} else if *task.Status != "FINISHED" {
+			return resource.RetryableError(fmt.Errorf("expected SRM node to be deleted but was in state %s", *task.Status))
 		}
 		d.SetId("")
 		return resource.NonRetryableError(nil)
