@@ -216,7 +216,7 @@ func resourceClusterCreate(d *schema.ResourceData, m interface{}) error {
 			d.SetId(clusterID)
 		}
 		if *task.Status == "FAILED" {
-			return resource.NonRetryableError(fmt.Errorf("expected instance to be created but was in state %s", *task.Status))
+			return resource.NonRetryableError(fmt.Errorf("task failed to create instance"))
 		}
 		if *task.Status != "FINISHED" {
 			return resource.RetryableError(fmt.Errorf("expected instance to be created but was in state %s", *task.Status))
@@ -299,7 +299,7 @@ func resourceClusterDelete(d *schema.ResourceData, m interface{}) error {
 			return resource.NonRetryableError(fmt.Errorf("error while deleting SDDC %s: %v", sddcID, err))
 		}
 		if *task.Status == "FAILED" {
-			return resource.NonRetryableError(fmt.Errorf("expected instance to be deleted but was in state %s", *task.Status))
+			return resource.NonRetryableError(fmt.Errorf("task failed to delete instance"))
 		}
 		if *task.Status != "FINISHED" {
 			return resource.RetryableError(fmt.Errorf("expected instance to be deleted but was in state %s", *task.Status))
@@ -347,7 +347,7 @@ func resourceClusterUpdate(d *schema.ResourceData, m interface{}) error {
 				return resource.NonRetryableError(fmt.Errorf("error while waiting for task %s: %v", task.Id, err))
 			}
 			if *task.Status == "FAILED" {
-				return resource.NonRetryableError(fmt.Errorf("expected instance to be updated but was in state %s", *task.Status))
+				return resource.NonRetryableError(fmt.Errorf("task failed to update instance"))
 			}
 			if *task.Status != "FINISHED" {
 				return resource.RetryableError(fmt.Errorf("expected hosts to be updated but were in state %s", *task.Status))
@@ -392,7 +392,7 @@ func resourceClusterUpdate(d *schema.ResourceData, m interface{}) error {
 				return resource.NonRetryableError(fmt.Errorf("error describing instance: %s", err))
 			}
 			if *task.Status == "FAILED" {
-				return resource.NonRetryableError(fmt.Errorf("expected instance to be updated but was in state %s", *task.Status))
+				return resource.NonRetryableError(fmt.Errorf("task failed to update instance"))
 			}
 			if *task.Status != "FINISHED" {
 				return resource.RetryableError(fmt.Errorf("expected instance to be updated but was in state %s", *task.Status))
@@ -423,7 +423,7 @@ func resourceClusterUpdate(d *schema.ResourceData, m interface{}) error {
 				return resource.NonRetryableError(fmt.Errorf("error describing instance: %s", err))
 			}
 			if *task.Status == "FAILED" {
-				return resource.NonRetryableError(fmt.Errorf("expected instance to be updated but was in state %s", *task.Status))
+				return resource.NonRetryableError(fmt.Errorf("task failed to update instance"))
 			}
 			if *task.Status != "FINISHED" {
 				return resource.RetryableError(fmt.Errorf("expected instance to be updated but was in state %s", *task.Status))

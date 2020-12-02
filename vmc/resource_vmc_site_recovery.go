@@ -113,7 +113,7 @@ func resourceSiteRecoveryCreate(d *schema.ResourceData, m interface{}) error {
 			return resource.NonRetryableError(fmt.Errorf("error describing instance: %s", err))
 		}
 		if *task.Status == "FAILED" {
-			return resource.NonRetryableError(fmt.Errorf("expected instance to be created but was in state %s", *task.Status))
+			return resource.NonRetryableError(fmt.Errorf("task failed to create instance"))
 		}
 		if *task.Status != "FINISHED" {
 			return resource.RetryableError(fmt.Errorf("expected instance to be created but was in state %s", *task.Status))
@@ -194,7 +194,7 @@ func resourceSiteRecoveryDelete(d *schema.ResourceData, m interface{}) error {
 			return resource.NonRetryableError(fmt.Errorf("error deactivating site recovery for SDDC %s : %v", sddcID, err))
 		}
 		if *task.Status == "FAILED" {
-			return resource.NonRetryableError(fmt.Errorf("expected instance to be deleted but was in state %s", *task.Status))
+			return resource.NonRetryableError(fmt.Errorf("task failed to delete instance"))
 		}
 		if *task.Status != "FINISHED" {
 			return resource.RetryableError(fmt.Errorf("expected instance to be deleted but was in state %s", *task.Status))

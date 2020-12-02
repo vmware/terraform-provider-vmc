@@ -48,7 +48,7 @@ const (
 	CapitalLicenseConfigEnabled  = "ENABLED"
 	CapitalLicenseConfigDisabled = "DISABLED"
 
-	//SDDC Type
+	// SDDC Type
 	OneNodeSDDCType = "1NODE"
 
 	// Env variables used in acceptance tests
