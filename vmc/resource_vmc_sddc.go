@@ -602,8 +602,8 @@ func resourceSddcUpdate(d *schema.ResourceData, m interface{}) error {
 
 	if d.HasChange("edrs_policy_type") || d.HasChange("enable_edrs") || d.HasChange("min_hosts") || d.HasChange("max_hosts") {
 
-		SDDCType := d.Get("sddc_type").(string)
-		if SDDCType == OneNodeSDDCType {
+		sddcType := d.Get("sddc_type").(string)
+		if sddcType == OneNodeSddcType {
 			return fmt.Errorf("EDRS policy cannot be updated for SDDC with type %s", OneNodeSDDCType)
 		}
 		clusterID := d.Get("cluster_id").(string)
@@ -705,10 +705,10 @@ func expandAccountLinkSddcConfig(l []interface{}) []model.AccountLinkSddcConfig 
 		for _, subnetID := range c["customer_subnet_ids"].([]interface{}) {
 			subnetIds = append(subnetIds, subnetID.(string))
 		}
-		var connectedAccId = c["connected_account_id"].(string)
+		var connectedAccID = c["connected_account_id"].(string)
 		con := model.AccountLinkSddcConfig{
 			CustomerSubnetIds:  subnetIds,
-			ConnectedAccountId: &connectedAccId,
+			ConnectedAccountId: &connectedAccID,
 		}
 
 		configs = append(configs, con)

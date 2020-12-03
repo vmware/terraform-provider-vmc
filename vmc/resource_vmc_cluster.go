@@ -218,7 +218,7 @@ func resourceClusterCreate(d *schema.ResourceData, m interface{}) error {
 		if *task.Status == "FAILED" {
 			return resource.NonRetryableError(fmt.Errorf("task failed to create cluster"))
 		} else if *task.Status != "FINISHED" {
-			return resource.RetryableError(fmt.Errorf("expected cluster to be create but was in state %s", *task.Status))
+			return resource.RetryableError(fmt.Errorf("expected cluster to be created but was in state %s", *task.Status))
 		}
 		return resource.NonRetryableError(resourceClusterRead(d, m))
 	})
@@ -298,9 +298,9 @@ func resourceClusterDelete(d *schema.ResourceData, m interface{}) error {
 			return resource.NonRetryableError(fmt.Errorf("error deleting cluster %s : %v", clusterID, err))
 		}
 		if *task.Status == "FAILED" {
-			return resource.NonRetryableError(fmt.Errorf("task failed to create cluster"))
+			return resource.NonRetryableError(fmt.Errorf("task failed to delete cluster"))
 		} else if *task.Status != "FINISHED" {
-			return resource.RetryableError(fmt.Errorf("expected cluster to be created but was in state %s", *task.Status))
+			return resource.RetryableError(fmt.Errorf("expected cluster to be deleted but was in state %s", *task.Status))
 		}
 		d.SetId("")
 		return resource.NonRetryableError(nil)
@@ -389,7 +389,7 @@ func resourceClusterUpdate(d *schema.ResourceData, m interface{}) error {
 				return resource.NonRetryableError(fmt.Errorf("error updating EDRS policy configuration : %v", err))
 			}
 			if *task.Status == "FAILED" {
-				return resource.NonRetryableError(fmt.Errorf("task failed to EDRS policy configuration"))
+				return resource.NonRetryableError(fmt.Errorf("task failed to update EDRS policy configuration"))
 			} else if *task.Status != "FINISHED" {
 				return resource.RetryableError(fmt.Errorf("expected EDRS policy configuration to be updated but was in state %s", *task.Status))
 			}
@@ -419,7 +419,7 @@ func resourceClusterUpdate(d *schema.ResourceData, m interface{}) error {
 				return resource.NonRetryableError(fmt.Errorf("error updating microsoft licensing configuration : %v", err))
 			}
 			if *task.Status == "FAILED" {
-				return resource.NonRetryableError(fmt.Errorf("task failed to microsoft licensing configuration"))
+				return resource.NonRetryableError(fmt.Errorf("task failed to update microsoft licensing configuration"))
 			} else if *task.Status != "FINISHED" {
 				return resource.RetryableError(fmt.Errorf("expected microsoft licensing configuration to be updated but was in state %s", *task.Status))
 			}
