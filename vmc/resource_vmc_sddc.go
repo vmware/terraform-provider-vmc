@@ -604,7 +604,7 @@ func resourceSddcUpdate(d *schema.ResourceData, m interface{}) error {
 
 		sddcType := d.Get("sddc_type").(string)
 		if sddcType == OneNodeSddcType {
-			return fmt.Errorf("EDRS policy cannot be updated for SDDC with type %s", OneNodeSDDCType)
+			return fmt.Errorf("EDRS policy cannot be updated for SDDC with type %s", OneNodeSddcType)
 		}
 		clusterID := d.Get("cluster_id").(string)
 		minHosts := int64(d.Get("min_hosts").(int))
