@@ -5,10 +5,11 @@ package vmc
 
 import (
 	"fmt"
-	"github.com/hashicorp/terraform/helper/validation"
 	"log"
 	"strings"
 	"time"
+
+	"github.com/hashicorp/terraform/helper/validation"
 
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/helper/schema"
@@ -102,19 +103,19 @@ func resourceSiteRecoveryCreate(d *schema.ResourceData, m interface{}) error {
 		task, err := tasksClient.Get(orgID, task.Id)
 		if err != nil {
 			if err.Error() == (errors.Unauthenticated{}.Error()) {
-				log.Print("Auth error", err.Error(), errors.Unauthenticated{}.Error())
+				log.Printf("Authentication error : %v", errors.Unauthenticated{}.Error())
 				err = (m.(*ConnectorWrapper)).authenticate()
 				if err != nil {
 					return resource.NonRetryableError(fmt.Errorf("authentication error from Cloud Service Provider:: %s", err))
 				}
 				return resource.RetryableError(fmt.Errorf("instance creation still in progress"))
 			}
-			return resource.NonRetryableError(fmt.Errorf("error describing instance: %s", err))
-
+			return resource.NonRetryableError(fmt.Errorf("error activation site recovery : %v", err))
 		}
-
-		if *task.Status != "FINISHED" {
-			return resource.RetryableError(fmt.Errorf("expected instance to be created but was in state %s", *task.Status))
+		if *task.Status == "FAILED" {
+			return resource.NonRetryableError(fmt.Errorf("task failed to activate site recovery"))
+		} else if *task.Status != "FINISHED" {
+			return resource.RetryableError(fmt.Errorf("expected site recovery to be activated but was in state %s", *task.Status))
 		}
 		return resource.NonRetryableError(resourceSiteRecoveryRead(d, m))
 	})
@@ -137,40 +138,40 @@ func resourceSiteRecoveryRead(d *schema.ResourceData, m interface{}) error {
 	d.Set("user_name", siteRecovery.UserName)
 
 	srmExtensionKey := d.Get("srm_extension_key_suffix").(string)
-	srm_node := map[string]string{}
+	srmNodeMap := map[string]string{}
 	for _, SRMNode := range siteRecovery.SrmNodes {
 		if len(strings.TrimSpace(srmExtensionKey)) == 0 {
 			tempStr := strings.Trim(*SRMNode.Hostname, ".")
 			if strings.Contains(tempStr, "-") {
-				srm_node["id"] = *SRMNode.Id
-				srm_node["ip_address"] = *SRMNode.IpAddress
-				srm_node["host_name"] = *SRMNode.Hostname
-				srm_node["state"] = *SRMNode.State
-				srm_node["type"] = *SRMNode.Type_
-				srm_node["vm_moref_id"] = *SRMNode.VmMorefId
+				srmNodeMap["id"] = *SRMNode.Id
+				srmNodeMap["ip_address"] = *SRMNode.IpAddress
+				srmNodeMap["host_name"] = *SRMNode.Hostname
+				srmNodeMap["state"] = *SRMNode.State
+				srmNodeMap["type"] = *SRMNode.Type_
+				srmNodeMap["vm_moref_id"] = *SRMNode.VmMorefId
 				break
 			}
 		} else if strings.Contains(*SRMNode.Hostname, strings.TrimSpace(srmExtensionKey)) {
-			srm_node["id"] = *SRMNode.Id
-			srm_node["ip_address"] = *SRMNode.IpAddress
-			srm_node["host_name"] = *SRMNode.Hostname
-			srm_node["state"] = *SRMNode.State
-			srm_node["type"] = *SRMNode.Type_
-			srm_node["vm_moref_id"] = *SRMNode.VmMorefId
+			srmNodeMap["id"] = *SRMNode.Id
+			srmNodeMap["ip_address"] = *SRMNode.IpAddress
+			srmNodeMap["host_name"] = *SRMNode.Hostname
+			srmNodeMap["state"] = *SRMNode.State
+			srmNodeMap["type"] = *SRMNode.Type_
+			srmNodeMap["vm_moref_id"] = *SRMNode.VmMorefId
 			break
 		}
 	}
 
-	vr_node := map[string]string{}
-	vr_node["vm_moref_id"] = *siteRecovery.VrNode.VmMorefId
-	vr_node["id"] = *siteRecovery.VrNode.Id
-	vr_node["hostname"] = *siteRecovery.VrNode.Hostname
-	vr_node["type"] = *siteRecovery.VrNode.Type_
-	vr_node["state"] = *siteRecovery.VrNode.State
-	vr_node["ip_address"] = *siteRecovery.VrNode.IpAddress
+	vrNodeMap := map[string]string{}
+	vrNodeMap["vm_moref_id"] = *siteRecovery.VrNode.VmMorefId
+	vrNodeMap["id"] = *siteRecovery.VrNode.Id
+	vrNodeMap["hostname"] = *siteRecovery.VrNode.Hostname
+	vrNodeMap["type"] = *siteRecovery.VrNode.Type_
+	vrNodeMap["state"] = *siteRecovery.VrNode.State
+	vrNodeMap["ip_address"] = *siteRecovery.VrNode.IpAddress
 	d.Set("sddc_id", *siteRecovery.SddcId)
-	d.Set("srm_node", srm_node)
-	d.Set("vr_node", vr_node)
+	d.Set("srm_node", srmNodeMap)
+	d.Set("vr_node", vrNodeMap)
 	return nil
 }
 
@@ -191,8 +192,10 @@ func resourceSiteRecoveryDelete(d *schema.ResourceData, m interface{}) error {
 		if err != nil {
 			return resource.NonRetryableError(fmt.Errorf("error deactivating site recovery for SDDC %s : %v", sddcID, err))
 		}
-		if *task.Status != "FINISHED" {
-			return resource.RetryableError(fmt.Errorf("expected instance to be deleted but was in state %s", *task.Status))
+		if *task.Status == "FAILED" {
+			return resource.NonRetryableError(fmt.Errorf("task failed to deactivate site recovery"))
+		} else if *task.Status != "FINISHED" {
+			return resource.RetryableError(fmt.Errorf("expected site recovery to be deactivated but was in state %s", *task.Status))
 		}
 		d.SetId("")
 		return resource.NonRetryableError(nil)

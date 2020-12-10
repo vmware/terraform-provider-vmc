@@ -197,26 +197,28 @@ func resourceClusterCreate(d *schema.ResourceData, m interface{}) error {
 		task, err := tasksClient.Get(orgID, task.Id)
 		if err != nil {
 			if err.Error() == (errors.Unauthenticated{}.Error()) {
-				log.Print("Auth error", err.Error(), errors.Unauthenticated{}.Error())
+				log.Printf("Authentication error : %v", errors.Unauthenticated{}.Error())
 				err = connector.authenticate()
 				if err != nil {
 					return resource.NonRetryableError(fmt.Errorf("authentication error from Cloud Service Provider : %s", err))
 				}
 				return resource.RetryableError(fmt.Errorf("instance creation still in progress"))
 			}
-			return resource.NonRetryableError(fmt.Errorf("error describing instance: %s", err))
+			return resource.NonRetryableError(fmt.Errorf("error creating cluster : %v", err))
 
 		}
 		if task.Params.HasField(ClusterIdFieldName) {
 			clusterID, err := task.Params.String(ClusterIdFieldName)
 			if err != nil {
-				return resource.NonRetryableError(fmt.Errorf("error getting clusterId : %s", err))
+				return resource.NonRetryableError(fmt.Errorf("error getting clusterID : %s", err))
 
 			}
 			d.SetId(clusterID)
 		}
-		if *task.Status != "FINISHED" {
-			return resource.RetryableError(fmt.Errorf("expected instance to be created but was in state %s", *task.Status))
+		if *task.Status == "FAILED" {
+			return resource.NonRetryableError(fmt.Errorf("task failed to create cluster"))
+		} else if *task.Status != "FINISHED" {
+			return resource.RetryableError(fmt.Errorf("expected cluster to be created but was in state %s", *task.Status))
 		}
 		return resource.NonRetryableError(resourceClusterRead(d, m))
 	})
@@ -256,8 +258,10 @@ func resourceClusterRead(d *schema.ResourceData, m interface{}) error {
 			cluster["cluster_name"] = *clusterConfig.ClusterName
 			cluster["cluster_state"] = *clusterConfig.ClusterState
 			cluster["host_instance_type"] = *clusterConfig.EsxHostInfo.InstanceType
-			cluster["mssql_licensing"] = *clusterConfig.MsftLicenseConfig.MssqlLicensing
-			cluster["windows_licensing"] = *clusterConfig.MsftLicenseConfig.WindowsLicensing
+			if clusterConfig.MsftLicenseConfig != nil {
+				cluster["mssql_licensing"] = *clusterConfig.MsftLicenseConfig.MssqlLicensing
+				cluster["windows_licensing"] = *clusterConfig.MsftLicenseConfig.WindowsLicensing
+			}
 			d.Set("cluster_info", cluster)
 			d.Set("num_hosts", len(clusterConfig.EsxHostList))
 			break
@@ -291,10 +295,12 @@ func resourceClusterDelete(d *schema.ResourceData, m interface{}) error {
 	return resource.Retry(d.Timeout(schema.TimeoutDelete), func() *resource.RetryError {
 		task, err := tasksClient.Get(orgID, task.Id)
 		if err != nil {
-			return resource.NonRetryableError(fmt.Errorf("error while deleting SDDC %s: %v", sddcID, err))
+			return resource.NonRetryableError(fmt.Errorf("error deleting cluster %s : %v", clusterID, err))
 		}
-		if *task.Status != "FINISHED" {
-			return resource.RetryableError(fmt.Errorf("expected instance to be deleted but was in state %s", *task.Status))
+		if *task.Status == "FAILED" {
+			return resource.NonRetryableError(fmt.Errorf("task failed to delete cluster"))
+		} else if *task.Status != "FINISHED" {
+			return resource.RetryableError(fmt.Errorf("expected cluster to be deleted but was in state %s", *task.Status))
 		}
 		d.SetId("")
 		return resource.NonRetryableError(nil)
@@ -336,10 +342,12 @@ func resourceClusterUpdate(d *schema.ResourceData, m interface{}) error {
 		err = resource.Retry(d.Timeout(schema.TimeoutUpdate), func() *resource.RetryError {
 			task, err := tasksClient.Get(orgID, task.Id)
 			if err != nil {
-				return resource.NonRetryableError(fmt.Errorf("error while waiting for task %s: %v", task.Id, err))
+				return resource.NonRetryableError(fmt.Errorf("error updating hosts for cluster : %v", err))
 			}
-			if *task.Status != "FINISHED" {
-				return resource.RetryableError(fmt.Errorf("expected hosts to be updated but were in state %s", *task.Status))
+			if *task.Status == "FAILED" {
+				return resource.NonRetryableError(fmt.Errorf("task failed to update hosts for cluster"))
+			} else if *task.Status != "FINISHED" {
+				return resource.RetryableError(fmt.Errorf("expected hosts to be updated but was in state %s", *task.Status))
 			}
 			return resource.NonRetryableError(resourceClusterRead(d, m))
 		})
@@ -359,6 +367,9 @@ func resourceClusterUpdate(d *schema.ResourceData, m interface{}) error {
 			MinHosts:   &minHosts,
 			MaxHosts:   &maxHosts,
 		}
+		if policyType == StorageScaleUpPolicyType && !enableEDRS {
+			return fmt.Errorf("EDRS policy %s is the default and cannot be disabled", StorageScaleUpPolicyType)
+		}
 		task, err := edrsPolicyClient.Post(orgID, sddcID, clusterID, *edrsPolicy)
 		if err != nil {
 			return HandleUpdateError("EDRS Policy", err)
@@ -368,18 +379,19 @@ func resourceClusterUpdate(d *schema.ResourceData, m interface{}) error {
 			task, err := taskClient.Get(orgID, task.Id)
 			if err != nil {
 				if err.Error() == (errors.Unauthenticated{}.Error()) {
-					log.Print("Auth error", err.Error(), errors.Unauthenticated{}.Error())
+					log.Printf("Authentication error : %v", errors.Unauthenticated{}.Error())
 					err = connectorWrapper.authenticate()
 					if err != nil {
 						return resource.NonRetryableError(fmt.Errorf("authentication error from Cloud Service Provider : %s", err))
 					}
 					return resource.RetryableError(fmt.Errorf("instance update still in progress"))
 				}
-				return resource.NonRetryableError(fmt.Errorf("error describing instance: %s", err))
-
+				return resource.NonRetryableError(fmt.Errorf("error updating EDRS policy configuration : %v", err))
 			}
-			if *task.Status != "FINISHED" {
-				return resource.RetryableError(fmt.Errorf("expected instance to be updated but was in state %s", *task.Status))
+			if *task.Status == "FAILED" {
+				return resource.NonRetryableError(fmt.Errorf("task failed to update EDRS policy configuration"))
+			} else if *task.Status != "FINISHED" {
+				return resource.RetryableError(fmt.Errorf("expected EDRS policy configuration to be updated but was in state %s", *task.Status))
 			}
 			return resource.NonRetryableError(resourceClusterRead(d, m))
 		})
@@ -397,18 +409,19 @@ func resourceClusterUpdate(d *schema.ResourceData, m interface{}) error {
 			task, err := tasksClient.Get(orgID, task.Id)
 			if err != nil {
 				if err.Error() == (errors.Unauthenticated{}.Error()) {
-					log.Print("Auth error", err.Error(), errors.Unauthenticated{}.Error())
+					log.Printf("Authentication error : %v", errors.Unauthenticated{}.Error())
 					err = connectorWrapper.authenticate()
 					if err != nil {
 						return resource.NonRetryableError(fmt.Errorf("authentication error from Cloud Service Provider : %s", err))
 					}
 					return resource.RetryableError(fmt.Errorf("instance update still in progress"))
 				}
-				return resource.NonRetryableError(fmt.Errorf("error describing instance: %s", err))
-
+				return resource.NonRetryableError(fmt.Errorf("error updating microsoft licensing configuration : %v", err))
 			}
-			if *task.Status != "FINISHED" {
-				return resource.RetryableError(fmt.Errorf("expected instance to be updated but was in state %s", *task.Status))
+			if *task.Status == "FAILED" {
+				return resource.NonRetryableError(fmt.Errorf("task failed to update microsoft licensing configuration"))
+			} else if *task.Status != "FINISHED" {
+				return resource.RetryableError(fmt.Errorf("expected microsoft licensing configuration to be updated but was in state %s", *task.Status))
 			}
 			return resource.NonRetryableError(resourceClusterRead(d, m))
 		})

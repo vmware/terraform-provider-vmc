@@ -578,6 +578,7 @@ github.com/vmihailenco/msgpack/v4 v4.3.12 h1:07s4sz9IReOgdikxLTKNbBdqDMLsjPKXwvC
 github.com/vmihailenco/msgpack/v4 v4.3.12/go.mod h1:gborTTJjAo/GWTqqRjrLCn9pgNN+NXzzngzBKDPIqw4=
 github.com/vmihailenco/tagparser v0.1.1 h1:quXMXlA39OCbd2wAdTsGDlK9RkOk6Wuw+x37wVyIuWY=
 github.com/vmihailenco/tagparser v0.1.1/go.mod h1:OeAg3pn3UbLjkWt+rN9oFYB6u/cQgqMEUPoW2WPyhdI=
+github.com/vmware/vsphere-automation-sdk-go v0.0.0-20201013152741-5e164e95339d h1:8hYwdzWkb/hu/cOux9Grw8XQn2Dapa7oSndpQDfkLog=
 github.com/vmware/vsphere-automation-sdk-go/lib v0.3.1 h1:YIcvcshkKm/fbXOvheGfAlGlDTitQXUSMPnYON/uzyg=
 github.com/vmware/vsphere-automation-sdk-go/lib v0.3.1/go.mod h1:lzuoOgc7zhx3bfrKFRDBbaJX3wj4wSstWv4pTpryhJs=
 github.com/vmware/vsphere-automation-sdk-go/runtime v0.3.1 h1:AhoRilMJ6hZbBDr4J9GSrAVpPBkLlZz8+FS84Pdbhc8=

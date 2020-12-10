@@ -158,7 +158,6 @@ func resourceSddc() *schema.Resource {
 			"edrs_policy_type": {
 				Type:     schema.TypeString,
 				Optional: true,
-				Default:  StorageScaleUpPolicyType,
 				ValidateFunc: validation.StringInSlice(
 					[]string{StorageScaleUpPolicyType, CostPolicyType, PerformancePolicyType, RapidScaleUpPolicyType}, false),
 				Description: "The EDRS policy type. This can either be 'cost', 'performance', 'storage-scaleup' or 'rapid-scaleup'. Default : storage-scaleup. ",
@@ -166,19 +165,16 @@ func resourceSddc() *schema.Resource {
 			"enable_edrs": {
 				Type:        schema.TypeBool,
 				Optional:    true,
-				Default:     true,
 				Description: "True if EDRS is enabled",
 			},
 			"min_hosts": {
 				Type:         schema.TypeInt,
-				Default:      3,
 				Optional:     true,
 				ValidateFunc: validation.IntBetween(3, 16),
 				Description:  "The minimum number of hosts that the cluster can scale in to.",
 			},
 			"max_hosts": {
 				Type:         schema.TypeInt,
-				Default:      16,
 				Optional:     true,
 				ValidateFunc: validation.IntBetween(3, 16),
 				Description:  "The maximum number of hosts that the cluster can scale out to.",
@@ -357,18 +353,20 @@ func resourceSddcCreate(d *schema.ResourceData, m interface{}) error {
 		task, err := tasksClient.Get(orgID, task.Id)
 		if err != nil {
 			if err.Error() == (errors.Unauthenticated{}.Error()) {
-				log.Print("Auth error", err.Error(), errors.Unauthenticated{}.Error())
+				log.Printf("Authentication error : %v", errors.Unauthenticated{}.Error())
 				err = connectorWrapper.authenticate()
 				if err != nil {
-					return resource.NonRetryableError(fmt.Errorf("authentication error from Cloud Service Provider : %s", err))
+					return resource.NonRetryableError(fmt.Errorf("authentication error from Cloud Service Provider : %v", err))
 				}
 				return resource.RetryableError(fmt.Errorf("instance creation still in progress"))
 			}
-			return resource.NonRetryableError(fmt.Errorf("error describing instance: %s", err))
+			return resource.NonRetryableError(fmt.Errorf("error creating SDDC : %v", err))
 
 		}
-		if *task.Status != "FINISHED" {
-			return resource.RetryableError(fmt.Errorf("expected instance to be created but was in state %s", *task.Status))
+		if *task.Status == "FAILED" {
+			return resource.NonRetryableError(fmt.Errorf("task failed to create SDDC"))
+		} else if *task.Status != "FINISHED" {
+			return resource.RetryableError(fmt.Errorf("expected SDDC to be created but was in state %s", *task.Status))
 		}
 		return resource.NonRetryableError(resourceSddcRead(d, m))
 	})
@@ -430,14 +428,15 @@ func resourceSddcRead(d *schema.ResourceData, m interface{}) error {
 	if err != nil {
 		return HandleReadError(d, "Primary Cluster", sddcID, err)
 	}
-
 	d.Set("cluster_id", primaryCluster.ClusterId)
 	cluster := map[string]string{}
 	cluster["cluster_name"] = *primaryCluster.ClusterName
 	cluster["cluster_state"] = *primaryCluster.ClusterState
 	cluster["host_instance_type"] = *primaryCluster.EsxHostInfo.InstanceType
-	cluster["mssql_licensing"] = *primaryCluster.MsftLicenseConfig.MssqlLicensing
-	cluster["windows_licensing"] = *primaryCluster.MsftLicenseConfig.WindowsLicensing
+	if primaryCluster.MsftLicenseConfig != nil {
+		cluster["mssql_licensing"] = *primaryCluster.MsftLicenseConfig.MssqlLicensing
+		cluster["windows_licensing"] = *primaryCluster.MsftLicenseConfig.WindowsLicensing
+	}
 	d.Set("cluster_info", cluster)
 
 	edrsPolicyClient := autoscalercluster.NewDefaultEdrsPolicyClient(connector)
@@ -467,10 +466,12 @@ func resourceSddcDelete(d *schema.ResourceData, m interface{}) error {
 	return resource.Retry(d.Timeout(schema.TimeoutDelete), func() *resource.RetryError {
 		task, err := tasksClient.Get(orgID, task.Id)
 		if err != nil {
-			return resource.NonRetryableError(fmt.Errorf("error while deleting SDDC %s: %v", sddcID, err))
+			return resource.NonRetryableError(fmt.Errorf("error deleting SDDC %s: %v", sddcID, err))
 		}
-		if *task.Status != "FINISHED" {
-			return resource.RetryableError(fmt.Errorf("expected instance to be deleted but was in state %s", *task.Status))
+		if *task.Status == "FAILED" {
+			return resource.NonRetryableError(fmt.Errorf("task failed to delete SDDC"))
+		} else if *task.Status != "FINISHED" {
+			return resource.RetryableError(fmt.Errorf("expected SDDC to be deleted but was in state %s", *task.Status))
 		}
 		d.SetId("")
 		return resource.NonRetryableError(nil)
@@ -514,17 +515,19 @@ func resourceSddcUpdate(d *schema.ResourceData, m interface{}) error {
 
 					if err != nil {
 						if err.Error() == (errors.Unauthenticated{}.Error()) {
-							log.Print("Auth error", err.Error(), errors.Unauthenticated{}.Error())
+							log.Printf("Authentication error : %v", errors.Unauthenticated{}.Error())
 							err = connectorWrapper.authenticate()
 							if err != nil {
 								return resource.NonRetryableError(fmt.Errorf("authentication error from Cloud Service Provider : %s", err))
 							}
-							return resource.RetryableError(fmt.Errorf("sddc scaling still in progress"))
+							return resource.RetryableError(fmt.Errorf("SDDC scaling still in progress"))
 						}
-						return resource.NonRetryableError(fmt.Errorf("error describing instance: %s", err))
+						return resource.NonRetryableError(fmt.Errorf("error scaling SDDC : %v", err))
 					}
-					if *task.Status != "FINISHED" {
-						return resource.RetryableError(fmt.Errorf("expected hosts to be updated but were in state %s", *task.Status))
+					if *task.Status == "FAILED" {
+						return resource.NonRetryableError(fmt.Errorf("task failed to scale SDDC"))
+					} else if *task.Status != "FINISHED" {
+						return resource.RetryableError(fmt.Errorf("expected SDDC type to be updated but was in state %s", *task.Status))
 					}
 					return resource.NonRetryableError(resourceSddcRead(d, m))
 				})
@@ -568,10 +571,12 @@ func resourceSddcUpdate(d *schema.ResourceData, m interface{}) error {
 		err = resource.Retry(d.Timeout(schema.TimeoutUpdate), func() *resource.RetryError {
 			task, err := tasksClient.Get(orgID, task.Id)
 			if err != nil {
-				return resource.NonRetryableError(fmt.Errorf("error while waiting for task %s: %v", task.Id, err))
+				return resource.NonRetryableError(fmt.Errorf("error updating hosts : %v", err))
 			}
-			if *task.Status != "FINISHED" {
-				return resource.RetryableError(fmt.Errorf("expected hosts to be updated but were in state %s", *task.Status))
+			if *task.Status == "FAILED" {
+				return resource.NonRetryableError(fmt.Errorf("task failed to update hosts"))
+			} else if *task.Status != "FINISHED" {
+				return resource.RetryableError(fmt.Errorf("expected hosts to be updated but was in state %s", *task.Status))
 			}
 			return resource.NonRetryableError(resourceSddcRead(d, m))
 		})
@@ -596,18 +601,26 @@ func resourceSddcUpdate(d *schema.ResourceData, m interface{}) error {
 	}
 
 	if d.HasChange("edrs_policy_type") || d.HasChange("enable_edrs") || d.HasChange("min_hosts") || d.HasChange("max_hosts") {
-		edrsPolicyClient := autoscalercluster.NewDefaultEdrsPolicyClient(connectorWrapper)
+
+		sddcType := d.Get("sddc_type").(string)
+		if sddcType == OneNodeSddcType {
+			return fmt.Errorf("EDRS policy cannot be updated for SDDC with type %s", OneNodeSddcType)
+		}
 		clusterID := d.Get("cluster_id").(string)
 		minHosts := int64(d.Get("min_hosts").(int))
 		maxHosts := int64(d.Get("max_hosts").(int))
 		policyType := d.Get("edrs_policy_type").(string)
 		enableEDRS := d.Get("enable_edrs").(bool)
+		if policyType == StorageScaleUpPolicyType && !enableEDRS {
+			return fmt.Errorf("EDRS policy %s is the default and cannot be disabled", StorageScaleUpPolicyType)
+		}
 		edrsPolicy := &autoscalermodel.EdrsPolicy{
 			EnableEdrs: enableEDRS,
 			PolicyType: &policyType,
 			MinHosts:   &minHosts,
 			MaxHosts:   &maxHosts,
 		}
+		edrsPolicyClient := autoscalercluster.NewDefaultEdrsPolicyClient(connectorWrapper)
 		task, err := edrsPolicyClient.Post(orgID, sddcID, clusterID, *edrsPolicy)
 		if err != nil {
 			return HandleUpdateError("EDRS Policy", err)
@@ -618,18 +631,19 @@ func resourceSddcUpdate(d *schema.ResourceData, m interface{}) error {
 			task, err := taskClient.Get(orgID, task.Id)
 			if err != nil {
 				if err.Error() == (errors.Unauthenticated{}.Error()) {
-					log.Print("Auth error", err.Error(), errors.Unauthenticated{}.Error())
+					log.Printf("Authentication error : %v", errors.Unauthenticated{}.Error())
 					err = connectorWrapper.authenticate()
 					if err != nil {
 						return resource.NonRetryableError(fmt.Errorf("authentication error from Cloud Service Provider : %s", err))
 					}
 					return resource.RetryableError(fmt.Errorf("instance update still in progress"))
 				}
-				return resource.NonRetryableError(fmt.Errorf("error describing instance: %s", err))
-
+				return resource.NonRetryableError(fmt.Errorf("error updating EDRS policy configuration : %v", err))
 			}
-			if *task.Status != "FINISHED" {
-				return resource.RetryableError(fmt.Errorf("expected instance to be updated but was in state %s", *task.Status))
+			if *task.Status == "FAILED" {
+				return resource.NonRetryableError(fmt.Errorf("task failed to update EDRS policy configuration"))
+			} else if *task.Status != "FINISHED" {
+				return resource.RetryableError(fmt.Errorf("expected EDRS policy configuration to be updated but was in state %s", *task.Status))
 			}
 			return resource.NonRetryableError(resourceSddcRead(d, m))
 		})
@@ -654,20 +668,21 @@ func resourceSddcUpdate(d *schema.ResourceData, m interface{}) error {
 		return resource.Retry(d.Timeout(schema.TimeoutCreate), func() *resource.RetryError {
 			tasksClient := orgs.NewDefaultTasksClient(connectorWrapper)
 			task, err := tasksClient.Get(orgID, task.Id)
-			if err != nil {
+			if err != nil || *task.Status == "FAILED" {
 				if err.Error() == (errors.Unauthenticated{}.Error()) {
-					log.Print("Auth error", err.Error(), errors.Unauthenticated{}.Error())
+					log.Printf("Authentication error : %v", errors.Unauthenticated{}.Error())
 					err = connectorWrapper.authenticate()
 					if err != nil {
 						return resource.NonRetryableError(fmt.Errorf("authentication error from Cloud Service Provider : %s", err))
 					}
 					return resource.RetryableError(fmt.Errorf("instance update still in progress"))
 				}
-				return resource.NonRetryableError(fmt.Errorf("error describing instance: %s", err))
-
+				return resource.NonRetryableError(fmt.Errorf("error updating microsoft licensing configuration : %v", err))
 			}
-			if *task.Status != "FINISHED" {
-				return resource.RetryableError(fmt.Errorf("expected instance to be updated but was in state %s", *task.Status))
+			if *task.Status == "FAILED" {
+				return resource.NonRetryableError(fmt.Errorf("task failed to update microsoft licensing configuration"))
+			} else if *task.Status != "FINISHED" {
+				return resource.RetryableError(fmt.Errorf("expected microsoft licensing configuration to be updated but was in state %s", *task.Status))
 			}
 			return resource.NonRetryableError(resourceSddcRead(d, m))
 		})
@@ -690,10 +705,10 @@ func expandAccountLinkSddcConfig(l []interface{}) []model.AccountLinkSddcConfig 
 		for _, subnetID := range c["customer_subnet_ids"].([]interface{}) {
 			subnetIds = append(subnetIds, subnetID.(string))
 		}
-		var connectedAccId = c["connected_account_id"].(string)
+		var connectedAccID = c["connected_account_id"].(string)
 		con := model.AccountLinkSddcConfig{
 			CustomerSubnetIds:  subnetIds,
-			ConnectedAccountId: &connectedAccId,
+			ConnectedAccountId: &connectedAccID,
 		}
 
 		configs = append(configs, con)

@@ -45,6 +45,8 @@ You can select a different policy if it provides better support for your workloa
 
 * `max_hosts` - (Optional) The maximum number of hosts that the cluster can scale out to.
 
+When the EDRS policy type is disabled i.e: enable_edrs is set to false for 'performance', 'cost' or 'rapid-scaleup' policy type, the EDRS policy type changes to the default storage-scaleup.
+
 ## Example
 
 ```hcl
