@@ -416,8 +416,10 @@ func resourceSddcRead(d *schema.ResourceData, m interface{}) error {
 		d.Set("provider_type", sddc.ResourceConfig.Provider)
 		d.Set("num_host", len(sddc.ResourceConfig.EsxHosts))
 		d.Set("vpc_cidr", *sddc.ResourceConfig.VpcInfo.VpcCidr)
-		d.Set("vxlan_subnet", sddc.ResourceConfig.VxlanSubnet)
-
+		skipCreatingVxLan := *sddc.ResourceConfig.SkipCreatingVxlan
+		if !skipCreatingVxLan {
+			d.Set("vxlan_subnet", sddc.ResourceConfig.VxlanSubnet)
+		}
 		sddcSizeInfo := map[string]string{}
 		sddcSizeInfo["vc_size"] = *sddc.ResourceConfig.SddcSize.VcSize
 		sddcSizeInfo["nsx_size"] = *sddc.ResourceConfig.SddcSize.NsxSize
