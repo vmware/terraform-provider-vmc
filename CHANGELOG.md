@@ -1,3 +1,15 @@
+## 1.4.1(TBD)
+
+FEATURES:
+
+* `vmc_sddc` , `vmc_cluster` Added microsoft licensing configuration to SDDC and cluster resource [\#71](https://github.com/vmware/terraform-provider-vmc/pull/71)
+
+BUG FIXES:
+
+* Removed validation on sddc_type field in order to allow empty value. [\#72](https://github.com/vmware/terraform-provider-vmc/pull/72)
+* Removed default values to fix EDRS configuration error for 1NODE SDDC [\#83](https://github.com/vmware/terraform-provider-vmc/pull/83)
+
+
 ## 1.4.0 (October 12, 2020)
 
 FEATURES:
