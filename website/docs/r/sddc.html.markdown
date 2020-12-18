@@ -221,6 +221,8 @@ In addition to arguments listed above, the following attributes are exported:
 
 * `sddc_size` - Size information of vCenter appliance and NSX appliance.
 
+* `intranet_uplink_mtu` - Uplink MTU of direct connect, sddc-grouping and outposts traffic in edge tier-0 router port. This field can be updated only after an SDDC is created. Range : 1500 - 8900. Default : 1500. 
+
 ## Import
 
 SDDC resource can be imported using the `id` , e.g.

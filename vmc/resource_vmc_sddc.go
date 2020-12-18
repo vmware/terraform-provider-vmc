@@ -207,6 +207,8 @@ func resourceSddc() *schema.Resource {
 			"intranet_mtu_uplink": {
 				Type:         schema.TypeInt,
 				Optional:     true,
+				Default:      MinIntranetMTULink,
+				Description:  "Uplink MTU of direct connect, SDDC-grouping and outposts traffic in edge tier-0 router port.",
 				ValidateFunc: validation.IntBetween(MinIntranetMTULink, MaxIntranetMTULink),
 			},
 			"sddc_state": {
