@@ -13,6 +13,8 @@ import (
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
 	"github.com/vmware/vsphere-automation-sdk-go/lib/vapi/std/errors"
+	nsxtapi "github.com/vmware/vsphere-automation-sdk-go/services/nsxt-vmc-aws-integration/api"
+	nsxtmodel "github.com/vmware/vsphere-automation-sdk-go/services/nsxt-vmc-aws-integration/model"
 	autoscalerapi "github.com/vmware/vsphere-automation-sdk-go/services/vmc/autoscaler/api"
 	autoscalercluster "github.com/vmware/vsphere-automation-sdk-go/services/vmc/autoscaler/api/orgs/sddcs/clusters"
 	autoscalermodel "github.com/vmware/vsphere-automation-sdk-go/services/vmc/autoscaler/model"
@@ -106,9 +108,9 @@ func resourceSddc() *schema.Resource {
 				Type:     schema.TypeString,
 				Optional: true,
 				ForceNew: true,
-				Default:  "AWS",
+				Default:  AWSProviderType,
 				ValidateFunc: validation.StringInSlice([]string{
-					"AWS", "ZEROCLOUD"}, false),
+					AWSProviderType, ZeroCloudProviderType}, false),
 			},
 			"skip_creating_vxlan": {
 				Type:     schema.TypeBool,
@@ -170,13 +172,13 @@ func resourceSddc() *schema.Resource {
 			"min_hosts": {
 				Type:         schema.TypeInt,
 				Optional:     true,
-				ValidateFunc: validation.IntBetween(3, 16),
+				ValidateFunc: validation.IntBetween(MinHosts, MaxHosts),
 				Description:  "The minimum number of hosts that the cluster can scale in to.",
 			},
 			"max_hosts": {
 				Type:         schema.TypeInt,
 				Optional:     true,
-				ValidateFunc: validation.IntBetween(3, 16),
+				ValidateFunc: validation.IntBetween(MinHosts, MaxHosts),
 				Description:  "The maximum number of hosts that the cluster can scale out to.",
 			},
 			"microsoft_licensing_config": {
@@ -201,6 +203,11 @@ func resourceSddc() *schema.Resource {
 				},
 				Optional:    true,
 				Description: "Indicates the desired licensing support, if any, of Microsoft software.",
+			},
+			"intranet_mtu_uplink": {
+				Type:         schema.TypeInt,
+				Optional:     true,
+				ValidateFunc: validation.IntBetween(MinIntranetMTULink, MaxIntranetMTULink),
 			},
 			"sddc_state": {
 				Type:     schema.TypeString,
@@ -449,6 +456,17 @@ func resourceSddcRead(d *schema.ResourceData, m interface{}) error {
 	d.Set("max_hosts", *edrsPolicy.MaxHosts)
 	d.Set("min_hosts", *edrsPolicy.MinHosts)
 
+	nsxtReverseProxyURL := d.Get("nsxt_reverse_proxy_url").(string)
+	connector, err = getNSXTReverseProxyURLConnector(nsxtReverseProxyURL)
+	if err != nil {
+		return HandleCreateError("NSXT reverse proxy URL connector", err)
+	}
+	cloudServicesCommonClient := nsxtapi.NewDefaultCloudServiceCommonClient(connector)
+	externalConnectivityConfig, err := cloudServicesCommonClient.GetExternalConnectivityConfig()
+	if err != nil {
+		return HandleReadError(d, "External connectivity configuration", sddcID, err)
+	}
+	d.Set("intranet_mtu_uplink", externalConnectivityConfig.IntranetMtu)
 	return nil
 }
 
@@ -687,6 +705,20 @@ func resourceSddcUpdate(d *schema.ResourceData, m interface{}) error {
 			return resource.NonRetryableError(resourceSddcRead(d, m))
 		})
 
+	}
+	if d.HasChange("intranet_mtu_uplink") {
+		intranetMTUUplink := d.Get("intranet_mtu_uplink").(int)
+		nsxtReverseProxyURL := d.Get("nsxt_reverse_proxy_url").(string)
+		connector, err := getNSXTReverseProxyURLConnector(nsxtReverseProxyURL)
+		if err != nil {
+			return HandleCreateError("NSXT reverse proxy URL connector", err)
+		}
+		cloudServicesCommonClient := nsxtapi.NewDefaultCloudServiceCommonClient(connector)
+		externalConnectivityConfig := nsxtmodel.ExternalConnectivityConfig{IntranetMtu: int64(intranetMTUUplink)}
+		_, err = cloudServicesCommonClient.UpdateIntranetUplinkMtu(externalConnectivityConfig)
+		if err != nil {
+			return HandleUpdateError("Intranet MTU Uplink", err)
+		}
 	}
 	return resourceSddcRead(d, m)
 }

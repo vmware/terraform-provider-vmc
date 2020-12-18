@@ -51,6 +51,18 @@ const (
 	// SDDC Type
 	OneNodeSddcType = "1NODE"
 
+	// Provider Types
+	AWSProviderType       = "AWS"
+	ZeroCloudProviderType = "ZEROCLOUD"
+
+	// Intranet Uplink MTU Range
+	MinIntranetMTULink = 1500
+	MaxIntranetMTULink = 8900
+
+	// Range for number of hosts
+	MinHosts = 3
+	MaxHosts = 16
+
 	// Env variables used in acceptance tests
 	APIToken            string = "API_TOKEN"
 	OrgID               string = "ORG_ID"

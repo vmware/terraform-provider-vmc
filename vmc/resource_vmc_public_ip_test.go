@@ -50,12 +50,12 @@ func testAccCheckVmcPublicIpExists(name string, publicIpResource *model.PublicIp
 		}
 		uuid := rs.Primary.Attributes["id"]
 		displayName := rs.Primary.Attributes["display_name"]
-		connector, err := getNSXTReverseProxyUrlConnector(os.Getenv(NSXTReverseProxyUrl))
+		connector, err := getNSXTReverseProxyURLConnector(os.Getenv(NSXTReverseProxyUrl))
 		if err != nil {
 			return fmt.Errorf("error creating client connector : %v ", err)
 		}
 
-		nsxVmcAwsClient := api.NewDefaultNsxVmcAwsIntegrationClient(connector)
+		nsxVmcAwsClient := api.NewDefaultCloudServiceVmcOnAwsPublicIpClient(connector)
 		publicIp, err := nsxVmcAwsClient.GetPublicIp(uuid)
 		if err != nil {
 			return fmt.Errorf("error getting public IP with ID %s : %v", uuid, err)
@@ -70,11 +70,11 @@ func testAccCheckVmcPublicIpExists(name string, publicIpResource *model.PublicIp
 
 func testCheckVmcPublicIpDestroy(s *terraform.State) error {
 	fmt.Printf("Reverse proxy : %s", os.Getenv(NSXTReverseProxyUrl))
-	connector, err := getNSXTReverseProxyUrlConnector(os.Getenv(NSXTReverseProxyUrl))
+	connector, err := getNSXTReverseProxyURLConnector(os.Getenv(NSXTReverseProxyUrl))
 	if err != nil {
 		return fmt.Errorf("error creating client connector : %v ", err)
 	}
-	nsxVmcAwsClient := api.NewDefaultNsxVmcAwsIntegrationClient(connector)
+	nsxVmcAwsClient := api.NewDefaultCloudServiceVmcOnAwsPublicIpClient(connector)
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "vmc_public_ip" {

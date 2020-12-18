@@ -60,7 +60,7 @@ func resourceCluster() *schema.Resource {
 			"num_hosts": {
 				Type:         schema.TypeInt,
 				Required:     true,
-				ValidateFunc: validation.IntBetween(3, 16),
+				ValidateFunc: validation.IntBetween(MinHosts, MaxHosts),
 				Description:  "The number of hosts.",
 			},
 			"host_cpu_cores_count": {
@@ -98,16 +98,16 @@ func resourceCluster() *schema.Resource {
 			},
 			"min_hosts": {
 				Type:         schema.TypeInt,
-				Default:      3,
+				Default:      MinHosts,
 				Optional:     true,
-				ValidateFunc: validation.IntBetween(3, 16),
+				ValidateFunc: validation.IntBetween(MinHosts, MaxHosts),
 				Description:  "The minimum number of hosts that the cluster can scale in to.",
 			},
 			"max_hosts": {
 				Type:         schema.TypeInt,
-				Default:      16,
+				Default:      MaxHosts,
 				Optional:     true,
-				ValidateFunc: validation.IntBetween(3, 16),
+				ValidateFunc: validation.IntBetween(MinHosts, MaxHosts),
 				Description:  "The maximum number of hosts that the cluster can scale out to.",
 			},
 			"microsoft_licensing_config": {
