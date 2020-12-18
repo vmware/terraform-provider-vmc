@@ -13,8 +13,8 @@ import (
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
 	"github.com/vmware/vsphere-automation-sdk-go/lib/vapi/std/errors"
-	nsxtapi "github.com/vmware/vsphere-automation-sdk-go/services/nsxt-vmc-aws-integration/api"
-	nsxtmodel "github.com/vmware/vsphere-automation-sdk-go/services/nsxt-vmc-aws-integration/model"
+	nsxtawsintegrationapi "github.com/vmware/vsphere-automation-sdk-go/services/nsxt-vmc-aws-integration/api"
+	nsxtawsintegrationmodel "github.com/vmware/vsphere-automation-sdk-go/services/nsxt-vmc-aws-integration/model"
 	autoscalerapi "github.com/vmware/vsphere-automation-sdk-go/services/vmc/autoscaler/api"
 	autoscalercluster "github.com/vmware/vsphere-automation-sdk-go/services/vmc/autoscaler/api/orgs/sddcs/clusters"
 	autoscalermodel "github.com/vmware/vsphere-automation-sdk-go/services/vmc/autoscaler/model"
@@ -463,7 +463,7 @@ func resourceSddcRead(d *schema.ResourceData, m interface{}) error {
 	if err != nil {
 		return HandleCreateError("NSXT reverse proxy URL connector", err)
 	}
-	cloudServicesCommonClient := nsxtapi.NewDefaultCloudServiceCommonClient(connector)
+	cloudServicesCommonClient := nsxtawsintegrationapi.NewDefaultCloudServiceCommonClient(connector)
 	externalConnectivityConfig, err := cloudServicesCommonClient.GetExternalConnectivityConfig()
 	if err != nil {
 		return HandleReadError(d, "External connectivity configuration", sddcID, err)
@@ -715,8 +715,8 @@ func resourceSddcUpdate(d *schema.ResourceData, m interface{}) error {
 		if err != nil {
 			return HandleCreateError("NSXT reverse proxy URL connector", err)
 		}
-		cloudServicesCommonClient := nsxtapi.NewDefaultCloudServiceCommonClient(connector)
-		externalConnectivityConfig := nsxtmodel.ExternalConnectivityConfig{IntranetMtu: int64(intranetMTUUplink)}
+		cloudServicesCommonClient := nsxtawsintegrationapi.NewDefaultCloudServiceCommonClient(connector)
+		externalConnectivityConfig := nsxtawsintegrationmodel.ExternalConnectivityConfig{IntranetMtu: int64(intranetMTUUplink)}
 		_, err = cloudServicesCommonClient.UpdateIntranetUplinkMtu(externalConnectivityConfig)
 		if err != nil {
 			return HandleUpdateError("Intranet MTU Uplink", err)
