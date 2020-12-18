@@ -32,13 +32,13 @@ require (
 	github.com/spf13/afero v1.3.5 // indirect
 	github.com/stretchr/testify v1.6.1 // indirect
 	github.com/ulikunitz/xz v0.5.8 // indirect
+	github.com/zclconf/go-cty v1.6.1 // indirect
 	github.com/vmware/vsphere-automation-sdk-go/lib v0.3.1
 	github.com/vmware/vsphere-automation-sdk-go/runtime v0.3.1
-	github.com/vmware/vsphere-automation-sdk-go/services/nsxt-vmc-aws-integration v0.3.0
+	github.com/vmware/vsphere-automation-sdk-go/services/nsxt-vmc-aws-integration v0.4.1
 	github.com/vmware/vsphere-automation-sdk-go/services/vmc v0.4.1
-	github.com/vmware/vsphere-automation-sdk-go/services/vmc/autoscaler v0.2.0
+	github.com/vmware/vsphere-automation-sdk-go/services/vmc/autoscaler v0.3.1
 	github.com/vmware/vsphere-automation-sdk-go/services/vmc/draas v0.3.0
-	github.com/zclconf/go-cty v1.6.1 // indirect
 	golang.org/x/crypto v0.0.0-20200820211705-5c72a883971a // indirect
 	golang.org/x/mod v0.3.1-0.20200828183125-ce943fd02449 // indirect
 	golang.org/x/net v0.0.0-20200904194848-62affa334b73 // indirect

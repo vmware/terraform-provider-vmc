@@ -5,10 +5,11 @@ package vmc
 
 import (
 	"fmt"
+	"log"
+
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
 	"github.com/vmware/vsphere-automation-sdk-go/services/vmc/orgs/account_link"
-	"log"
 )
 
 func dataSourceVmcCustomerSubnets() *schema.Resource {

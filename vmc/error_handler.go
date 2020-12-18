@@ -5,13 +5,14 @@ package vmc
 
 import (
 	"fmt"
+	"log"
+
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/vmware/vsphere-automation-sdk-go/lib/vapi/std"
 	e "github.com/vmware/vsphere-automation-sdk-go/lib/vapi/std/errors"
 	"github.com/vmware/vsphere-automation-sdk-go/runtime/bindings"
 	"github.com/vmware/vsphere-automation-sdk-go/runtime/data"
 	"github.com/vmware/vsphere-automation-sdk-go/services/vmc/model"
-	"log"
 )
 
 func printAPIError(apiError model.ErrorResponse) []string {

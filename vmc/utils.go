@@ -4,7 +4,10 @@
 package vmc
 
 import (
+	"fmt"
+	"net/http"
 	"net/url"
+	"os"
 	"strings"
 
 	uuid "github.com/satori/go.uuid"
@@ -70,4 +73,18 @@ func expandMsftLicenseConfig(config []interface{}) *model.MsftLicensingConfig {
 	windowsLicensing := strings.ToUpper(licenseConfigMap["windows_licensing"].(string))
 	licenseConfig = model.MsftLicensingConfig{MssqlLicensing: &mssqlLicensing, WindowsLicensing: &windowsLicensing}
 	return &licenseConfig
+}
+
+func getNSXTReverseProxyURLConnector(nsxtReverseProxyUrl string) (client.Connector, error) {
+	apiToken := os.Getenv(APIToken)
+	if len(nsxtReverseProxyUrl) == 0 {
+		return nil, fmt.Errorf("NSX reverse proxy url is required for public IP resource creation")
+	}
+	nsxtReverseProxyUrl = strings.Replace(nsxtReverseProxyUrl, SksNSXTManager, "", -1)
+	httpClient := http.Client{}
+	connector, err := NewClientConnectorByRefreshToken(apiToken, nsxtReverseProxyUrl, DefaultCSPUrl, httpClient)
+	if err != nil {
+		return nil, HandleCreateError("NSXT reverse proxy URL connector", err)
+	}
+	return connector, nil
 }
