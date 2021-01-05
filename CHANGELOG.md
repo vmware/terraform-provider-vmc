@@ -3,11 +3,13 @@
 FEATURES:
 
  * `vmc_sddc`, `vmc_cluster` Added microsoft licensing configuration to SDDC and cluster resource [\#71](https://github.com/vmware/terraform-provider-vmc/pull/71)
+ * Added intranet_uplink_mtu field in `vmc_sddc` resource [\#88](https://github.com/vmware/terraform-provider-vmc/pull/88)
 
  BUG FIXES:
 
  * Removed validation on sddc_type field in order to allow empty value. [\#72](https://github.com/vmware/terraform-provider-vmc/pull/72)
  * Removed default values to fix EDRS configuration error for 1NODE SDDC [\#83](https://github.com/vmware/terraform-provider-vmc/pull/83)
+ * Added check to store vxlan_subnet information in terraform state file only when skip_creating_vxlan = false [\#86](https://github.com/vmware/terraform-provider-vmc/pull/86)
 
 ## 1.4.0 (October 12, 2020)
 
