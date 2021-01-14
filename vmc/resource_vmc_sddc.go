@@ -246,7 +246,6 @@ func resourceSddc() *schema.Resource {
 			},
 		},
 		CustomizeDiff: func(d *schema.ResourceDiff, meta interface{}) error {
-
 			deploymentType := d.Get("deployment_type").(string)
 			numHosts := d.Get("num_host").(int)
 
@@ -254,39 +253,16 @@ func resourceSddc() *schema.Resource {
 				return fmt.Errorf("for MulitAZ deployment type number of hosts must be atleast %d ", MinMultiAZHosts)
 			}
 
-			var c map[string]interface{}
-			accountLinkSddcConfig := d.Get("account_link_sddc_config").([]interface{})
-			for _, config := range accountLinkSddcConfig {
-				c = config.(map[string]interface{})
-			}
-
-			if deploymentType == MultiAvailabilityZone && c != nil && len(c["customer_subnet_ids"].([]interface{})) != 2 {
-				return fmt.Errorf("deployment type %s requires 2 subnet IDs, one in each availability zone ", deploymentType)
-			}
-
-			if deploymentType == SingleAvailabilityZone && c != nil && len(c["customer_subnet_ids"].([]interface{})) != 1 {
-				return fmt.Errorf("deployment type %s requires 1 subnet ID ", deploymentType)
-			}
-
 			newInstanceType := d.Get("host_instance_type").(string)
-
 			switch newInstanceType {
-
 			case HostInstancetypeI3, HostInstancetypeI3EN:
-
 				if d.Get("storage_capacity").(string) != "" {
-
 					return fmt.Errorf("storage_capacity is not supported for host_instance_type %q", newInstanceType)
-
 				}
 			case HostInstancetypeR5:
-
 				if d.Get("storage_capacity").(string) == "" {
-
 					return fmt.Errorf("storage_capacity is required for host_instance_type %q", newInstanceType)
-
 				}
-
 			}
 			return nil
 		},
@@ -324,7 +300,22 @@ func resourceSddcCreate(d *schema.ResourceData, m interface{}) error {
 	sddcTemplateID := d.Get("sddc_template_id").(string)
 	deploymentType := d.Get("deployment_type").(string)
 	region := d.Get("region").(string)
-	accountLinkSddcConfig := expandAccountLinkSddcConfig(d.Get("account_link_sddc_config").([]interface{}))
+
+	var c map[string]interface{}
+	accountLinkSddcConfigVar := d.Get("account_link_sddc_config").([]interface{})
+	for _, config := range accountLinkSddcConfigVar {
+		c = config.(map[string]interface{})
+	}
+
+	if deploymentType == MultiAvailabilityZone && c != nil && len(c["customer_subnet_ids"].([]interface{})) != 2 {
+		return fmt.Errorf("deployment type %s requires 2 subnet IDs, one in each availability zone ", deploymentType)
+	}
+
+	if deploymentType == SingleAvailabilityZone && c != nil && len(c["customer_subnet_ids"].([]interface{})) != 1 {
+		return fmt.Errorf("deployment type %s requires 1 subnet ID ", deploymentType)
+	}
+
+	accountLinkSddcConfig := expandAccountLinkSddcConfig(accountLinkSddcConfigVar)
 	hostInstanceType := model.HostInstanceTypes(d.Get("host_instance_type").(string))
 	msftLicensingConfig := expandMsftLicenseConfig(d.Get("microsoft_licensing_config").([]interface{}))
 
