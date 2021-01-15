@@ -233,3 +233,5 @@ For this example:
 - id = SDDC Identifier
 
 `$ terraform import vmc_sddc.sddc_1 afe7a0fd-3f0a-48b2-9ddb-0489c22732ae`
+
+Note : Running plan/apply after importing an SDDC causes the SDDC to be re-created. This is due to a limitation in the current Get and Update SDDC APIs. Hence, the import functionality is only partially supported.
