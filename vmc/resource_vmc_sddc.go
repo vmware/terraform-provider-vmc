@@ -461,7 +461,7 @@ func resourceSddcRead(d *schema.ResourceData, m interface{}) error {
 	d.Set("min_hosts", *edrsPolicy.MinHosts)
 
 	if *sddc.Provider != ZeroCloudProviderType {
-		// store intranet_mtu_uplink only non zerocloud provider types
+		// store intranet_mtu_uplink only for non zerocloud provider types
 		nsxtReverseProxyURL := d.Get("nsxt_reverse_proxy_url").(string)
 		connector, err = getNSXTReverseProxyURLConnector(nsxtReverseProxyURL)
 		if err != nil {
