@@ -451,17 +451,20 @@ func resourceSddcRead(d *schema.ResourceData, m interface{}) error {
 	d.Set("max_hosts", *edrsPolicy.MaxHosts)
 	d.Set("min_hosts", *edrsPolicy.MinHosts)
 
-	nsxtReverseProxyURL := d.Get("nsxt_reverse_proxy_url").(string)
-	connector, err = getNSXTReverseProxyURLConnector(nsxtReverseProxyURL)
-	if err != nil {
-		return HandleCreateError("NSXT reverse proxy URL connector", err)
+	if *sddc.Provider != ZeroCloudProviderType {
+		// store intranet_mtu_uplink only for non zerocloud provider types
+		nsxtReverseProxyURL := d.Get("nsxt_reverse_proxy_url").(string)
+		connector, err = getNSXTReverseProxyURLConnector(nsxtReverseProxyURL)
+		if err != nil {
+			return HandleCreateError("NSXT reverse proxy URL connector", err)
+		}
+		cloudServicesCommonClient := nsxtawsintegrationapi.NewDefaultCloudServiceCommonClient(connector)
+		externalConnectivityConfig, err := cloudServicesCommonClient.GetExternalConnectivityConfig()
+		if err != nil {
+			return HandleReadError(d, "External connectivity configuration", sddcID, err)
+		}
+		d.Set("intranet_mtu_uplink", externalConnectivityConfig.IntranetMtu)
 	}
-	cloudServicesCommonClient := nsxtawsintegrationapi.NewDefaultCloudServiceCommonClient(connector)
-	externalConnectivityConfig, err := cloudServicesCommonClient.GetExternalConnectivityConfig()
-	if err != nil {
-		return HandleReadError(d, "External connectivity configuration", sddcID, err)
-	}
-	d.Set("intranet_mtu_uplink", externalConnectivityConfig.IntranetMtu)
 	return nil
 }
 
