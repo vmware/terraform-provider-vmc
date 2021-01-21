@@ -2,7 +2,7 @@
 
  BUG FIXES:
 
- * Moved subnet validation from customizediff to create SDDC block [\#96](https://github.com/vmware/terraform-provider-vmc/pull/96)
+ * Moved subnet validation from customized diff to create SDDC block [\#96](https://github.com/vmware/terraform-provider-vmc/pull/96)
  * Added zerocloud check for setting intranet MTU uplink [\#98](https://github.com/vmware/terraform-provider-vmc/pull/98)
  * Updated help documentation for import SDDC functionality [\#97](https://github.com/vmware/terraform-provider-vmc/pull/97)
 
