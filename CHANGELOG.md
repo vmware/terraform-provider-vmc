@@ -1,3 +1,11 @@
+## 1.5.1 (January 21, 2021)
+
+ BUG FIXES:
+
+ * Moved subnet validation from customized diff to create SDDC block [\#96](https://github.com/vmware/terraform-provider-vmc/pull/96)
+ * Added zerocloud check for setting intranet MTU uplink [\#98](https://github.com/vmware/terraform-provider-vmc/pull/98)
+ * Updated help documentation to specify current limitations in import SDDC functionality [\#97](https://github.com/vmware/terraform-provider-vmc/pull/97)
+
 ## 1.5.0 (January 5, 2021)
 
 FEATURES:
