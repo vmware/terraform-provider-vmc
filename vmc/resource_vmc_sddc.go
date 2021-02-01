@@ -1,4 +1,4 @@
-/* Copyright 2019 VMware, Inc.
+/* Copyright 2019-2021 VMware, Inc.
    SPDX-License-Identifier: MPL-2.0 */
 
 package vmc
@@ -615,6 +615,9 @@ func resourceSddcUpdate(d *schema.ResourceData, m interface{}) error {
 	}
 
 	if d.HasChange("intranet_mtu_uplink") {
+		if d.Get("provider_type") == ZeroCloudProviderType {
+			return fmt.Errorf("Intranet MTU uplink cannot be updated for %s provider type", ZeroCloudProviderType)
+		}
 		intranetMTUUplink := d.Get("intranet_mtu_uplink").(int)
 		nsxtReverseProxyURL := d.Get("nsxt_reverse_proxy_url").(string)
 		connector, err := getNSXTReverseProxyURLConnector(nsxtReverseProxyURL)
