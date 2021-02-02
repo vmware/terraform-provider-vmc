@@ -1,4 +1,4 @@
-/* Copyright 2019 VMware, Inc.
+/* Copyright 2019-2021 VMware, Inc.
    SPDX-License-Identifier: MPL-2.0 */
 
 package vmc
@@ -554,7 +554,6 @@ func resourceSddcUpdate(d *schema.ResourceData, m interface{}) error {
 				return fmt.Errorf("scaling SDDC is not supported. Please check sddc_type and num_host")
 			}
 		}
-		return resourceSddcRead(d, m)
 	}
 
 	// Add,remove hosts
@@ -599,7 +598,6 @@ func resourceSddcUpdate(d *schema.ResourceData, m interface{}) error {
 		if err != nil {
 			return err
 		}
-		return resourceSddcRead(d, m)
 	}
 
 	// Update sddc name
@@ -616,8 +614,25 @@ func resourceSddcUpdate(d *schema.ResourceData, m interface{}) error {
 		d.Set("sddc_name", sddc.Name)
 	}
 
-	if d.HasChange("edrs_policy_type") || d.HasChange("enable_edrs") || d.HasChange("min_hosts") || d.HasChange("max_hosts") {
+	if d.HasChange("intranet_mtu_uplink") {
+		if d.Get("provider_type") == ZeroCloudProviderType {
+			return fmt.Errorf("Intranet MTU uplink cannot be updated for %s provider type", ZeroCloudProviderType)
+		}
+		intranetMTUUplink := d.Get("intranet_mtu_uplink").(int)
+		nsxtReverseProxyURL := d.Get("nsxt_reverse_proxy_url").(string)
+		connector, err := getNSXTReverseProxyURLConnector(nsxtReverseProxyURL)
+		if err != nil {
+			return HandleCreateError("NSXT reverse proxy URL connector", err)
+		}
+		cloudServicesCommonClient := nsxtawsintegrationapi.NewDefaultCloudServiceCommonClient(connector)
+		externalConnectivityConfig := nsxtawsintegrationmodel.ExternalConnectivityConfig{IntranetMtu: int64(intranetMTUUplink)}
+		_, err = cloudServicesCommonClient.UpdateIntranetUplinkMtu(externalConnectivityConfig)
+		if err != nil {
+			return HandleUpdateError("Intranet MTU Uplink", err)
+		}
+	}
 
+	if d.HasChange("edrs_policy_type") || d.HasChange("enable_edrs") || d.HasChange("min_hosts") || d.HasChange("max_hosts") {
 		sddcType := d.Get("sddc_type").(string)
 		if sddcType == OneNodeSddcType {
 			return fmt.Errorf("EDRS policy cannot be updated for SDDC with type %s", OneNodeSddcType)
@@ -664,6 +679,8 @@ func resourceSddcUpdate(d *schema.ResourceData, m interface{}) error {
 			return resource.NonRetryableError(resourceSddcRead(d, m))
 		})
 	}
+
+	// Update sddc_size is not supported
 	if d.HasChange("size") {
 		return fmt.Errorf("SDDC size update operation is not supported")
 	}
@@ -702,21 +719,6 @@ func resourceSddcUpdate(d *schema.ResourceData, m interface{}) error {
 			}
 			return resource.NonRetryableError(resourceSddcRead(d, m))
 		})
-
-	}
-	if d.HasChange("intranet_mtu_uplink") {
-		intranetMTUUplink := d.Get("intranet_mtu_uplink").(int)
-		nsxtReverseProxyURL := d.Get("nsxt_reverse_proxy_url").(string)
-		connector, err := getNSXTReverseProxyURLConnector(nsxtReverseProxyURL)
-		if err != nil {
-			return HandleCreateError("NSXT reverse proxy URL connector", err)
-		}
-		cloudServicesCommonClient := nsxtawsintegrationapi.NewDefaultCloudServiceCommonClient(connector)
-		externalConnectivityConfig := nsxtawsintegrationmodel.ExternalConnectivityConfig{IntranetMtu: int64(intranetMTUUplink)}
-		_, err = cloudServicesCommonClient.UpdateIntranetUplinkMtu(externalConnectivityConfig)
-		if err != nil {
-			return HandleUpdateError("Intranet MTU Uplink", err)
-		}
 	}
 	return resourceSddcRead(d, m)
 }
