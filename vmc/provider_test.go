@@ -46,6 +46,9 @@ func testAccPreCheck(t *testing.T) {
 	if v := os.Getenv(TestSDDCId); v == "" {
 		t.Fatal(TestSDDCId + " must be set for acceptance tests")
 	}
+	if v := os.Getenv(TestSDDCName); v == "" {
+		t.Fatal(TestSDDCName + " must be set for acceptance tests")
+	}
 	if v := os.Getenv(AWSAccountNumber); v == "" {
 		t.Fatal(AWSAccountNumber + " must be set for acceptance tests")
 	}

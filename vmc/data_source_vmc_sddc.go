@@ -1,0 +1,201 @@
+/* Copyright 2021 VMware, Inc.
+   SPDX-License-Identifier: MPL-2.0 */
+
+package vmc
+
+import (
+	"fmt"
+	"log"
+
+	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/hashicorp/terraform/helper/validation"
+	"github.com/vmware/vsphere-automation-sdk-go/lib/vapi/std/errors"
+)
+
+func dataSourceVmcSddc() *schema.Resource {
+	return &schema.Resource{
+		Read: dataSourceVmcSddcRead,
+
+		Schema: map[string]*schema.Schema{
+			"storage_capacity": {
+				Type:     schema.TypeString,
+				Optional: true,
+				ForceNew: true,
+				ValidateFunc: validation.StringInSlice([]string{
+					"15TB", "20TB", "25TB", "30TB", "35TB"}, false),
+			},
+			"sddc_name": {
+				Type:         schema.TypeString,
+				Required:     true,
+				ValidateFunc: validation.NoZeroValues,
+			},
+			"account_link_sddc_config": {
+				Type: schema.TypeList,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"customer_subnet_ids": {
+							Type: schema.TypeList,
+							Elem: &schema.Schema{
+								Type: schema.TypeString,
+							},
+							Optional: true,
+						},
+						"connected_account_id": {
+							Type:     schema.TypeString,
+							Optional: true,
+						},
+					},
+				},
+				Optional: true,
+				ForceNew: true,
+			},
+			"vpc_cidr": {
+				Type:     schema.TypeString,
+				Optional: true,
+				ForceNew: true,
+			},
+			"num_host": {
+				Type:         schema.TypeInt,
+				Required:     true,
+				ValidateFunc: validation.IntAtLeast(1),
+			},
+			"sddc_type": {
+				Type:     schema.TypeString,
+				Optional: true,
+				ForceNew: true,
+			},
+			"vxlan_subnet": {
+				Type:     schema.TypeString,
+				Optional: true,
+				ForceNew: true,
+			},
+			// TODO check the deprecation statement
+			"delay_account_link": {
+				Type:     schema.TypeBool,
+				Optional: true,
+				Default:  false,
+				ForceNew: true,
+			},
+			"provider_type": {
+				Type:     schema.TypeString,
+				Optional: true,
+				ForceNew: true,
+				Default:  "AWS",
+				ValidateFunc: validation.StringInSlice([]string{
+					"AWS", "ZEROCLOUD"}, false),
+			},
+			"skip_creating_vxlan": {
+				Type:     schema.TypeBool,
+				Optional: true,
+				Default:  true,
+				ForceNew: true,
+			},
+			"sso_domain": {
+				Type:     schema.TypeString,
+				Optional: true,
+				ForceNew: true,
+				Default:  "vmc.local",
+			},
+			"sddc_template_id": {
+				Type:     schema.TypeString,
+				Optional: true,
+				ForceNew: true,
+			},
+			"deployment_type": {
+				Type:     schema.TypeString,
+				Optional: true,
+				ForceNew: true,
+				Default:  "SingleAZ",
+				ValidateFunc: validation.StringInSlice([]string{
+					"SingleAZ", "MultiAZ",
+				}, false),
+			},
+			"region": {
+				Type:     schema.TypeString,
+				Required: true,
+				ForceNew: true,
+				ValidateFunc: validation.All(
+					validation.NoZeroValues,
+				),
+			},
+			"cluster_id": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+			"host_instance_type": {
+				Type:     schema.TypeString,
+				Optional: true,
+				ForceNew: true,
+				ValidateFunc: validation.StringInSlice(
+					[]string{HostInstancetypeI3, HostInstancetypeR5}, false),
+			},
+			"sddc_state": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+			"vc_url": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+			"cloud_username": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+			"cloud_password": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+			"nsxt_reverse_proxy_url": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+		},
+	}
+}
+
+func dataSourceVmcSddcRead(d *schema.ResourceData, m interface{}) error {
+	connector := (m.(*ConnectorWrapper)).Connector
+	sddcID := d.Id()
+	orgID := (m.(*ConnectorWrapper)).OrgID
+	sddc, err := getSDDC(connector, orgID, sddcID)
+	if err != nil {
+		if err.Error() == errors.NewNotFound().Error() {
+			log.Printf("SDDC with ID %s not found", sddcID)
+			d.SetId("")
+			return nil
+		}
+		return fmt.Errorf("Error while getting the SDDC with ID %s,%v", sddcID, err)
+	}
+
+	if *sddc.SddcState == "DELETED" {
+		log.Printf("Can't get, SDDC with ID %s is already deleted", sddc.Id)
+		d.SetId("")
+		return nil
+	}
+
+	d.SetId(sddc.Id)
+
+	d.Set("name", sddc.Name)
+	d.Set("updated", sddc.Updated)
+	d.Set("user_id", sddc.UserId)
+	d.Set("updated_by_user_id", sddc.UpdatedByUserId)
+	d.Set("created", sddc.Created)
+	d.Set("version", sddc.Version)
+	d.Set("updated_by_user_name", sddc.UpdatedByUserName)
+	d.Set("user_name", sddc.UserName)
+	d.Set("org_id", sddc.OrgId)
+	d.Set("sddc_type", sddc.SddcType)
+	d.Set("provider", sddc.Provider)
+	d.Set("account_link_state", sddc.AccountLinkState)
+	d.Set("sddc_access_state", sddc.SddcAccessState)
+	d.Set("sddc_type", sddc.SddcType)
+	d.Set("sddc_state", sddc.SddcState)
+	if sddc.ResourceConfig != nil {
+		d.Set("vc_url", sddc.ResourceConfig.VcUrl)
+		d.Set("cloud_username", sddc.ResourceConfig.CloudUsername)
+		d.Set("cloud_password", sddc.ResourceConfig.CloudPassword)
+		d.Set("nsxt_reverse_proxy_url", sddc.ResourceConfig.NsxApiPublicEndpointUrl)
+	}
+
+	return nil
+}

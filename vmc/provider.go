@@ -66,6 +66,7 @@ func Provider() terraform.ResourceProvider {
 			"vmc_org":                dataSourceVmcOrg(),
 			"vmc_connected_accounts": dataSourceVmcConnectedAccounts(),
 			"vmc_customer_subnets":   dataSourceVmcCustomerSubnets(),
+			"vmc_sddc":               dataSourceVmcSddc(),
 		},
 
 		ConfigureFunc: providerConfigure,
