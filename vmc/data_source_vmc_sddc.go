@@ -10,6 +10,7 @@ import (
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
 	"github.com/vmware/vsphere-automation-sdk-go/lib/vapi/std/errors"
+	"github.com/vmware/vsphere-automation-sdk-go/services/vmc/orgs"
 )
 
 func dataSourceVmcSddc() *schema.Resource {
@@ -155,9 +156,10 @@ func dataSourceVmcSddc() *schema.Resource {
 
 func dataSourceVmcSddcRead(d *schema.ResourceData, m interface{}) error {
 	connector := (m.(*ConnectorWrapper)).Connector
+	sddcClient := orgs.NewDefaultSddcsClient(connector)
 	sddcID := d.Id()
 	orgID := (m.(*ConnectorWrapper)).OrgID
-	sddc, err := getSDDC(connector, orgID, sddcID)
+	sddc, err := sddcClient.Get(orgID, sddcID)
 	if err != nil {
 		if err.Error() == errors.NewNotFound().Error() {
 			log.Printf("SDDC with ID %s not found", sddcID)
