@@ -24,7 +24,7 @@ cd $GOPATH/src/github.com/terraform-providers
 git clone git@github.com:terraform-providers/terraform-provider-vmc.git
 ```
 
-After the clone has been completed, you can enter the provider directory and build the provider.
+After the clone is complete, you can enter the provider directory and build the provider.
 
 ```sh
 cd $GOPATH/src/github.com/terraform-providers/terraform-provider-vmc

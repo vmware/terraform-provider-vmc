@@ -29,7 +29,11 @@ func TestAccDataSourceVmcSddc_basic(t *testing.T) {
 func testAccDataSourceVmcSddcConfig() string {
 	return fmt.Sprintf(`
 data "vmc_sddc" "my_sddc" {
+	sddc_name = %q
+	num_host      = 3
+	region = "US_WEST_2"
 }
 `,
+		os.Getenv(TestSDDCName),
 	)
 }
