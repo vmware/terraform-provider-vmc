@@ -66,10 +66,6 @@ func dataSourceVmcSddc() *schema.Resource {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
-			"cloud_password": {
-				Type:     schema.TypeString,
-				Computed: true,
-			},
 			"nsxt_reverse_proxy_url": {
 				Type:     schema.TypeString,
 				Computed: true,
@@ -124,7 +120,6 @@ func dataSourceVmcSddcRead(d *schema.ResourceData, m interface{}) error {
 	if sddc.ResourceConfig != nil {
 		d.Set("vc_url", sddc.ResourceConfig.VcUrl)
 		d.Set("cloud_username", sddc.ResourceConfig.CloudUsername)
-		d.Set("cloud_password", sddc.ResourceConfig.CloudPassword)
 		d.Set("nsxt_reverse_proxy_url", sddc.ResourceConfig.NsxApiPublicEndpointUrl)
 		d.Set("region", sddc.ResourceConfig.Region)
 		d.Set("num_host", len(sddc.ResourceConfig.EsxHosts))

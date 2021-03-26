@@ -52,6 +52,4 @@ In addition to arguments listed above, the following attributes are exported:
 
 * `cloud_username` - Cloud user name.
 
-* `cloud_password` - Cloud password.
-
 * `nsxt_reverse_proxy_url` - NSXT reverse proxy url for managing public IP.
