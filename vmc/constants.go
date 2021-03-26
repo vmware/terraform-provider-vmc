@@ -68,6 +68,7 @@ const (
 	OrgID               string = "ORG_ID"
 	OrgDisplayName      string = "ORG_DISPLAY_NAME"
 	TestSDDCId          string = "TEST_SDDC_ID"
+	TestSDDCName        string = "TEST_SDDC_NAME"
 	AWSAccountNumber    string = "AWS_ACCOUNT_NUMBER"
 	NSXTReverseProxyUrl string = "NSXT_REVERSE_PROXY_URL"
 )

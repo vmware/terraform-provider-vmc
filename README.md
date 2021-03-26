@@ -24,7 +24,7 @@ cd $GOPATH/src/github.com/vmware
 git clone git@github.com:vmware/terraform-provider-vmc.git
 ```
 
-After the clone has been completed, you can enter the provider directory and build the provider. 
+After the clone is complete, you can enter the provider directory and build the provider.
 
 ```sh
 cd $GOPATH/src/github.com/vmware/terraform-provider-vmc
@@ -118,6 +118,9 @@ Set required environment variables based as per your infrastructure settings
 $ export API_TOKEN=xxx
 $ export ORG_ID=xxxx
 $ export TEST_SDDC_ID=xxx
+$ export TEST_SDDC_NAME=xxx
+$ export NSXT_REVERSE_PROXY_URL=xxx
+$ export AWS_ACCOUNT_NUMBER=xxx
 ```
 
 In order to run the full suite of Acceptance tests, run `make testacc`.
