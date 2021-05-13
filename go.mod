@@ -1,6 +1,6 @@
 module github.com/vmware/terraform-provider-vmc
 
-go 1.13
+go 1.16
 
 require (
 	cloud.google.com/go/storage v1.11.0 // indirect
@@ -9,7 +9,6 @@ require (
 	github.com/bmatcuk/doublestar v1.3.2 // indirect
 	github.com/fatih/color v1.9.0 // indirect
 	github.com/google/uuid v1.1.2 // indirect
-	github.com/gregjones/httpcache v0.0.0-20190611155906-901d90724c79 // indirect
 	github.com/hashicorp/go-hclog v0.14.1 // indirect
 	github.com/hashicorp/go-multierror v1.1.0 // indirect
 	github.com/hashicorp/go-retryablehttp v0.6.7 // indirect
@@ -27,18 +26,17 @@ require (
 	github.com/mitchellh/mapstructure v1.3.3 // indirect
 	github.com/niemeyer/pretty v0.0.0-20200227124842-a10e7caefd8e // indirect
 	github.com/oklog/run v1.1.0 // indirect
-	github.com/peterbourgon/diskv v2.0.1+incompatible // indirect
 	github.com/satori/go.uuid v1.2.0
 	github.com/spf13/afero v1.3.5 // indirect
 	github.com/stretchr/testify v1.6.1 // indirect
 	github.com/ulikunitz/xz v0.5.8 // indirect
-	github.com/zclconf/go-cty v1.6.1 // indirect
 	github.com/vmware/vsphere-automation-sdk-go/lib v0.3.1
 	github.com/vmware/vsphere-automation-sdk-go/runtime v0.3.1
 	github.com/vmware/vsphere-automation-sdk-go/services/nsxt-vmc-aws-integration v0.4.1
 	github.com/vmware/vsphere-automation-sdk-go/services/vmc v0.4.1
 	github.com/vmware/vsphere-automation-sdk-go/services/vmc/autoscaler v0.3.1
 	github.com/vmware/vsphere-automation-sdk-go/services/vmc/draas v0.3.0
+	github.com/zclconf/go-cty v1.6.1 // indirect
 	golang.org/x/crypto v0.0.0-20200820211705-5c72a883971a // indirect
 	golang.org/x/mod v0.3.1-0.20200828183125-ce943fd02449 // indirect
 	golang.org/x/net v0.0.0-20200904194848-62affa334b73 // indirect
@@ -50,5 +48,4 @@ require (
 	google.golang.org/grpc v1.32.0 // indirect
 	gopkg.in/check.v1 v1.0.0-20200227125254-8fa46927fb4f // indirect
 	gopkg.in/yaml.v3 v3.0.0-20200615113413-eeeca48fe776 // indirect
-	k8s.io/client-go v11.0.0+incompatible // indirect
 )
