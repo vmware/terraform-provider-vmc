@@ -1,3 +1,14 @@
+## 1.6.0 (May 17, 2021)
+
+FEATURES:
+
+ * Support for SDDC data source [\#105](https://github.com/vmware/terraform-provider-vmc/pull/105)
+ * Support for M1 mac [\#107](https://github.com/vmware/terraform-provider-vmc/pull/107)
+
+ BUG FIXES:
+
+ * Fix for updating multiple params in SDDC resource [\#101](https://github.com/vmware/terraform-provider-vmc/pull/101)
+
 ## 1.5.1 (January 21, 2021)
 
  BUG FIXES:
