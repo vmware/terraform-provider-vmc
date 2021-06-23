@@ -4,14 +4,15 @@
 package vmc
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"strings"
 	"time"
 
-	"github.com/hashicorp/terraform/helper/resource"
-	"github.com/hashicorp/terraform/helper/schema"
-	"github.com/hashicorp/terraform/helper/validation"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 	"github.com/vmware/vsphere-automation-sdk-go/lib/vapi/std/errors"
 	nsxtawsintegrationapi "github.com/vmware/vsphere-automation-sdk-go/services/nsxt-vmc-aws-integration/api"
 	nsxtawsintegrationmodel "github.com/vmware/vsphere-automation-sdk-go/services/nsxt-vmc-aws-integration/model"
@@ -245,7 +246,7 @@ func resourceSddc() *schema.Resource {
 				Elem:     &schema.Schema{Type: schema.TypeString},
 			},
 		},
-		CustomizeDiff: func(d *schema.ResourceDiff, meta interface{}) error {
+		CustomizeDiff: func(c context.Context, d *schema.ResourceDiff, meta interface{}) error {
 			deploymentType := d.Get("deployment_type").(string)
 			numHosts := d.Get("num_host").(int)
 

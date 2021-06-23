@@ -7,7 +7,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	uuid "github.com/satori/go.uuid"
 	"github.com/vmware/vsphere-automation-sdk-go/services/nsxt-vmc-aws-integration/api"
 	"github.com/vmware/vsphere-automation-sdk-go/services/nsxt-vmc-aws-integration/model"
