@@ -4,6 +4,7 @@
 package vmc
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"strings"
@@ -92,7 +93,7 @@ func resourceSRMNodeCreate(d *schema.ResourceData, m interface{}) error {
 	}
 
 	d.SetId(*task.ResourceId)
-	return resource.Retry(d.Timeout(schema.TimeoutCreate), func() *resource.RetryError {
+	return resource.RetryContext(context.Background(), d.Timeout(schema.TimeoutCreate), func() *resource.RetryError {
 		tasksClient := draas.NewDefaultTaskClient(connector)
 		task, err := tasksClient.Get(orgID, task.Id)
 		if err != nil {
@@ -157,7 +158,7 @@ func resourceSRMNodeDelete(d *schema.ResourceData, m interface{}) error {
 		return HandleDeleteError("SRM Node", sddcID, err)
 	}
 	tasksClient := draas.NewDefaultTaskClient(connector)
-	return resource.Retry(d.Timeout(schema.TimeoutDelete), func() *resource.RetryError {
+	return resource.RetryContext(context.Background(), d.Timeout(schema.TimeoutDelete), func() *resource.RetryError {
 		task, err := tasksClient.Get(orgID, task.Id)
 		if err != nil {
 			return resource.NonRetryableError(fmt.Errorf("error deleting SRM node for SDDC %s : %v", sddcID, err))
