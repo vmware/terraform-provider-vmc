@@ -4,6 +4,7 @@
 package vmc
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"strings"
@@ -25,7 +26,7 @@ func resourceSiteRecovery() *schema.Resource {
 		Update: resourceSiteRecoveryUpdate,
 		Delete: resourceSiteRecoveryDelete,
 		Importer: &schema.ResourceImporter{
-			State: schema.ImportStatePassthrough,
+			StateContext: schema.ImportStatePassthroughContext,
 		},
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(30 * time.Minute),
@@ -98,7 +99,7 @@ func resourceSiteRecoveryCreate(d *schema.ResourceData, m interface{}) error {
 	// Wait until site recovery is activated
 	taskID := task.ResourceId
 	d.SetId(*taskID)
-	return resource.Retry(d.Timeout(schema.TimeoutCreate), func() *resource.RetryError {
+	return resource.RetryContext(context.Background(), d.Timeout(schema.TimeoutCreate), func() *resource.RetryError {
 		tasksClient := draas.NewDefaultTaskClient(connector)
 		task, err := tasksClient.Get(orgID, task.Id)
 		if err != nil {
@@ -187,7 +188,7 @@ func resourceSiteRecoveryDelete(d *schema.ResourceData, m interface{}) error {
 		return HandleDeleteError("Site recovery", sddcID, err)
 	}
 	tasksClient := draas.NewDefaultTaskClient(connector)
-	return resource.Retry(d.Timeout(schema.TimeoutDelete), func() *resource.RetryError {
+	return resource.RetryContext(context.Background(), d.Timeout(schema.TimeoutDelete), func() *resource.RetryError {
 		task, err := tasksClient.Get(orgID, task.Id)
 		if err != nil {
 			return resource.NonRetryableError(fmt.Errorf("error deactivating site recovery for SDDC %s : %v", sddcID, err))

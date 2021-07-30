@@ -32,7 +32,7 @@ func resourceSddc() *schema.Resource {
 		Update: resourceSddcUpdate,
 		Delete: resourceSddcDelete,
 		Importer: &schema.ResourceImporter{
-			State: schema.ImportStatePassthrough,
+			StateContext: schema.ImportStatePassthroughContext,
 		},
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(300 * time.Minute),
@@ -349,7 +349,7 @@ func resourceSddcCreate(d *schema.ResourceData, m interface{}) error {
 	// Wait until Sddc is created
 	sddcID := task.ResourceId
 	d.SetId(*sddcID)
-	return resource.Retry(d.Timeout(schema.TimeoutCreate), func() *resource.RetryError {
+	return resource.RetryContext(context.Background(), d.Timeout(schema.TimeoutCreate), func() *resource.RetryError {
 		tasksClient := orgs.NewDefaultTasksClient(connectorWrapper)
 		task, err := tasksClient.Get(orgID, task.Id)
 		if err != nil {
@@ -480,7 +480,7 @@ func resourceSddcDelete(d *schema.ResourceData, m interface{}) error {
 		return HandleDeleteError("SDDC", sddcID, err)
 	}
 	tasksClient := orgs.NewDefaultTasksClient(connector)
-	return resource.Retry(d.Timeout(schema.TimeoutDelete), func() *resource.RetryError {
+	return resource.RetryContext(context.Background(), d.Timeout(schema.TimeoutDelete), func() *resource.RetryError {
 		task, err := tasksClient.Get(orgID, task.Id)
 		if err != nil {
 			return resource.NonRetryableError(fmt.Errorf("error deleting SDDC %s: %v", sddcID, err))
@@ -526,7 +526,7 @@ func resourceSddcUpdate(d *schema.ResourceData, m interface{}) error {
 				if err != nil {
 					return HandleUpdateError("SDDC", err)
 				}
-				err = resource.Retry(d.Timeout(schema.TimeoutUpdate), func() *resource.RetryError {
+				err = resource.RetryContext(context.Background(), d.Timeout(schema.TimeoutUpdate), func() *resource.RetryError {
 					tasksClient := orgs.NewDefaultTasksClient(connectorWrapper)
 					task, err := tasksClient.Get(orgID, task.Id)
 
@@ -584,7 +584,7 @@ func resourceSddcUpdate(d *schema.ResourceData, m interface{}) error {
 			return HandleUpdateError("SDDC", err)
 		}
 		tasksClient := orgs.NewDefaultTasksClient(connectorWrapper)
-		err = resource.Retry(d.Timeout(schema.TimeoutUpdate), func() *resource.RetryError {
+		err = resource.RetryContext(context.Background(), d.Timeout(schema.TimeoutUpdate), func() *resource.RetryError {
 			task, err := tasksClient.Get(orgID, task.Id)
 			if err != nil {
 				return resource.NonRetryableError(fmt.Errorf("error updating hosts : %v", err))
@@ -658,7 +658,7 @@ func resourceSddcUpdate(d *schema.ResourceData, m interface{}) error {
 			return HandleUpdateError("EDRS Policy", err)
 		}
 
-		return resource.Retry(d.Timeout(schema.TimeoutUpdate), func() *resource.RetryError {
+		return resource.RetryContext(context.Background(), d.Timeout(schema.TimeoutUpdate), func() *resource.RetryError {
 			taskClient := autoscalerapi.NewDefaultAutoscalerClient(connectorWrapper)
 			task, err := taskClient.Get(orgID, task.Id)
 			if err != nil {
@@ -699,7 +699,7 @@ func resourceSddcUpdate(d *schema.ResourceData, m interface{}) error {
 		if err != nil {
 			return fmt.Errorf("Error updating license : %s", err)
 		}
-		return resource.Retry(d.Timeout(schema.TimeoutCreate), func() *resource.RetryError {
+		return resource.RetryContext(context.Background(), d.Timeout(schema.TimeoutCreate), func() *resource.RetryError {
 			tasksClient := orgs.NewDefaultTasksClient(connectorWrapper)
 			task, err := tasksClient.Get(orgID, task.Id)
 			if err != nil || *task.Status == "FAILED" {

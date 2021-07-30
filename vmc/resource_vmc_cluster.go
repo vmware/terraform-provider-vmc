@@ -193,7 +193,7 @@ func resourceClusterCreate(d *schema.ResourceData, m interface{}) error {
 		return HandleCreateError("Cluster", err)
 	}
 
-	return resource.Retry(d.Timeout(schema.TimeoutCreate), func() *resource.RetryError {
+	return resource.RetryContext(context.Background(), d.Timeout(schema.TimeoutCreate), func() *resource.RetryError {
 		tasksClient := orgs.NewDefaultTasksClient(connector)
 		task, err := tasksClient.Get(orgID, task.Id)
 		if err != nil {
@@ -293,7 +293,7 @@ func resourceClusterDelete(d *schema.ResourceData, m interface{}) error {
 		return HandleDeleteError("Cluster", clusterID, err)
 	}
 	tasksClient := orgs.NewDefaultTasksClient(connector)
-	return resource.Retry(d.Timeout(schema.TimeoutDelete), func() *resource.RetryError {
+	return resource.RetryContext(context.Background(), d.Timeout(schema.TimeoutDelete), func() *resource.RetryError {
 		task, err := tasksClient.Get(orgID, task.Id)
 		if err != nil {
 			return resource.NonRetryableError(fmt.Errorf("error deleting cluster %s : %v", clusterID, err))
@@ -340,7 +340,7 @@ func resourceClusterUpdate(d *schema.ResourceData, m interface{}) error {
 			return HandleUpdateError("Cluster", err)
 		}
 		tasksClient := orgs.NewDefaultTasksClient(connectorWrapper)
-		err = resource.Retry(d.Timeout(schema.TimeoutUpdate), func() *resource.RetryError {
+		err = resource.RetryContext(context.Background(), d.Timeout(schema.TimeoutUpdate), func() *resource.RetryError {
 			task, err := tasksClient.Get(orgID, task.Id)
 			if err != nil {
 				return resource.NonRetryableError(fmt.Errorf("error updating hosts for cluster : %v", err))
@@ -375,7 +375,7 @@ func resourceClusterUpdate(d *schema.ResourceData, m interface{}) error {
 		if err != nil {
 			return HandleUpdateError("EDRS Policy", err)
 		}
-		return resource.Retry(d.Timeout(schema.TimeoutUpdate), func() *resource.RetryError {
+		return resource.RetryContext(context.Background(), d.Timeout(schema.TimeoutUpdate), func() *resource.RetryError {
 			taskClient := autoscalerapi.NewDefaultAutoscalerClient(connectorWrapper)
 			task, err := taskClient.Get(orgID, task.Id)
 			if err != nil {
@@ -405,7 +405,7 @@ func resourceClusterUpdate(d *schema.ResourceData, m interface{}) error {
 		if err != nil {
 			return HandleUpdateError("Microsoft Licensing Config", err)
 		}
-		return resource.Retry(d.Timeout(schema.TimeoutCreate), func() *resource.RetryError {
+		return resource.RetryContext(context.Background(), d.Timeout(schema.TimeoutCreate), func() *resource.RetryError {
 			tasksClient := orgs.NewDefaultTasksClient(connectorWrapper)
 			task, err := tasksClient.Get(orgID, task.Id)
 			if err != nil {
