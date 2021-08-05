@@ -1,9 +1,12 @@
-## 1.7.0 (Jul 28, 2021)
+## 1.7.0 (Aug 5, 2021)
 
 ENHANCEMENT:
 
  * Upgrade to TF plugin SDK v2 [\#108](https://github.com/vmware/terraform-provider-vmc/pull/108)
 
+BUG FIXES: 
+
+ * Fix for static check failures caused by references to deprecated functions [\#109](https://github.com/vmware/terraform-provider-vmc/pull/109)
 
 ## 1.6.0 (May 17, 2021)
 
