@@ -87,7 +87,7 @@ func dataSourceVmcCustomerSubnetsRead(d *schema.ResourceData, m interface{}) err
 	instanceType := d.Get("instance_type").(string)
 
 	connector := (m.(*ConnectorWrapper)).Connector
-	compatibleSubnetsClient := account_link.NewDefaultCompatibleSubnetsClient(connector)
+	compatibleSubnetsClient := account_link.NewCompatibleSubnetsClient(connector)
 	compatibleSubnets, err := compatibleSubnetsClient.Get(orgID, accountID, &region, &sddcID, &forceRefresh, &instanceType, &sddcType, &numHosts)
 	ids := []string{}
 	for _, value := range compatibleSubnets.VpcMap {

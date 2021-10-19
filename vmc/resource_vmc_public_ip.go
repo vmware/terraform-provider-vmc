@@ -63,7 +63,7 @@ func resourcePublicIpCreate(d *schema.ResourceData, m interface{}) error {
 	if err != nil {
 		return HandleCreateError("NSXT reverse proxy URL connector", err)
 	}
-	nsxVmcAwsClient := api.NewDefaultCloudServiceVmcOnAwsPublicIpClient(connector)
+	nsxVmcAwsClient := api.NewCloudServiceVMCOnAWSPublicIPClient(connector)
 
 	displayName := d.Get("display_name").(string)
 	// generate random UUID
@@ -91,7 +91,7 @@ func resourcePublicIpRead(d *schema.ResourceData, m interface{}) error {
 	if err != nil {
 		return HandleCreateError("NSXT reverse proxy URL connector", err)
 	}
-	nsxVmcAwsClient := api.NewDefaultCloudServiceVmcOnAwsPublicIpClient(connector)
+	nsxVmcAwsClient := api.NewCloudServiceVMCOnAWSPublicIPClient(connector)
 	uuid := d.Id()
 
 	if len(uuid) > 0 {
@@ -128,7 +128,7 @@ func resourcePublicIpUpdate(d *schema.ResourceData, m interface{}) error {
 	if err != nil {
 		return HandleCreateError("NSXT reverse proxy URL connector", err)
 	}
-	nsxVmcAwsClient := api.NewDefaultCloudServiceVmcOnAwsPublicIpClient(connector)
+	nsxVmcAwsClient := api.NewCloudServiceVMCOnAWSPublicIPClient(connector)
 
 	if d.HasChange("display_name") {
 		uuid := d.Id()
@@ -158,7 +158,7 @@ func resourcePublicIpDelete(d *schema.ResourceData, m interface{}) error {
 	if err != nil {
 		return HandleCreateError("NSXT reverse proxy URL connector", err)
 	}
-	nsxVmcAwsClient := api.NewDefaultCloudServiceVmcOnAwsPublicIpClient(connector)
+	nsxVmcAwsClient := api.NewCloudServiceVMCOnAWSPublicIPClient(connector)
 	uuid := d.Id()
 	forceDelete := true
 	err = nsxVmcAwsClient.DeletePublicIp(uuid, &forceDelete)

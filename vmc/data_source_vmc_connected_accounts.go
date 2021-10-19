@@ -41,7 +41,7 @@ func dataSourceVmcConnectedAccountsRead(d *schema.ResourceData, m interface{}) e
 	accountNumber := d.Get("account_number").(string)
 
 	connector := (m.(*ConnectorWrapper)).Connector
-	defaultConnectedAccountsClient := account_link.NewDefaultConnectedAccountsClient(connector)
+	defaultConnectedAccountsClient := account_link.NewConnectedAccountsClient(connector)
 	accounts, err := defaultConnectedAccountsClient.Get(orgID, &providerType)
 
 	if accountNumber == "" {

@@ -25,7 +25,7 @@ var storageCapacityMap = map[string]int64{
 }
 
 func GetSDDC(connector client.Connector, orgID string, sddcID string) (model.Sddc, error) {
-	sddcClient := orgs.NewDefaultSddcsClient(connector)
+	sddcClient := orgs.NewSddcsClient(connector)
 	sddc, err := sddcClient.Get(orgID, sddcID)
 	return sddc, err
 }

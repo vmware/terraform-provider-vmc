@@ -80,7 +80,7 @@ func resourceSiteRecoveryCreate(d *schema.ResourceData, m interface{}) error {
 	}
 	connector := (m.(*ConnectorWrapper)).Connector
 
-	siteRecoveryClient := draas.NewDefaultSiteRecoveryClient(connector)
+	siteRecoveryClient := draas.NewSiteRecoveryClient(connector)
 
 	srmExtensionKeySuffix := d.Get("srm_extension_key_suffix").(string)
 	orgID := (m.(*ConnectorWrapper)).OrgID
@@ -100,7 +100,7 @@ func resourceSiteRecoveryCreate(d *schema.ResourceData, m interface{}) error {
 	taskID := task.ResourceId
 	d.SetId(*taskID)
 	return resource.RetryContext(context.Background(), d.Timeout(schema.TimeoutCreate), func() *resource.RetryError {
-		tasksClient := draas.NewDefaultTaskClient(connector)
+		tasksClient := draas.NewTaskClient(connector)
 		task, err := tasksClient.Get(orgID, task.Id)
 		if err != nil {
 			if err.Error() == (errors.Unauthenticated{}.Error()) {
@@ -126,7 +126,7 @@ func resourceSiteRecoveryRead(d *schema.ResourceData, m interface{}) error {
 	connector := (m.(*ConnectorWrapper)).Connector
 	sddcID := d.Id()
 	orgID := (m.(*ConnectorWrapper)).OrgID
-	siteRecoveryClient := draas.NewDefaultSiteRecoveryClient(connector)
+	siteRecoveryClient := draas.NewSiteRecoveryClient(connector)
 	siteRecovery, err := siteRecoveryClient.Get(orgID, sddcID)
 	if err != nil {
 
@@ -178,7 +178,7 @@ func resourceSiteRecoveryRead(d *schema.ResourceData, m interface{}) error {
 
 func resourceSiteRecoveryDelete(d *schema.ResourceData, m interface{}) error {
 	connector := (m.(*ConnectorWrapper)).Connector
-	siteRecoveryClient := draas.NewDefaultSiteRecoveryClient(connector)
+	siteRecoveryClient := draas.NewSiteRecoveryClient(connector)
 
 	orgID := (m.(*ConnectorWrapper)).OrgID
 	sddcID := d.Get("sddc_id").(string)
@@ -187,7 +187,7 @@ func resourceSiteRecoveryDelete(d *schema.ResourceData, m interface{}) error {
 	if err != nil {
 		return HandleDeleteError("Site recovery", sddcID, err)
 	}
-	tasksClient := draas.NewDefaultTaskClient(connector)
+	tasksClient := draas.NewTaskClient(connector)
 	return resource.RetryContext(context.Background(), d.Timeout(schema.TimeoutDelete), func() *resource.RetryError {
 		task, err := tasksClient.Get(orgID, task.Id)
 		if err != nil {
