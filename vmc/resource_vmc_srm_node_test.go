@@ -52,7 +52,7 @@ func testCheckVmcSRMNodeExists(name string) resource.TestCheckFunc {
 		connector := connectorWrapper.Connector
 		orgID := connectorWrapper.OrgID
 
-		draasClient := draas.NewDefaultSiteRecoveryClient(connector)
+		draasClient := draas.NewSiteRecoveryClient(connector)
 		var err error
 		siteRecovery, err := draasClient.Get(orgID, sddcID)
 		if err != nil {
@@ -70,7 +70,7 @@ func testCheckVmcSRMNodeExists(name string) resource.TestCheckFunc {
 func testCheckVmcSRMNodeDestroy(s *terraform.State) error {
 	connectorWrapper := testAccProvider.Meta().(*ConnectorWrapper)
 	connector := connectorWrapper.Connector
-	draasClient := draas.NewDefaultSiteRecoveryClient(connector)
+	draasClient := draas.NewSiteRecoveryClient(connector)
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "vmc_srm_node" {
