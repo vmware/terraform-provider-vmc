@@ -76,7 +76,7 @@ func resourceSRMNodeCreate(d *schema.ResourceData, m interface{}) error {
 	}
 	connector := (m.(*ConnectorWrapper)).Connector
 
-	siteRecoverySrmNodesClient := draas.NewDefaultSiteRecoverySrmNodesClient(connector)
+	siteRecoverySrmNodesClient := draas.NewSiteRecoverySrmNodesClient(connector)
 
 	srmExtensionKeySuffix := d.Get("srm_node_extension_key_suffix").(string)
 	orgID := (m.(*ConnectorWrapper)).OrgID
@@ -94,7 +94,7 @@ func resourceSRMNodeCreate(d *schema.ResourceData, m interface{}) error {
 
 	d.SetId(*task.ResourceId)
 	return resource.RetryContext(context.Background(), d.Timeout(schema.TimeoutCreate), func() *resource.RetryError {
-		tasksClient := draas.NewDefaultTaskClient(connector)
+		tasksClient := draas.NewTaskClient(connector)
 		task, err := tasksClient.Get(orgID, task.Id)
 		if err != nil {
 			if err.Error() == (errors.Unauthenticated{}.Error()) {
@@ -121,7 +121,7 @@ func resourceSRMNodeRead(d *schema.ResourceData, m interface{}) error {
 	orgID := (m.(*ConnectorWrapper)).OrgID
 	sddcID := d.Get("sddc_id").(string)
 	srmNodeID := d.Id()
-	siteRecoveryClient := draas.NewDefaultSiteRecoveryClient(connector)
+	siteRecoveryClient := draas.NewSiteRecoveryClient(connector)
 	siteRecovery, err := siteRecoveryClient.Get(orgID, sddcID)
 	if err != nil {
 		return HandleReadError(d, "SRM Node", sddcID, err)
@@ -148,7 +148,7 @@ func resourceSRMNodeRead(d *schema.ResourceData, m interface{}) error {
 
 func resourceSRMNodeDelete(d *schema.ResourceData, m interface{}) error {
 	connector := (m.(*ConnectorWrapper)).Connector
-	siteRecoverySrmNodesClient := draas.NewDefaultSiteRecoverySrmNodesClient(connector)
+	siteRecoverySrmNodesClient := draas.NewSiteRecoverySrmNodesClient(connector)
 
 	orgID := (m.(*ConnectorWrapper)).OrgID
 	sddcID := d.Get("sddc_id").(string)
@@ -157,7 +157,7 @@ func resourceSRMNodeDelete(d *schema.ResourceData, m interface{}) error {
 	if err != nil {
 		return HandleDeleteError("SRM Node", sddcID, err)
 	}
-	tasksClient := draas.NewDefaultTaskClient(connector)
+	tasksClient := draas.NewTaskClient(connector)
 	return resource.RetryContext(context.Background(), d.Timeout(schema.TimeoutDelete), func() *resource.RetryError {
 		task, err := tasksClient.Get(orgID, task.Id)
 		if err != nil {

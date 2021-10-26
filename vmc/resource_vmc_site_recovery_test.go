@@ -55,7 +55,7 @@ func testCheckVmcSiteRecoveryExists(name string, siteRecovery *model.SiteRecover
 		connector := connectorWrapper.Connector
 		orgID := connectorWrapper.OrgID
 
-		draasClient := draas.NewDefaultSiteRecoveryClient(connector)
+		draasClient := draas.NewSiteRecoveryClient(connector)
 		var err error
 		*siteRecovery, err = draasClient.Get(orgID, sddcID)
 		if err != nil {
@@ -74,7 +74,7 @@ func testCheckVmcSiteRecoveryDestroy(s *terraform.State) error {
 
 	connectorWrapper := testAccProvider.Meta().(*ConnectorWrapper)
 	connector := connectorWrapper.Connector
-	draasClient := draas.NewDefaultSiteRecoveryClient(connector)
+	draasClient := draas.NewSiteRecoveryClient(connector)
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "vmc_site_recovery" {

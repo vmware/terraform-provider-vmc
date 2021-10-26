@@ -39,7 +39,7 @@ func printAPIError(apiError model.ErrorResponse) []string {
 	return detailedErrorResponse
 }
 
-func logVapiErrorData(message string, vAPIMessages []std.LocalizableMessage, vapiType *e.ErrorType, apiErrorDataValue *data.StructValue) error {
+func logVapiErrorData(message string, vAPIMessages []std.LocalizableMessage, vapiType *e.ErrorTypeEnum, apiErrorDataValue *data.StructValue) error {
 
 	if apiErrorDataValue == nil {
 		if len(vAPIMessages) > 0 {

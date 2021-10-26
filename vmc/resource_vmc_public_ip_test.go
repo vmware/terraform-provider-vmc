@@ -55,7 +55,7 @@ func testAccCheckVmcPublicIpExists(name string, publicIpResource *model.PublicIp
 			return fmt.Errorf("error creating client connector : %v ", err)
 		}
 
-		nsxVmcAwsClient := api.NewDefaultCloudServiceVmcOnAwsPublicIpClient(connector)
+		nsxVmcAwsClient := api.NewCloudServiceVMCOnAWSPublicIPClient(connector)
 		publicIp, err := nsxVmcAwsClient.GetPublicIp(uuid)
 		if err != nil {
 			return fmt.Errorf("error getting public IP with ID %s : %v", uuid, err)
@@ -74,7 +74,7 @@ func testCheckVmcPublicIpDestroy(s *terraform.State) error {
 	if err != nil {
 		return fmt.Errorf("error creating client connector : %v ", err)
 	}
-	nsxVmcAwsClient := api.NewDefaultCloudServiceVmcOnAwsPublicIpClient(connector)
+	nsxVmcAwsClient := api.NewCloudServiceVMCOnAWSPublicIPClient(connector)
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "vmc_public_ip" {

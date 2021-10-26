@@ -245,6 +245,34 @@ func resourceSddc() *schema.Resource {
 				Computed: true,
 				Elem:     &schema.Schema{Type: schema.TypeString},
 			},
+			"nsxt_ui": {
+				Type:     schema.TypeBool,
+				Computed: true,
+			},
+			"nsxt_cloudadmin": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+			"nsxt_cloudadmin_password": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+			"nsxt_cloudaudit": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+			"nsxt_cloudaudit_password": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+			"nsxt_private_ip": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+			"nsxt_private_url": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
 		},
 		CustomizeDiff: func(c context.Context, d *schema.ResourceDiff, meta interface{}) error {
 			deploymentType := d.Get("deployment_type").(string)
@@ -273,7 +301,7 @@ func resourceSddc() *schema.Resource {
 func resourceSddcCreate(d *schema.ResourceData, m interface{}) error {
 	var storageCapacityConverted int64
 	connectorWrapper := m.(*ConnectorWrapper)
-	sddcClient := orgs.NewDefaultSddcsClient(connectorWrapper)
+	sddcClient := orgs.NewSddcsClient(connectorWrapper)
 	orgID := connectorWrapper.OrgID
 
 	storageCapacity := d.Get("storage_capacity").(string)
@@ -317,7 +345,7 @@ func resourceSddcCreate(d *schema.ResourceData, m interface{}) error {
 	}
 
 	accountLinkSddcConfig := expandAccountLinkSddcConfig(accountLinkSddcConfigVar)
-	hostInstanceType := model.HostInstanceTypes(d.Get("host_instance_type").(string))
+	hostInstanceType := model.HostInstanceTypesEnum(d.Get("host_instance_type").(string))
 	msftLicensingConfig := expandMsftLicenseConfig(d.Get("microsoft_licensing_config").([]interface{}))
 
 	var awsSddcConfig = &model.AwsSddcConfig{
@@ -350,7 +378,7 @@ func resourceSddcCreate(d *schema.ResourceData, m interface{}) error {
 	sddcID := task.ResourceId
 	d.SetId(*sddcID)
 	return resource.RetryContext(context.Background(), d.Timeout(schema.TimeoutCreate), func() *resource.RetryError {
-		tasksClient := orgs.NewDefaultTasksClient(connectorWrapper)
+		tasksClient := orgs.NewTasksClient(connectorWrapper)
 		task, err := tasksClient.Get(orgID, task.Id)
 		if err != nil {
 			if err.Error() == (errors.Unauthenticated{}.Error()) {
@@ -425,8 +453,16 @@ func resourceSddcRead(d *schema.ResourceData, m interface{}) error {
 		sddcSizeInfo["vc_size"] = *sddc.ResourceConfig.SddcSize.VcSize
 		sddcSizeInfo["nsx_size"] = *sddc.ResourceConfig.SddcSize.NsxSize
 		d.Set("sddc_size", sddcSizeInfo)
+		if sddc.ResourceConfig.NsxCloudAdmin != nil {
+			d.Set("nsxt_cloudadmin", *sddc.ResourceConfig.NsxCloudAdmin)
+			d.Set("nsxt_cloudadmin_password", *sddc.ResourceConfig.NsxCloudAdminPassword)
+			d.Set("nsxt_cloudaudit", *sddc.ResourceConfig.NsxCloudAudit)
+			d.Set("nsxt_cloudaudit_password", *sddc.ResourceConfig.NsxCloudAuditPassword)
+			d.Set("nsxt_private_ip", *sddc.ResourceConfig.NsxMgrManagementIp)
+			d.Set("nsxt_private_url", *sddc.ResourceConfig.NsxMgrLoginUrl)
+		}
 	}
-	sddcClient := sddcs.NewDefaultPrimaryclusterClient(connector)
+	sddcClient := sddcs.NewPrimaryclusterClient(connector)
 	primaryCluster, err := sddcClient.Get(orgID, sddcID)
 	if err != nil {
 		return HandleReadError(d, "Primary Cluster", sddcID, err)
@@ -442,7 +478,7 @@ func resourceSddcRead(d *schema.ResourceData, m interface{}) error {
 	}
 	d.Set("cluster_info", cluster)
 
-	edrsPolicyClient := autoscalercluster.NewDefaultEdrsPolicyClient(connector)
+	edrsPolicyClient := autoscalercluster.NewEdrsPolicyClient(connector)
 	edrsPolicy, err := edrsPolicyClient.Get(orgID, sddcID, primaryCluster.ClusterId)
 	if err != nil {
 		return HandleReadError(d, "SDDC", sddcID, err)
@@ -459,7 +495,7 @@ func resourceSddcRead(d *schema.ResourceData, m interface{}) error {
 		if err != nil {
 			return HandleCreateError("NSXT reverse proxy URL connector", err)
 		}
-		cloudServicesCommonClient := nsxtawsintegrationapi.NewDefaultCloudServiceCommonClient(connector)
+		cloudServicesCommonClient := nsxtawsintegrationapi.NewCloudServiceCommonClient(connector)
 		externalConnectivityConfig, err := cloudServicesCommonClient.GetExternalConnectivityConfig()
 		if err != nil {
 			return HandleReadError(d, "External connectivity configuration", sddcID, err)
@@ -471,7 +507,7 @@ func resourceSddcRead(d *schema.ResourceData, m interface{}) error {
 
 func resourceSddcDelete(d *schema.ResourceData, m interface{}) error {
 	connector := (m.(*ConnectorWrapper)).Connector
-	sddcClient := orgs.NewDefaultSddcsClient(connector)
+	sddcClient := orgs.NewSddcsClient(connector)
 	sddcID := d.Id()
 	orgID := (m.(*ConnectorWrapper)).OrgID
 
@@ -479,7 +515,7 @@ func resourceSddcDelete(d *schema.ResourceData, m interface{}) error {
 	if err != nil {
 		return HandleDeleteError("SDDC", sddcID, err)
 	}
-	tasksClient := orgs.NewDefaultTasksClient(connector)
+	tasksClient := orgs.NewTasksClient(connector)
 	return resource.RetryContext(context.Background(), d.Timeout(schema.TimeoutDelete), func() *resource.RetryError {
 		task, err := tasksClient.Get(orgID, task.Id)
 		if err != nil {
@@ -497,8 +533,8 @@ func resourceSddcDelete(d *schema.ResourceData, m interface{}) error {
 
 func resourceSddcUpdate(d *schema.ResourceData, m interface{}) error {
 	connectorWrapper := m.(*ConnectorWrapper)
-	esxsClient := sddcs.NewDefaultEsxsClient(connectorWrapper)
-	sddcClient := orgs.NewDefaultSddcsClient(connectorWrapper)
+	esxsClient := sddcs.NewEsxsClient(connectorWrapper)
+	sddcClient := orgs.NewSddcsClient(connectorWrapper)
 	sddcID := d.Id()
 	orgID := (m.(*ConnectorWrapper)).OrgID
 
@@ -520,14 +556,14 @@ func resourceSddcUpdate(d *schema.ResourceData, m interface{}) error {
 				}
 				return resourceSddcCreate(d, m)
 			} else if newNum == 3 { // 3node SDDC scale up
-				convertClient := sddcs.NewDefaultConvertClient(connectorWrapper)
-				task, err := convertClient.Create(orgID, sddcID)
+				convertClient := sddcs.NewConvertClient(connectorWrapper)
+				task, err := convertClient.Create(orgID, sddcID, nil)
 
 				if err != nil {
 					return HandleUpdateError("SDDC", err)
 				}
 				err = resource.RetryContext(context.Background(), d.Timeout(schema.TimeoutUpdate), func() *resource.RetryError {
-					tasksClient := orgs.NewDefaultTasksClient(connectorWrapper)
+					tasksClient := orgs.NewTasksClient(connectorWrapper)
 					task, err := tasksClient.Get(orgID, task.Id)
 
 					if err != nil {
@@ -583,7 +619,7 @@ func resourceSddcUpdate(d *schema.ResourceData, m interface{}) error {
 		if err != nil {
 			return HandleUpdateError("SDDC", err)
 		}
-		tasksClient := orgs.NewDefaultTasksClient(connectorWrapper)
+		tasksClient := orgs.NewTasksClient(connectorWrapper)
 		err = resource.RetryContext(context.Background(), d.Timeout(schema.TimeoutUpdate), func() *resource.RetryError {
 			task, err := tasksClient.Get(orgID, task.Id)
 			if err != nil {
@@ -625,7 +661,7 @@ func resourceSddcUpdate(d *schema.ResourceData, m interface{}) error {
 		if err != nil {
 			return HandleCreateError("NSXT reverse proxy URL connector", err)
 		}
-		cloudServicesCommonClient := nsxtawsintegrationapi.NewDefaultCloudServiceCommonClient(connector)
+		cloudServicesCommonClient := nsxtawsintegrationapi.NewCloudServiceCommonClient(connector)
 		externalConnectivityConfig := nsxtawsintegrationmodel.ExternalConnectivityConfig{IntranetMtu: int64(intranetMTUUplink)}
 		_, err = cloudServicesCommonClient.UpdateIntranetUplinkMtu(externalConnectivityConfig)
 		if err != nil {
@@ -652,14 +688,14 @@ func resourceSddcUpdate(d *schema.ResourceData, m interface{}) error {
 			MinHosts:   &minHosts,
 			MaxHosts:   &maxHosts,
 		}
-		edrsPolicyClient := autoscalercluster.NewDefaultEdrsPolicyClient(connectorWrapper)
+		edrsPolicyClient := autoscalercluster.NewEdrsPolicyClient(connectorWrapper)
 		task, err := edrsPolicyClient.Post(orgID, sddcID, clusterID, *edrsPolicy)
 		if err != nil {
 			return HandleUpdateError("EDRS Policy", err)
 		}
 
 		return resource.RetryContext(context.Background(), d.Timeout(schema.TimeoutUpdate), func() *resource.RetryError {
-			taskClient := autoscalerapi.NewDefaultAutoscalerClient(connectorWrapper)
+			taskClient := autoscalerapi.NewAutoscalerClient(connectorWrapper)
 			task, err := taskClient.Get(orgID, task.Id)
 			if err != nil {
 				if err.Error() == (errors.Unauthenticated{}.Error()) {
@@ -689,18 +725,18 @@ func resourceSddcUpdate(d *schema.ResourceData, m interface{}) error {
 	// Update microsoft licensing config
 	if d.HasChange("microsoft_licensing_config") {
 		configChangeParam := expandMsftLicenseConfig(d.Get("microsoft_licensing_config").([]interface{}))
-		primaryClusterClient := sddcs.NewDefaultPrimaryclusterClient(connectorWrapper)
+		primaryClusterClient := sddcs.NewPrimaryclusterClient(connectorWrapper)
 		primaryCluster, err := primaryClusterClient.Get(orgID, sddcID)
 		if err != nil {
 			return HandleReadError(d, "Primary Cluster", sddcID, err)
 		}
-		publishClient := msft_licensing.NewDefaultPublishClient(connectorWrapper)
+		publishClient := msft_licensing.NewPublishClient(connectorWrapper)
 		task, err := publishClient.Post(orgID, sddcID, primaryCluster.ClusterId, *configChangeParam)
 		if err != nil {
 			return fmt.Errorf("Error updating license : %s", err)
 		}
 		return resource.RetryContext(context.Background(), d.Timeout(schema.TimeoutCreate), func() *resource.RetryError {
-			tasksClient := orgs.NewDefaultTasksClient(connectorWrapper)
+			tasksClient := orgs.NewTasksClient(connectorWrapper)
 			task, err := tasksClient.Get(orgID, task.Id)
 			if err != nil || *task.Status == "FAILED" {
 				if err.Error() == (errors.Unauthenticated{}.Error()) {

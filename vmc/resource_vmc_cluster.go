@@ -173,8 +173,8 @@ func resourceClusterCreate(d *schema.ResourceData, m interface{}) error {
 
 	connector := m.(*ConnectorWrapper)
 	orgID := m.(*ConnectorWrapper).OrgID
-	clusterClient := sddcs.NewDefaultClustersClient(connector)
-	hostInstanceType := model.HostInstanceTypes(d.Get("host_instance_type").(string))
+	clusterClient := sddcs.NewClustersClient(connector)
+	hostInstanceType := model.HostInstanceTypesEnum(d.Get("host_instance_type").(string))
 	storageCapacity := d.Get("storage_capacity").(string)
 	if len(strings.TrimSpace(storageCapacity)) > 0 {
 		storageCapacityConverted = ConvertStorageCapacitytoInt(storageCapacity)
@@ -194,7 +194,7 @@ func resourceClusterCreate(d *schema.ResourceData, m interface{}) error {
 	}
 
 	return resource.RetryContext(context.Background(), d.Timeout(schema.TimeoutCreate), func() *resource.RetryError {
-		tasksClient := orgs.NewDefaultTasksClient(connector)
+		tasksClient := orgs.NewTasksClient(connector)
 		task, err := tasksClient.Get(orgID, task.Id)
 		if err != nil {
 			if err.Error() == (errors.Unauthenticated{}.Error()) {
@@ -269,7 +269,7 @@ func resourceClusterRead(d *schema.ResourceData, m interface{}) error {
 		}
 	}
 
-	edrsPolicyClient := autoscalercluster.NewDefaultEdrsPolicyClient(connector)
+	edrsPolicyClient := autoscalercluster.NewEdrsPolicyClient(connector)
 	edrsPolicy, err := edrsPolicyClient.Get(orgID, sddcID, clusterID)
 	if err != nil {
 		return HandleReadError(d, "Cluster", clusterID, err)
@@ -287,12 +287,12 @@ func resourceClusterDelete(d *schema.ResourceData, m interface{}) error {
 
 	orgID := (m.(*ConnectorWrapper)).OrgID
 	sddcID := d.Get("sddc_id").(string)
-	clusterClient := sddcs.NewDefaultClustersClient(connector)
+	clusterClient := sddcs.NewClustersClient(connector)
 	task, err := clusterClient.Delete(orgID, sddcID, clusterID)
 	if err != nil {
 		return HandleDeleteError("Cluster", clusterID, err)
 	}
-	tasksClient := orgs.NewDefaultTasksClient(connector)
+	tasksClient := orgs.NewTasksClient(connector)
 	return resource.RetryContext(context.Background(), d.Timeout(schema.TimeoutDelete), func() *resource.RetryError {
 		task, err := tasksClient.Get(orgID, task.Id)
 		if err != nil {
@@ -310,7 +310,7 @@ func resourceClusterDelete(d *schema.ResourceData, m interface{}) error {
 
 func resourceClusterUpdate(d *schema.ResourceData, m interface{}) error {
 	connectorWrapper := m.(*ConnectorWrapper)
-	esxsClient := sddcs.NewDefaultEsxsClient(connectorWrapper)
+	esxsClient := sddcs.NewEsxsClient(connectorWrapper)
 	sddcID := d.Get("sddc_id").(string)
 	orgID := (m.(*ConnectorWrapper)).OrgID
 	clusterID := d.Id()
@@ -339,7 +339,7 @@ func resourceClusterUpdate(d *schema.ResourceData, m interface{}) error {
 		if err != nil {
 			return HandleUpdateError("Cluster", err)
 		}
-		tasksClient := orgs.NewDefaultTasksClient(connectorWrapper)
+		tasksClient := orgs.NewTasksClient(connectorWrapper)
 		err = resource.RetryContext(context.Background(), d.Timeout(schema.TimeoutUpdate), func() *resource.RetryError {
 			task, err := tasksClient.Get(orgID, task.Id)
 			if err != nil {
@@ -357,7 +357,7 @@ func resourceClusterUpdate(d *schema.ResourceData, m interface{}) error {
 		}
 	}
 	if d.HasChange("edrs_policy_type") || d.HasChange("enable_edrs") || d.HasChange("min_hosts") || d.HasChange("max_hosts") {
-		edrsPolicyClient := autoscalercluster.NewDefaultEdrsPolicyClient(connectorWrapper)
+		edrsPolicyClient := autoscalercluster.NewEdrsPolicyClient(connectorWrapper)
 		minHosts := int64(d.Get("min_hosts").(int))
 		maxHosts := int64(d.Get("max_hosts").(int))
 		policyType := d.Get("edrs_policy_type").(string)
@@ -376,7 +376,7 @@ func resourceClusterUpdate(d *schema.ResourceData, m interface{}) error {
 			return HandleUpdateError("EDRS Policy", err)
 		}
 		return resource.RetryContext(context.Background(), d.Timeout(schema.TimeoutUpdate), func() *resource.RetryError {
-			taskClient := autoscalerapi.NewDefaultAutoscalerClient(connectorWrapper)
+			taskClient := autoscalerapi.NewAutoscalerClient(connectorWrapper)
 			task, err := taskClient.Get(orgID, task.Id)
 			if err != nil {
 				if err.Error() == (errors.Unauthenticated{}.Error()) {
@@ -400,13 +400,13 @@ func resourceClusterUpdate(d *schema.ResourceData, m interface{}) error {
 	// Update microsoft licensing config
 	if d.HasChange("microsoft_licensing_config") {
 		configChangeParam := expandMsftLicenseConfig(d.Get("microsoft_licensing_config").([]interface{}))
-		publishClient := msft_licensing.NewDefaultPublishClient(connectorWrapper)
+		publishClient := msft_licensing.NewPublishClient(connectorWrapper)
 		task, err := publishClient.Post(orgID, sddcID, clusterID, *configChangeParam)
 		if err != nil {
 			return HandleUpdateError("Microsoft Licensing Config", err)
 		}
 		return resource.RetryContext(context.Background(), d.Timeout(schema.TimeoutCreate), func() *resource.RetryError {
-			tasksClient := orgs.NewDefaultTasksClient(connectorWrapper)
+			tasksClient := orgs.NewTasksClient(connectorWrapper)
 			task, err := tasksClient.Get(orgID, task.Id)
 			if err != nil {
 				if err.Error() == (errors.Unauthenticated{}.Error()) {

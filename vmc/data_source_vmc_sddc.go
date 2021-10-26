@@ -75,13 +75,41 @@ func dataSourceVmcSddc() *schema.Resource {
 				Computed: true,
 				Elem:     &schema.Schema{Type: schema.TypeString},
 			},
+			"nsxt_ui": {
+				Type:     schema.TypeBool,
+				Computed: true,
+			},
+			"nsxt_cloudadmin": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+			"nsxt_cloudadmin_password": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+			"nsxt_cloudaudit": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+			"nsxt_cloudaudit_password": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+			"nsxt_private_ip": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+			"nsxt_private_url": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
 		},
 	}
 }
 
 func dataSourceVmcSddcRead(d *schema.ResourceData, m interface{}) error {
 	connector := (m.(*ConnectorWrapper)).Connector
-	sddcClient := orgs.NewDefaultSddcsClient(connector)
+	sddcClient := orgs.NewSddcsClient(connector)
 	sddcID := d.Get("sddc_id").(string)
 	orgID := (m.(*ConnectorWrapper)).OrgID
 	sddc, err := sddcClient.Get(orgID, sddcID)
@@ -128,6 +156,15 @@ func dataSourceVmcSddcRead(d *schema.ResourceData, m interface{}) error {
 		d.Set("deployment_type", ConvertDeployType(*sddc.ResourceConfig.DeploymentType))
 		d.Set("sso_domain", *sddc.ResourceConfig.SsoDomain)
 		d.Set("skip_creating_vxlan", *sddc.ResourceConfig.SkipCreatingVxlan)
+		d.Set("nsxt_ui", *sddc.ResourceConfig.Nsxt)
+		if sddc.ResourceConfig.NsxCloudAdmin != nil {
+			d.Set("nsxt_cloudadmin", *sddc.ResourceConfig.NsxCloudAdmin)
+			d.Set("nsxt_cloudadmin_password", *sddc.ResourceConfig.NsxCloudAdminPassword)
+			d.Set("nsxt_cloudaudit", *sddc.ResourceConfig.NsxCloudAudit)
+			d.Set("nsxt_cloudaudit_password", *sddc.ResourceConfig.NsxCloudAuditPassword)
+			d.Set("nsxt_private_ip", *sddc.ResourceConfig.NsxMgrManagementIp)
+			d.Set("nsxt_private_url", *sddc.ResourceConfig.NsxMgrLoginUrl)
+		}
 	}
 
 	return nil
