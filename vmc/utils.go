@@ -88,3 +88,13 @@ func getNSXTReverseProxyURLConnector(nsxtReverseProxyUrl string) (client.Connect
 	}
 	return connector, nil
 }
+
+func getTotalSddcHosts(sddc *model.Sddc) int {
+	totalHosts := 0
+	if sddc != nil && sddc.ResourceConfig.Clusters != nil {
+		for _, cluster := range sddc.ResourceConfig.Clusters {
+			totalHosts += len(cluster.EsxHostList)
+		}
+	}
+	return totalHosts
+}
