@@ -443,7 +443,7 @@ func resourceSddcRead(d *schema.ResourceData, m interface{}) error {
 		d.Set("sso_domain", *sddc.ResourceConfig.SsoDomain)
 		d.Set("skip_creating_vxlan", *sddc.ResourceConfig.SkipCreatingVxlan)
 		d.Set("provider_type", sddc.ResourceConfig.Provider)
-		d.Set("num_host", len(sddc.ResourceConfig.EsxHosts))
+		d.Set("num_host", getTotalSddcHosts(&sddc))
 		d.Set("vpc_cidr", *sddc.ResourceConfig.VpcInfo.VpcCidr)
 		skipCreatingVxLan := *sddc.ResourceConfig.SkipCreatingVxlan
 		if !skipCreatingVxLan {
@@ -595,6 +595,13 @@ func resourceSddcUpdate(d *schema.ResourceData, m interface{}) error {
 
 	// Add,remove hosts
 	if d.HasChange("num_host") {
+		sddc, err := sddcClient.Get(orgID, sddcID)
+		if err != nil {
+			return err
+		}
+		if sddc.ResourceConfig != nil && len(sddc.ResourceConfig.Clusters) > 1 {
+			return fmt.Errorf("scaling is not supported for SDDC's with multiple clusters. Please add/delete hosts in individual cluster")
+		}
 		oldTmp, newTmp := d.GetChange("num_host")
 		oldNum := oldTmp.(int)
 		newNum := newTmp.(int)

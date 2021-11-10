@@ -150,7 +150,7 @@ func dataSourceVmcSddcRead(d *schema.ResourceData, m interface{}) error {
 		d.Set("cloud_username", sddc.ResourceConfig.CloudUsername)
 		d.Set("nsxt_reverse_proxy_url", sddc.ResourceConfig.NsxApiPublicEndpointUrl)
 		d.Set("region", sddc.ResourceConfig.Region)
-		d.Set("num_host", len(sddc.ResourceConfig.EsxHosts))
+		d.Set("num_host", getTotalSddcHosts(&sddc))
 		d.Set("provider_type", sddc.ResourceConfig.Provider)
 		d.Set("availability_zones", sddc.ResourceConfig.AvailabilityZones)
 		d.Set("deployment_type", ConvertDeployType(*sddc.ResourceConfig.DeploymentType))
