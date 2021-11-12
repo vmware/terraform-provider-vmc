@@ -1,10 +1,19 @@
+## 1.8.0 (Nov 10, 2021)
+
+ENHANCEMENT:
+ * Upgrade Provider to use VMC SDK 0.6.0 [\#116](https://github.com/vmware/terraform-provider-vmc/pull/116), [\#118](https://github.com/vmware/terraform-provider-vmc/pull/118)
+ * Direct access to NSX Manager[\#116](https://github.com/vmware/terraform-provider-vmc/pull/116)
+
+BUG FIXES:
+ * Property "esx_hosts" in SddcResourceConfig is deprecated. [\#119](https://github.com/vmware/terraform-provider-vmc/pull/119)
+
 ## 1.7.0 (Aug 5, 2021)
 
 ENHANCEMENT:
 
  * Upgrade to TF plugin SDK v2 [\#108](https://github.com/vmware/terraform-provider-vmc/pull/108)
 
-BUG FIXES: 
+BUG FIXES:
 
  * Fix for static check failures caused by references to deprecated functions [\#109](https://github.com/vmware/terraform-provider-vmc/pull/109)
 
@@ -48,7 +57,7 @@ FEATURES:
 * `vmc_sddc` Modified code to enable EDRS policy configuration. [\#43](https://github.com/vmware/terraform-provider-vmc/pull/43)
 * `vmc_sddc` Added size parameter in resource schema to enable users to deploy large SDDC. [\#59](https://github.com/vmware/terraform-provider-vmc/pull/59)
 
-BUG FIXES: 
+BUG FIXES:
 
 * Added check in resourceClusterRead to see if cluster exists and remove cluster information from terraform state file. [\#48](https://github.com/vmware/terraform-provider-vmc/pull/48)
 * Added validation check for customer subnet IDs based on the deployment type. [\#54](https://github.com/vmware/terraform-provider-vmc/pull/54)
@@ -63,7 +72,7 @@ FEATURES:
 
 * **New Resource:** `vmc_cluster` Added resource for cluster management. [\#25](https://github.com/vmware/terraform-provider-vmc/pull/25)
 
-BUG FIXES: 
+BUG FIXES:
 
 * Modified code to store num_host in resourceSddcRead method [\#39](https://github.com/vmware/terraform-provider-vmc/pull/39)
 
@@ -75,7 +84,7 @@ ENHANCEMENTS:
 
 ## 1.2.1 (May 04, 2020)
 
-BUG FIXES: 
+BUG FIXES:
 
 * Added instructions for delay needed after SDDC creation for site recovery [\#21](https://github.com/vmware/terraform-provider-vmc/pull/21)
 * Removed capitalized error messages from code [\#23](https://github.com/vmware/terraform-provider-vmc/pull/23)
@@ -120,7 +129,7 @@ ENHANCEMENTS:
 * vmc_connected_accounts: Added filtering to return AWS account ID associated with the account number provided in configuration. [\#30](https://github.com/vmware/terraform-provider-vmc/pull/30)
 * provider.go: Added org_id as a required parameter in terraform schema. [\#38](https://github.com/vmware/terraform-provider-vmc/pull/38)
 * data_source_vmc_customer_subnets.go : Added validateFunctions for sddc and customer subnet resources. [\#41](https://github.com/vmware/terraform-provider-vmc/pull/41)
-* examples/main.tf : Added expression to convert AWS specific region to VMC region. [\#46](https://github.com/vmware/terraform-provider-vmc/pull/46) 
+* examples/main.tf : Added expression to convert AWS specific region to VMC region. [\#46](https://github.com/vmware/terraform-provider-vmc/pull/46)
 
 
 BUG FIXES:
