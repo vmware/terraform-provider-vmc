@@ -215,13 +215,25 @@ In addition to arguments listed above, the following attributes are exported:
 
 * `id` - SDDC identifier.
 
-* `nsxt_reverse_proxy_url` - NSXT reverse proxy url for managing public IP.
-
 * `cluster_info` - Information about cluster like id, name, state, host instance type.
 
 * `sddc_size` - Size information of vCenter appliance and NSX appliance.
 
-* `intranet_uplink_mtu` - Uplink MTU of direct connect, sddc-grouping and outposts traffic in edge tier-0 router port. This field can be updated only after an SDDC is created. Range : 1500 - 8900. Default : 1500. 
+* `intranet_uplink_mtu` - Uplink MTU of direct connect, sddc-grouping and outposts traffic in edge tier-0 router port. This field can be updated only after an SDDC is created. Range : 1500 - 8900. Default : 1500.
+
+* `nsxt_reverse_proxy_url` - NSXT reverse proxy url for managing public IP.
+
+* `nsxt_cloudadmin` - the NSXT userID admin for direct NSXT access
+
+* `nsxt_cloudadmin_password` - the NSXT userID admin password  for direct NSXT access
+
+* `nsxt_cloudaudit` - the NSXT userID audit for direct NSXT access
+
+* `nsxt_cloudaudit_password` - the NSXT userID audit password  for direct NSXT access
+
+* `nsxt_private_url` - for example "https://nsxManager.sddc-54-213-170-7.vmwarevmc.com/login.jsp"
+
+* `nsxt_public_url` - same as reverse proxy
 
 ## Import
 
