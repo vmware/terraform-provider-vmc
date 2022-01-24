@@ -221,7 +221,11 @@ func resourceClusterCreate(d *schema.ResourceData, m interface{}) error {
 		} else if *task.Status != "FINISHED" {
 			return resource.RetryableError(fmt.Errorf("expected cluster to be created but was in state %s", *task.Status))
 		}
-		return resource.NonRetryableError(resourceClusterRead(d, m))
+		err = resourceClusterRead(d, m)
+		if err == nil {
+			return nil
+		}
+		return resource.NonRetryableError(err)
 	})
 }
 
@@ -304,7 +308,7 @@ func resourceClusterDelete(d *schema.ResourceData, m interface{}) error {
 			return resource.RetryableError(fmt.Errorf("expected cluster to be deleted but was in state %s", *task.Status))
 		}
 		d.SetId("")
-		return resource.NonRetryableError(nil)
+		return nil
 	})
 }
 
@@ -350,7 +354,11 @@ func resourceClusterUpdate(d *schema.ResourceData, m interface{}) error {
 			} else if *task.Status != "FINISHED" {
 				return resource.RetryableError(fmt.Errorf("expected hosts to be updated but was in state %s", *task.Status))
 			}
-			return resource.NonRetryableError(resourceClusterRead(d, m))
+			err = resourceClusterRead(d, m)
+			if err == nil {
+				return nil
+			}
+			return resource.NonRetryableError(err)
 		})
 		if err != nil {
 			return err
@@ -394,7 +402,11 @@ func resourceClusterUpdate(d *schema.ResourceData, m interface{}) error {
 			} else if *task.Status != "FINISHED" {
 				return resource.RetryableError(fmt.Errorf("expected EDRS policy configuration to be updated but was in state %s", *task.Status))
 			}
-			return resource.NonRetryableError(resourceClusterRead(d, m))
+			err = resourceClusterRead(d, m)
+			if err == nil {
+				return nil
+			}
+			return resource.NonRetryableError(err)
 		})
 	}
 	// Update microsoft licensing config
@@ -424,7 +436,11 @@ func resourceClusterUpdate(d *schema.ResourceData, m interface{}) error {
 			} else if *task.Status != "FINISHED" {
 				return resource.RetryableError(fmt.Errorf("expected microsoft licensing configuration to be updated but was in state %s", *task.Status))
 			}
-			return resource.NonRetryableError(resourceClusterRead(d, m))
+			err = resourceClusterRead(d, m)
+			if err == nil {
+				return nil
+			}
+			return resource.NonRetryableError(err)
 		})
 
 	}
