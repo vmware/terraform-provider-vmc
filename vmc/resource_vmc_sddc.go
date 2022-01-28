@@ -247,30 +247,37 @@ func resourceSddc() *schema.Resource {
 			},
 			"nsxt_ui": {
 				Type:     schema.TypeBool,
+				Optional: true,
 				Computed: true,
 			},
 			"nsxt_cloudadmin": {
 				Type:     schema.TypeString,
+				Optional: true,
 				Computed: true,
 			},
 			"nsxt_cloudadmin_password": {
 				Type:     schema.TypeString,
+				Optional: true,
 				Computed: true,
 			},
 			"nsxt_cloudaudit": {
 				Type:     schema.TypeString,
+				Optional: true,
 				Computed: true,
 			},
 			"nsxt_cloudaudit_password": {
 				Type:     schema.TypeString,
+				Optional: true,
 				Computed: true,
 			},
 			"nsxt_private_ip": {
 				Type:     schema.TypeString,
+				Optional: true,
 				Computed: true,
 			},
 			"nsxt_private_url": {
 				Type:     schema.TypeString,
+				Optional: true,
 				Computed: true,
 			},
 		},
