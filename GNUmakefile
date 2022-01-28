@@ -12,6 +12,9 @@ init:
 	go build -o terraform-provider-vmc
 	terraform init
 
+debug:
+	go build -gcflags="all=-N -l"
+
 plan: init
 	terraform plan
 
@@ -80,7 +83,3 @@ website-lint:
 	@misspell -error -source=text website/
 
 .PHONY: build  init plan apply test testacc debugacc fmt fmtcheck vet lint tools test-compile website website-lint website-test test-compile
-
-
-
-
