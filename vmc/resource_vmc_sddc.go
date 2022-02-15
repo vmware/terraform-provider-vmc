@@ -247,30 +247,37 @@ func resourceSddc() *schema.Resource {
 			},
 			"nsxt_ui": {
 				Type:     schema.TypeBool,
+				Optional: true,
 				Computed: true,
 			},
 			"nsxt_cloudadmin": {
 				Type:     schema.TypeString,
+				Optional: true,
 				Computed: true,
 			},
 			"nsxt_cloudadmin_password": {
 				Type:     schema.TypeString,
+				Optional: true,
 				Computed: true,
 			},
 			"nsxt_cloudaudit": {
 				Type:     schema.TypeString,
+				Optional: true,
 				Computed: true,
 			},
 			"nsxt_cloudaudit_password": {
 				Type:     schema.TypeString,
+				Optional: true,
 				Computed: true,
 			},
 			"nsxt_private_ip": {
 				Type:     schema.TypeString,
+				Optional: true,
 				Computed: true,
 			},
 			"nsxt_private_url": {
 				Type:     schema.TypeString,
+				Optional: true,
 				Computed: true,
 			},
 		},
@@ -397,7 +404,11 @@ func resourceSddcCreate(d *schema.ResourceData, m interface{}) error {
 		} else if *task.Status != "FINISHED" {
 			return resource.RetryableError(fmt.Errorf("expected SDDC to be created but was in state %s", *task.Status))
 		}
-		return resource.NonRetryableError(resourceSddcRead(d, m))
+		err = resourceSddcRead(d, m)
+		if err == nil {
+			return nil
+		}
+		return resource.NonRetryableError(err)
 	})
 }
 
@@ -527,7 +538,7 @@ func resourceSddcDelete(d *schema.ResourceData, m interface{}) error {
 			return resource.RetryableError(fmt.Errorf("expected SDDC to be deleted but was in state %s", *task.Status))
 		}
 		d.SetId("")
-		return resource.NonRetryableError(nil)
+		return nil
 	})
 }
 
@@ -582,7 +593,11 @@ func resourceSddcUpdate(d *schema.ResourceData, m interface{}) error {
 					} else if *task.Status != "FINISHED" {
 						return resource.RetryableError(fmt.Errorf("expected SDDC type to be updated but was in state %s", *task.Status))
 					}
-					return resource.NonRetryableError(resourceSddcRead(d, m))
+					err = resourceSddcRead(d, m)
+					if err == nil {
+						return nil
+					}
+					return resource.NonRetryableError(err)
 				})
 				if err != nil {
 					return err
@@ -637,7 +652,11 @@ func resourceSddcUpdate(d *schema.ResourceData, m interface{}) error {
 			} else if *task.Status != "FINISHED" {
 				return resource.RetryableError(fmt.Errorf("expected hosts to be updated but was in state %s", *task.Status))
 			}
-			return resource.NonRetryableError(resourceSddcRead(d, m))
+			err = resourceSddcRead(d, m)
+			if err == nil {
+				return nil
+			}
+			return resource.NonRetryableError(err)
 		})
 		if err != nil {
 			return err
@@ -720,7 +739,11 @@ func resourceSddcUpdate(d *schema.ResourceData, m interface{}) error {
 			} else if *task.Status != "FINISHED" {
 				return resource.RetryableError(fmt.Errorf("expected EDRS policy configuration to be updated but was in state %s", *task.Status))
 			}
-			return resource.NonRetryableError(resourceSddcRead(d, m))
+			err = resourceSddcRead(d, m)
+			if err == nil {
+				return nil
+			}
+			return resource.NonRetryableError(err)
 		})
 	}
 
@@ -761,7 +784,11 @@ func resourceSddcUpdate(d *schema.ResourceData, m interface{}) error {
 			} else if *task.Status != "FINISHED" {
 				return resource.RetryableError(fmt.Errorf("expected microsoft licensing configuration to be updated but was in state %s", *task.Status))
 			}
-			return resource.NonRetryableError(resourceSddcRead(d, m))
+			err = resourceSddcRead(d, m)
+			if err == nil {
+				return nil
+			}
+			return resource.NonRetryableError(err)
 		})
 	}
 	return resourceSddcRead(d, m)

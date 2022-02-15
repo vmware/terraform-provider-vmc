@@ -118,7 +118,11 @@ func resourceSiteRecoveryCreate(d *schema.ResourceData, m interface{}) error {
 		} else if *task.Status != "FINISHED" {
 			return resource.RetryableError(fmt.Errorf("expected site recovery to be activated but was in state %s", *task.Status))
 		}
-		return resource.NonRetryableError(resourceSiteRecoveryRead(d, m))
+		err = resourceSiteRecoveryRead(d, m)
+		if err == nil {
+			return nil
+		}
+		return resource.NonRetryableError(err)
 	})
 }
 
@@ -199,23 +203,23 @@ func resourceSiteRecoveryDelete(d *schema.ResourceData, m interface{}) error {
 			return resource.RetryableError(fmt.Errorf("expected site recovery to be deactivated but was in state %s", *task.Status))
 		}
 		d.SetId("")
-		return resource.NonRetryableError(nil)
+		return nil
 	})
 }
 
 func resourceSiteRecoveryUpdate(d *schema.ResourceData, m interface{}) error {
 	if d.HasChange("srm_extension_key_suffix") {
-		err := resource.NonRetryableError(resourceSiteRecoveryDelete(d, m))
+		err := resourceSiteRecoveryDelete(d, m)
 		if err != nil {
-			return HandleDeleteError("Site Recovery", d.Get("sddc_id").(string), err.Err)
+			return HandleDeleteError("Site Recovery", d.Get("sddc_id").(string), err)
 		}
 
 		// This wait is required after deactivation before activation
 		time.Sleep(15 * time.Minute)
 
-		err = resource.NonRetryableError(resourceSiteRecoveryCreate(d, m))
+		err = resourceSiteRecoveryCreate(d, m)
 		if err != nil {
-			return HandleCreateError("Site Recovery", err.Err)
+			return HandleCreateError("Site Recovery", err)
 		}
 	}
 	return nil

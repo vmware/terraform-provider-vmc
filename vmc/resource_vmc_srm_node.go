@@ -112,7 +112,11 @@ func resourceSRMNodeCreate(d *schema.ResourceData, m interface{}) error {
 		} else if *task.Status != "FINISHED" {
 			return resource.RetryableError(fmt.Errorf("expected SRM node to be created but was in state %s", *task.Status))
 		}
-		return resource.NonRetryableError(resourceSRMNodeRead(d, m))
+		err = resourceSRMNodeRead(d, m)
+		if err == nil {
+			return nil
+		}
+		return resource.NonRetryableError(err)
 	})
 }
 
@@ -169,6 +173,6 @@ func resourceSRMNodeDelete(d *schema.ResourceData, m interface{}) error {
 			return resource.RetryableError(fmt.Errorf("expected SRM node to be deleted but was in state %s", *task.Status))
 		}
 		d.SetId("")
-		return resource.NonRetryableError(nil)
+		return nil
 	})
 }
