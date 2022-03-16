@@ -1,3 +1,8 @@
+## 1.9.0 (Mar 16, 2022)
+
+ENHANCEMENT:
+* Upgrade Provider to use VMC SDK 0.8.0 [\#130](https://github.com/vmware/terraform-provider-vmc/pull/130)
+
 ## 1.8.0 (Nov 10, 2021)
 
 ENHANCEMENT:
