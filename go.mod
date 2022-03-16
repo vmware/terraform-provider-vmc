@@ -17,7 +17,7 @@ require (
 	github.com/vmware/vsphere-automation-sdk-go/lib v0.4.0
 	github.com/vmware/vsphere-automation-sdk-go/runtime v0.4.0
 	github.com/vmware/vsphere-automation-sdk-go/services/nsxt-vmc-aws-integration v0.5.0
-	github.com/vmware/vsphere-automation-sdk-go/services/vmc v0.7.0
+	github.com/vmware/vsphere-automation-sdk-go/services/vmc v0.8.0
 	github.com/vmware/vsphere-automation-sdk-go/services/vmc/autoscaler v0.4.0
 	github.com/vmware/vsphere-automation-sdk-go/services/vmc/draas v0.4.0
 	golang.org/x/mod v0.3.1-0.20200828183125-ce943fd02449 // indirect
