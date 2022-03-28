@@ -8,6 +8,8 @@ terraform.tfplan
 terraform.tfstate
 *.backup
 *.bak
+*.hcl
+*.iml
 *~
 /*.tf
 .terraform.tfstate.lock.info
