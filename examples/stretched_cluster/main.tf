@@ -1,3 +1,10 @@
+terraform {
+  required_providers {
+    vmc = {
+      source = "vmware/vmc"
+    }
+  }
+}
 provider "vmc" {
   refresh_token = var.api_token
   org_id = var.org_id
