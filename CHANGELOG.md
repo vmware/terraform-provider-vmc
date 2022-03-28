@@ -1,3 +1,8 @@
+## 1.9.1 (Mar 28, 2022)
+
+BUG FIXES:
+* Example files in /examples/.. dir now have a required_providers declaration, fixing "terraform init"
+
 ## 1.9.0 (Mar 16, 2022)
 
 ENHANCEMENT:
