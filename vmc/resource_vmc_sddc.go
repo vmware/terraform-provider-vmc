@@ -455,7 +455,9 @@ func resourceSddcRead(d *schema.ResourceData, m interface{}) error {
 		d.Set("skip_creating_vxlan", *sddc.ResourceConfig.SkipCreatingVxlan)
 		d.Set("provider_type", sddc.ResourceConfig.Provider)
 		d.Set("num_host", getTotalSddcHosts(&sddc))
-		d.Set("vpc_cidr", *sddc.ResourceConfig.VpcInfo.VpcCidr)
+		if sddc.ResourceConfig.VpcInfo != nil && sddc.ResourceConfig.VpcInfo.VpcCidr != nil {
+			d.Set("vpc_cidr", *sddc.ResourceConfig.VpcInfo.VpcCidr)
+		}
 		skipCreatingVxLan := *sddc.ResourceConfig.SkipCreatingVxlan
 		if !skipCreatingVxLan {
 			d.Set("vxlan_subnet", sddc.ResourceConfig.VxlanSubnet)
@@ -484,8 +486,12 @@ func resourceSddcRead(d *schema.ResourceData, m interface{}) error {
 	cluster["cluster_state"] = *primaryCluster.ClusterState
 	cluster["host_instance_type"] = *primaryCluster.EsxHostInfo.InstanceType
 	if primaryCluster.MsftLicenseConfig != nil {
-		cluster["mssql_licensing"] = *primaryCluster.MsftLicenseConfig.MssqlLicensing
-		cluster["windows_licensing"] = *primaryCluster.MsftLicenseConfig.WindowsLicensing
+		if primaryCluster.MsftLicenseConfig.MssqlLicensing != nil {
+			cluster["mssql_licensing"] = *primaryCluster.MsftLicenseConfig.MssqlLicensing
+		}
+		if primaryCluster.MsftLicenseConfig.WindowsLicensing != nil {
+			cluster["windows_licensing"] = *primaryCluster.MsftLicenseConfig.WindowsLicensing
+		}
 	}
 	d.Set("cluster_info", cluster)
 
