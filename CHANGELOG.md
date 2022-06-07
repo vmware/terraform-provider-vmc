@@ -1,3 +1,12 @@
+## 1.9.2 (Jun 7, 2022)
+
+BUG FIXES:
+* nil derreference when doing "terraform plan" in some environments (https://github.com/vmware/terraform-provider-vmc/pull/141)
+
+ENHANCEMENT:
+
+* Upgrade to TF plugin SDK v2.11.0 due to CVE-2022-30323 (https://github.com/vmware/terraform-provider-vmc/pull/140)
+
 ## 1.9.1 (Mar 28, 2022)
 
 BUG FIXES:
