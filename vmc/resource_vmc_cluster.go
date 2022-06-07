@@ -1,4 +1,4 @@
-/* Copyright 2020 VMware, Inc.
+/* Copyright 2020-2022 VMware, Inc.
    SPDX-License-Identifier: MPL-2.0 */
 
 package vmc
@@ -264,8 +264,12 @@ func resourceClusterRead(d *schema.ResourceData, m interface{}) error {
 			cluster["cluster_state"] = *clusterConfig.ClusterState
 			cluster["host_instance_type"] = *clusterConfig.EsxHostInfo.InstanceType
 			if clusterConfig.MsftLicenseConfig != nil {
-				cluster["mssql_licensing"] = *clusterConfig.MsftLicenseConfig.MssqlLicensing
-				cluster["windows_licensing"] = *clusterConfig.MsftLicenseConfig.WindowsLicensing
+				if clusterConfig.MsftLicenseConfig.MssqlLicensing != nil {
+					cluster["mssql_licensing"] = *clusterConfig.MsftLicenseConfig.MssqlLicensing
+				}
+				if clusterConfig.MsftLicenseConfig.WindowsLicensing != nil {
+					cluster["windows_licensing"] = *clusterConfig.MsftLicenseConfig.WindowsLicensing
+				}
 			}
 			d.Set("cluster_info", cluster)
 			d.Set("num_hosts", len(clusterConfig.EsxHostList))
