@@ -1,3 +1,8 @@
+## 1.9.3 (Jun 7, 2022)
+
+BUG FIXES:
+* nil derreference when doing "terraform plan" in some environments (https://github.com/vmware/terraform-provider-vmc/pull/142)
+
 ## 1.9.2 (Jun 7, 2022)
 
 BUG FIXES:
