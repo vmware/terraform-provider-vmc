@@ -146,6 +146,9 @@ func resourceSddc() *schema.Resource {
 				ValidateFunc: validation.All(
 					validation.NoZeroValues,
 				),
+				DiffSuppressFunc: func(k, old, new string, d *schema.ResourceData) bool {
+					return old == strings.ReplaceAll(strings.ToUpper(new), "-", "_")
+				},
 			},
 			"cluster_id": {
 				Type:     schema.TypeString,
