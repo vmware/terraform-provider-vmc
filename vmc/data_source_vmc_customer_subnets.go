@@ -1,4 +1,4 @@
-/* Copyright 2019 VMware, Inc.
+/* Copyright 2019-2022 VMware, Inc.
    SPDX-License-Identifier: MPL-2.0 */
 
 package vmc
@@ -6,6 +6,7 @@ package vmc
 import (
 	"fmt"
 	"log"
+	"strings"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
@@ -29,6 +30,9 @@ func dataSourceVmcCustomerSubnets() *schema.Resource {
 				ValidateFunc: validation.All(
 					validation.NoZeroValues,
 				),
+				DiffSuppressFunc: func(k, old, new string, d *schema.ResourceData) bool {
+					return old == strings.ReplaceAll(strings.ToUpper(new), "-", "_")
+				},
 			},
 			"num_hosts": {
 				Type:        schema.TypeInt,
