@@ -159,7 +159,7 @@ func resourceSddc() *schema.Resource {
 				Optional: true,
 				ForceNew: true,
 				ValidateFunc: validation.StringInSlice(
-					[]string{HostInstancetypeI3, HostInstancetypeR5, HostInstancetypeI3EN}, false),
+					[]string{HostInstancetypeI3, HostInstancetypeR5, HostInstancetypeI3EN, HostInstancetypeI4I}, false),
 			},
 			"edrs_policy_type": {
 				Type:     schema.TypeString,
@@ -294,13 +294,14 @@ func resourceSddc() *schema.Resource {
 
 			newInstanceType := d.Get("host_instance_type").(string)
 			switch newInstanceType {
-			case HostInstancetypeI3, HostInstancetypeI3EN:
+			case HostInstancetypeI3, HostInstancetypeI3EN, HostInstancetypeI4I:
 				if d.Get("storage_capacity").(string) != "" {
 					return fmt.Errorf("storage_capacity is not supported for host_instance_type %q", newInstanceType)
 				}
 			case HostInstancetypeR5:
 				if d.Get("storage_capacity").(string) == "" {
-					return fmt.Errorf("storage_capacity is required for host_instance_type %q", newInstanceType)
+					return fmt.Errorf("storage_capacity is required for host_instance_type %q."+
+						" Possible values are 15TB, 20TB, 25TB, 30TB, 35TB per host", newInstanceType)
 				}
 			}
 			return nil
@@ -355,7 +356,7 @@ func resourceSddcCreate(d *schema.ResourceData, m interface{}) error {
 	}
 
 	accountLinkSddcConfig := expandAccountLinkSddcConfig(accountLinkSddcConfigVar)
-	hostInstanceType := model.HostInstanceTypesEnum(d.Get("host_instance_type").(string))
+	hostInstanceType := getHostInstanceType(d)
 	msftLicensingConfig := expandMsftLicenseConfig(d.Get("microsoft_licensing_config").([]interface{}))
 
 	var awsSddcConfig = &model.AwsSddcConfig{

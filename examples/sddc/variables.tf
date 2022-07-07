@@ -34,12 +34,7 @@ variable "vxlan_subnet" {
 }
 
 variable host_instance_type {
-  description = "The instance type for the ESX hosts in the primary cluster of the SDDC. Possible values: I3_METAL, R5_METAL."
-  default     = ""
-}
-
-variable storage_capacity {
-  description = "The storage capacity value to be requested for the SDDC primary cluster. This variable is only for R5.METAL. Possible values are 15TB, 20TB, 25TB, 30TB, 35TB per host."
+  description = "The instance type for the ESX hosts in the primary cluster of the SDDC. Possible values: I3_METAL, I4I_METAL."
   default     = ""
 }
 

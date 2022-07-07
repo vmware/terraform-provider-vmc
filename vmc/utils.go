@@ -5,6 +5,7 @@ package vmc
 
 import (
 	"fmt"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"net/http"
 	"net/url"
 	"os"
@@ -97,4 +98,16 @@ func getTotalSddcHosts(sddc *model.Sddc) int {
 		}
 	}
 	return totalHosts
+}
+
+// getHostInstanceType corrects for a deficiency in the GO SDK the string value "I4I_METAL"
+// is sent on the wire, which is not recognised by the VMC service as a valid host instance type.
+// This method replaces it with the string value of "i4i.metal" which is recognised by the VMC service.
+func getHostInstanceType(d *schema.ResourceData) model.HostInstanceTypesEnum {
+	var hostInstanceTypeStringValue = d.Get("host_instance_type").(string)
+	if hostInstanceTypeStringValue == HostInstancetypeI4I {
+		//The following value is recognised by the VMC service
+		hostInstanceTypeStringValue = "i4i.metal"
+	}
+	return model.HostInstanceTypesEnum(hostInstanceTypeStringValue)
 }

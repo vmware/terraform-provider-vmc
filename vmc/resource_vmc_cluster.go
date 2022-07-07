@@ -74,7 +74,7 @@ func resourceCluster() *schema.Resource {
 				Optional:    true,
 				Description: "The instance type for the esx hosts added to this cluster.",
 				ValidateFunc: validation.StringInSlice(
-					[]string{HostInstancetypeI3, HostInstancetypeR5, HostInstancetypeI3EN}, false),
+					[]string{HostInstancetypeI3, HostInstancetypeR5, HostInstancetypeI3EN, HostInstancetypeI4I}, false),
 			},
 			"storage_capacity": {
 				Type:     schema.TypeString,
@@ -144,7 +144,7 @@ func resourceCluster() *schema.Resource {
 
 			switch newInstanceType {
 
-			case HostInstancetypeI3, HostInstancetypeI3EN:
+			case HostInstancetypeI3, HostInstancetypeI3EN, HostInstancetypeI4I:
 
 				if d.Get("storage_capacity").(string) != "" {
 
@@ -155,7 +155,8 @@ func resourceCluster() *schema.Resource {
 
 				if d.Get("storage_capacity").(string) == "" {
 
-					return fmt.Errorf("storage_capacity is required for host_instance_type %q", newInstanceType)
+					return fmt.Errorf("storage_capacity is required for host_instance_type %q "+
+						"Possible values are 15TB, 20TB, 25TB, 30TB, 35TB per host", newInstanceType)
 
 				}
 
@@ -174,7 +175,7 @@ func resourceClusterCreate(d *schema.ResourceData, m interface{}) error {
 	connector := m.(*ConnectorWrapper)
 	orgID := m.(*ConnectorWrapper).OrgID
 	clusterClient := sddcs.NewClustersClient(connector)
-	hostInstanceType := model.HostInstanceTypesEnum(d.Get("host_instance_type").(string))
+	hostInstanceType := getHostInstanceType(d)
 	storageCapacity := d.Get("storage_capacity").(string)
 	if len(strings.TrimSpace(storageCapacity)) > 0 {
 		storageCapacityConverted = ConvertStorageCapacitytoInt(storageCapacity)
