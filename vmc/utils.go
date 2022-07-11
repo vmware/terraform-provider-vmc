@@ -112,6 +112,6 @@ func toHostInstanceType(userPassedHostInstanceType string) (string, error) {
 	case HostInstancetypeR5:
 		return model.SddcConfig_HOST_INSTANCE_TYPE_R5_METAL, nil
 	default:
-		return "", fmt.Errorf("unknown host instance type")
+		return "", fmt.Errorf("unknown host instance type: %s", userPassedHostInstanceType)
 	}
 }

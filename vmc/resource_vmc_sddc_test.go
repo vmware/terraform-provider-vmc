@@ -6,6 +6,7 @@ package vmc
 import (
 	"fmt"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/stretchr/testify/assert"
 	"os"
 	"testing"
 
@@ -159,37 +160,93 @@ resource "vmc_sddc" "sddc_1" {
 }
 
 func TestBuildAwsSddcConfig(t *testing.T) {
-	testBareBonesAwsSddcConfig(t)
+	type test struct {
+		input    map[string]interface{}
+		expected model.AwsSddcConfig
+	}
+
+	tests := []test{
+		{input: map[string]interface{}{
+			"sddc_name":          "testName1",
+			"region":             "us-east-1",
+			"provider_type":      ZeroCloudProviderType,
+			"num_host":           MinHosts,
+			"host_instance_type": HostInstancetypeI3,
+		},
+			expected: model.AwsSddcConfig{
+				Name:             "testName1",
+				Region:           "us-east-1",
+				Provider:         ZeroCloudProviderType,
+				NumHosts:         MinHosts,
+				HostInstanceType: String(model.SddcConfig_HOST_INSTANCE_TYPE_I3_METAL),
+				Size:             String(MediumSDDCSize),
+				DeploymentType:   String(SingleAvailabilityZone),
+			}},
+		{input: map[string]interface{}{
+			"sddc_name":          "testName2",
+			"region":             "us-east-2",
+			"provider_type":      AWSProviderType,
+			"num_host":           MaxHosts,
+			"host_instance_type": HostInstancetypeI3EN,
+		},
+			expected: model.AwsSddcConfig{
+				Name:             "testName2",
+				Region:           "us-east-2",
+				Provider:         AWSProviderType,
+				NumHosts:         MaxHosts,
+				HostInstanceType: String(model.SddcConfig_HOST_INSTANCE_TYPE_I3EN_METAL),
+				Size:             String(MediumSDDCSize),
+				DeploymentType:   String(SingleAvailabilityZone),
+			}},
+		{input: map[string]interface{}{
+			"sddc_name":          "testName3",
+			"region":             "us-west-1",
+			"provider_type":      AWSProviderType,
+			"num_host":           7,
+			"host_instance_type": HostInstancetypeI4I,
+		},
+			expected: model.AwsSddcConfig{
+				Name:             "testName3",
+				Region:           "us-west-1",
+				Provider:         AWSProviderType,
+				NumHosts:         7,
+				HostInstanceType: String(model.SddcConfig_HOST_INSTANCE_TYPE_I4I_METAL),
+				Size:             String(MediumSDDCSize),
+				DeploymentType:   String(SingleAvailabilityZone),
+			}},
+		{input: map[string]interface{}{
+			"sddc_name":          "testName4",
+			"region":             "us-west-1",
+			"provider_type":      AWSProviderType,
+			"num_host":           MaxHosts,
+			"host_instance_type": HostInstancetypeR5,
+		},
+			expected: model.AwsSddcConfig{
+				Name:             "testName4",
+				Region:           "us-west-1",
+				Provider:         AWSProviderType,
+				NumHosts:         MaxHosts,
+				HostInstanceType: String(model.SddcConfig_HOST_INSTANCE_TYPE_R5_METAL),
+				Size:             String(MediumSDDCSize),
+				DeploymentType:   String(SingleAvailabilityZone),
+			}},
+	}
+
+	for _, testCase := range tests {
+		var mockResourceSchema = schema.TestResourceDataRaw(t, sddcSchema(), testCase.input)
+		got, _ := buildAwsSddcConfig(mockResourceSchema)
+		assert.Equal(t, got.NumHosts, testCase.expected.NumHosts)
+		assert.Equal(t, got.SddcType, testCase.expected.SddcType)
+		assert.Equal(t, got.SddcId, testCase.expected.SddcId)
+		assert.Equal(t, got.Region, testCase.expected.Region)
+		assert.Equal(t, got.Provider, testCase.expected.Provider)
+		assert.Equal(t, *got.HostInstanceType, *testCase.expected.HostInstanceType)
+		assert.Equal(t, got.Size, testCase.expected.Size)
+		assert.Equal(t, got.DeploymentType, testCase.expected.DeploymentType)
+	}
 }
 
-func testBareBonesAwsSddcConfig(t *testing.T) {
-	var region = "us-east-1"
-	var mockRawData = map[string]interface{}{
-		"sddc_name":          "testName",
-		"num_host":           MinHosts,
-		"provider_type":      ZeroCloudProviderType,
-		"region":             region,
-		"host_instance_type": HostInstancetypeI4I,
-	}
-	var mockResourceSchema = schema.TestResourceDataRaw(t, sddcSchema(), mockRawData)
-
-	bareBonesAwsSddcConfig, _ := buildAwsSddcConfig(mockResourceSchema)
-
-	if bareBonesAwsSddcConfig.Region != region {
-		t.Errorf("Expected region %s, but got %s", region, bareBonesAwsSddcConfig.Region)
-	}
-	if *bareBonesAwsSddcConfig.HostInstanceType != model.SddcConfig_HOST_INSTANCE_TYPE_I4I_METAL {
-		t.Errorf("Expected HostInstanceType %s, but got %s",
-			model.SddcConfig_HOST_INSTANCE_TYPE_I4I_METAL, *bareBonesAwsSddcConfig.HostInstanceType)
-	}
-	var defaultDeploymentType = SingleAvailabilityZone
-	if *bareBonesAwsSddcConfig.DeploymentType != defaultDeploymentType {
-		t.Errorf("Expected DeploymentType %s, but got %s",
-			defaultDeploymentType, *bareBonesAwsSddcConfig.DeploymentType)
-	}
-	var defaultSize = MediumSDDCSize
-	if *bareBonesAwsSddcConfig.Size != defaultSize {
-		t.Errorf("Expected Size %s, but got %s",
-			defaultSize, *bareBonesAwsSddcConfig.Size)
-	}
+// String returns a pointer to the string value passed in.
+func String(v string) *string {
+	return &v
 }
