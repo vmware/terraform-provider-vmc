@@ -4,49 +4,33 @@
 package vmc
 
 import (
+	"fmt"
+	"github.com/stretchr/testify/assert"
 	"github.com/vmware/vsphere-automation-sdk-go/services/vmc/model"
 	"testing"
 )
 
 func TestToHostInstanceType(t *testing.T) {
-	var convertedHostInstanceType, err = toHostInstanceType(HostInstancetypeI3)
-	if err != nil {
-		t.Errorf("No errors expected!")
+	type result struct {
+		converted string
+		err       error
 	}
-	if convertedHostInstanceType != model.SddcConfig_HOST_INSTANCE_TYPE_I3_METAL {
-		t.Errorf("Expected %s, but got %s",
-			model.SddcConfig_HOST_INSTANCE_TYPE_I3_METAL, convertedHostInstanceType)
-	}
-
-	convertedHostInstanceType, err = toHostInstanceType(HostInstancetypeI3EN)
-	if err != nil {
-		t.Errorf("No errors expected!")
-	}
-	if convertedHostInstanceType != model.SddcConfig_HOST_INSTANCE_TYPE_I3EN_METAL {
-		t.Errorf("Expected %s, but got %s",
-			model.SddcConfig_HOST_INSTANCE_TYPE_I3EN_METAL, convertedHostInstanceType)
+	type test struct {
+		input string
+		want  result
 	}
 
-	convertedHostInstanceType, err = toHostInstanceType(HostInstancetypeI4I)
-	if err != nil {
-		t.Errorf("No errors expected!")
-	}
-	if convertedHostInstanceType != model.SddcConfig_HOST_INSTANCE_TYPE_I4I_METAL {
-		t.Errorf("Expected %s, but got %s",
-			model.SddcConfig_HOST_INSTANCE_TYPE_I4I_METAL, convertedHostInstanceType)
-	}
-
-	convertedHostInstanceType, err = toHostInstanceType(HostInstancetypeR5)
-	if err != nil {
-		t.Errorf("No errors expected!")
-	}
-	if convertedHostInstanceType != model.SddcConfig_HOST_INSTANCE_TYPE_R5_METAL {
-		t.Errorf("Expected %s, but got %s",
-			model.SddcConfig_HOST_INSTANCE_TYPE_R5_METAL, convertedHostInstanceType)
+	tests := []test{
+		{input: HostInstancetypeI3, want: result{converted: model.SddcConfig_HOST_INSTANCE_TYPE_I3_METAL, err: nil}},
+		{input: HostInstancetypeI3EN, want: result{converted: model.SddcConfig_HOST_INSTANCE_TYPE_I3EN_METAL, err: nil}},
+		{input: HostInstancetypeI4I, want: result{converted: model.SddcConfig_HOST_INSTANCE_TYPE_I4I_METAL, err: nil}},
+		{input: HostInstancetypeR5, want: result{converted: model.SddcConfig_HOST_INSTANCE_TYPE_R5_METAL, err: nil}},
+		{input: "RandomString", want: result{converted: "", err: fmt.Errorf("unknown host instance type: RandomString")}},
 	}
 
-	_, err = toHostInstanceType("RandomString")
-	if err == nil {
-		t.Errorf("Error expected!")
+	for _, testCase := range tests {
+		got, err := toHostInstanceType(testCase.input)
+		assert.Equal(t, got, testCase.want.converted)
+		assert.Equal(t, err, testCase.want.err)
 	}
 }

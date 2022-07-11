@@ -6,6 +6,7 @@ package vmc
 import (
 	"fmt"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/stretchr/testify/assert"
 	"os"
 	"strings"
 	"testing"
@@ -175,20 +176,46 @@ func testAccVmcClusterResourceImportStateIdFunc(resourceName string) resource.Im
 }
 
 func TestBuildClusterConfig(t *testing.T) {
-	testBareBonesClusterConfig(t)
-}
-
-func testBareBonesClusterConfig(t *testing.T) {
-	var mockRawData = map[string]interface{}{
-		"num_host":           MinHosts,
-		"host_instance_type": HostInstancetypeI4I,
+	type test struct {
+		input    map[string]interface{}
+		expected model.ClusterConfig
 	}
-	var mockResourceSchema = schema.TestResourceDataRaw(t, clusterSchema(), mockRawData)
 
-	bareBonesClusterConfig, _ := buildClusterConfig(mockResourceSchema)
+	tests := []test{
+		{input: map[string]interface{}{
+			"num_hosts":          MinHosts,
+			"host_instance_type": HostInstancetypeI3,
+		}, expected: model.ClusterConfig{
+			NumHosts:         MinHosts,
+			HostInstanceType: String(model.SddcConfig_HOST_INSTANCE_TYPE_I3_METAL),
+		}},
+		{input: map[string]interface{}{
+			"num_hosts":          MinHosts,
+			"host_instance_type": HostInstancetypeI3EN,
+		}, expected: model.ClusterConfig{
+			NumHosts:         MinHosts,
+			HostInstanceType: String(model.SddcConfig_HOST_INSTANCE_TYPE_I3EN_METAL),
+		}},
+		{input: map[string]interface{}{
+			"num_hosts":          MinHosts,
+			"host_instance_type": HostInstancetypeI4I,
+		}, expected: model.ClusterConfig{
+			NumHosts:         MinHosts,
+			HostInstanceType: String(model.SddcConfig_HOST_INSTANCE_TYPE_I4I_METAL),
+		}},
+		{input: map[string]interface{}{
+			"num_hosts":          MinHosts,
+			"host_instance_type": HostInstancetypeR5,
+		}, expected: model.ClusterConfig{
+			NumHosts:         MinHosts,
+			HostInstanceType: String(model.SddcConfig_HOST_INSTANCE_TYPE_R5_METAL),
+		}},
+	}
 
-	if *bareBonesClusterConfig.HostInstanceType != model.SddcConfig_HOST_INSTANCE_TYPE_I4I_METAL {
-		t.Errorf("Expected HostInstanceType %s, but got %s",
-			model.SddcConfig_HOST_INSTANCE_TYPE_I4I_METAL, *bareBonesClusterConfig.HostInstanceType)
+	for _, testCase := range tests {
+		var mockResourceSchema = schema.TestResourceDataRaw(t, clusterSchema(), testCase.input)
+		got, _ := buildClusterConfig(mockResourceSchema)
+		assert.Equal(t, got.NumHosts, testCase.expected.NumHosts)
+		assert.Equal(t, *got.HostInstanceType, *testCase.expected.HostInstanceType)
 	}
 }

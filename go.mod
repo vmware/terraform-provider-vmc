@@ -10,6 +10,7 @@ require (
 	github.com/mattn/go-colorable v0.1.7 // indirect
 	github.com/oklog/run v1.1.0 // indirect
 	github.com/satori/go.uuid v1.2.0
+	github.com/stretchr/testify v1.7.0
 	github.com/vmware/vsphere-automation-sdk-go/lib v0.4.0
 	github.com/vmware/vsphere-automation-sdk-go/runtime v0.4.0
 	github.com/vmware/vsphere-automation-sdk-go/services/nsxt-vmc-aws-integration v0.5.0
@@ -17,5 +18,4 @@ require (
 	github.com/vmware/vsphere-automation-sdk-go/services/vmc/autoscaler v0.4.0
 	github.com/vmware/vsphere-automation-sdk-go/services/vmc/draas v0.4.0
 	google.golang.org/genproto v0.0.0-20200904004341-0bd0a958aa1d // indirect
-	gopkg.in/yaml.v3 v3.0.0-20200615113413-eeeca48fe776 // indirect
 )
