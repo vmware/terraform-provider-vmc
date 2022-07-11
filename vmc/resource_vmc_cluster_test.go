@@ -5,6 +5,7 @@ package vmc
 
 import (
 	"fmt"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"os"
 	"strings"
 	"testing"
@@ -170,5 +171,24 @@ func testAccVmcClusterResourceImportStateIdFunc(resourceName string) resource.Im
 			return "", fmt.Errorf("Not found: %s", resourceName)
 		}
 		return fmt.Sprintf("%s,%s", rs.Primary.ID, rs.Primary.Attributes["sddc_id"]), nil
+	}
+}
+
+func TestBuildClusterConfig(t *testing.T) {
+	testBareBonesClusterConfig(t)
+}
+
+func testBareBonesClusterConfig(t *testing.T) {
+	var mockRawData = map[string]interface{}{
+		"num_host":           MinHosts,
+		"host_instance_type": HostInstancetypeI4I,
+	}
+	var mockResourceSchema = schema.TestResourceDataRaw(t, clusterSchema(), mockRawData)
+
+	bareBonesClusterConfig, _ := buildClusterConfig(mockResourceSchema)
+
+	if *bareBonesClusterConfig.HostInstanceType != model.SddcConfig_HOST_INSTANCE_TYPE_I4I_METAL {
+		t.Errorf("Expected HostInstanceType %s, but got %s",
+			model.SddcConfig_HOST_INSTANCE_TYPE_I4I_METAL, *bareBonesClusterConfig.HostInstanceType)
 	}
 }

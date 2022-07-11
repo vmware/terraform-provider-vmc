@@ -5,6 +5,7 @@ package vmc
 
 import (
 	"fmt"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"os"
 	"testing"
 
@@ -155,4 +156,40 @@ resource "vmc_sddc" "sddc_1" {
 		os.Getenv(AWSAccountNumber),
 		sddcName,
 	)
+}
+
+func TestBuildAwsSddcConfig(t *testing.T) {
+	testBareBonesAwsSddcConfig(t)
+}
+
+func testBareBonesAwsSddcConfig(t *testing.T) {
+	var region = "us-east-1"
+	var mockRawData = map[string]interface{}{
+		"sddc_name":          "testName",
+		"num_host":           MinHosts,
+		"provider_type":      ZeroCloudProviderType,
+		"region":             region,
+		"host_instance_type": HostInstancetypeI4I,
+	}
+	var mockResourceSchema = schema.TestResourceDataRaw(t, sddcSchema(), mockRawData)
+
+	bareBonesAwsSddcConfig, _ := buildAwsSddcConfig(mockResourceSchema)
+
+	if bareBonesAwsSddcConfig.Region != region {
+		t.Errorf("Expected region %s, but got %s", region, bareBonesAwsSddcConfig.Region)
+	}
+	if *bareBonesAwsSddcConfig.HostInstanceType != model.SddcConfig_HOST_INSTANCE_TYPE_I4I_METAL {
+		t.Errorf("Expected HostInstanceType %s, but got %s",
+			model.SddcConfig_HOST_INSTANCE_TYPE_I4I_METAL, *bareBonesAwsSddcConfig.HostInstanceType)
+	}
+	var defaultDeploymentType = SingleAvailabilityZone
+	if *bareBonesAwsSddcConfig.DeploymentType != defaultDeploymentType {
+		t.Errorf("Expected DeploymentType %s, but got %s",
+			defaultDeploymentType, *bareBonesAwsSddcConfig.DeploymentType)
+	}
+	var defaultSize = MediumSDDCSize
+	if *bareBonesAwsSddcConfig.Size != defaultSize {
+		t.Errorf("Expected Size %s, but got %s",
+			defaultSize, *bareBonesAwsSddcConfig.Size)
+	}
 }
