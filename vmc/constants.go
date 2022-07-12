@@ -61,7 +61,7 @@ const (
 	MaxIntranetMTULink = 8900
 
 	// Range for number of hosts
-	MinHosts = 3
+	MinHosts = 2
 	MaxHosts = 16
 
 	// Env variables used in acceptance tests
