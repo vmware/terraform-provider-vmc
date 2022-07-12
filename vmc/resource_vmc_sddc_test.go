@@ -5,6 +5,8 @@ package vmc
 
 import (
 	"fmt"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/stretchr/testify/assert"
 	"os"
 	"testing"
 
@@ -155,4 +157,53 @@ resource "vmc_sddc" "sddc_1" {
 		os.Getenv(AWSAccountNumber),
 		sddcName,
 	)
+}
+
+func TestBuildAwsSddcConfigHostInstanceType(t *testing.T) {
+	type test struct {
+		input    map[string]interface{}
+		expected string
+		err      error
+	}
+
+	tests := []test{
+		{input: map[string]interface{}{
+			"host_instance_type": HostInstancetypeI3,
+		},
+			expected: model.SddcConfig_HOST_INSTANCE_TYPE_I3_METAL,
+			err:      nil,
+		},
+		{input: map[string]interface{}{
+			"host_instance_type": HostInstancetypeI3EN,
+		},
+			expected: model.SddcConfig_HOST_INSTANCE_TYPE_I3EN_METAL,
+			err:      nil,
+		},
+		{input: map[string]interface{}{
+			"host_instance_type": HostInstancetypeI4I,
+		},
+			expected: model.SddcConfig_HOST_INSTANCE_TYPE_I4I_METAL,
+			err:      nil,
+		},
+		{input: map[string]interface{}{
+			"host_instance_type": HostInstancetypeR5,
+		},
+			expected: model.SddcConfig_HOST_INSTANCE_TYPE_R5_METAL,
+			err:      nil,
+		},
+		{input: map[string]interface{}{
+			"host_instance_type": "RandomString",
+		},
+			expected: "",
+			err:      fmt.Errorf("unknown host instance type: RandomString")},
+	}
+
+	for _, testCase := range tests {
+		var testResourceSchema = schema.TestResourceDataRaw(t, sddcSchema(), testCase.input)
+		got, err := buildAwsSddcConfig(testResourceSchema)
+		assert.Equal(t, testCase.err, err)
+		if err == nil {
+			assert.Equal(t, testCase.expected, *got.HostInstanceType)
+		}
+	}
 }

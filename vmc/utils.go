@@ -98,3 +98,20 @@ func getTotalSddcHosts(sddc *model.Sddc) int {
 	}
 	return totalHosts
 }
+
+// toHostInstanceType converts from the Schema format of the host_instance_type to
+// the possible string values defined in the VMC SDK
+func toHostInstanceType(userPassedHostInstanceType string) (string, error) {
+	switch userPassedHostInstanceType {
+	case HostInstancetypeI3:
+		return model.SddcConfig_HOST_INSTANCE_TYPE_I3_METAL, nil
+	case HostInstancetypeI3EN:
+		return model.SddcConfig_HOST_INSTANCE_TYPE_I3EN_METAL, nil
+	case HostInstancetypeI4I:
+		return model.SddcConfig_HOST_INSTANCE_TYPE_I4I_METAL, nil
+	case HostInstancetypeR5:
+		return model.SddcConfig_HOST_INSTANCE_TYPE_R5_METAL, nil
+	default:
+		return "", fmt.Errorf("unknown host instance type: %s", userPassedHostInstanceType)
+	}
+}

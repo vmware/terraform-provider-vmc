@@ -52,113 +52,20 @@ func resourceCluster() *schema.Resource {
 			Delete: schema.DefaultTimeout(40 * time.Minute),
 			Update: schema.DefaultTimeout(20 * time.Minute),
 		},
-		Schema: map[string]*schema.Schema{
-			"sddc_id": {
-				Type:        schema.TypeString,
-				Required:    true,
-				Description: "SDDC identifier",
-			},
-			"num_hosts": {
-				Type:         schema.TypeInt,
-				Required:     true,
-				ValidateFunc: validation.IntBetween(MinHosts, MaxHosts),
-				Description:  "The number of hosts.",
-			},
-			"host_cpu_cores_count": {
-				Type:        schema.TypeInt,
-				Optional:    true,
-				Description: "Customize CPU cores on hosts in a cluster. Specify number of cores to be enabled on hosts in a cluster.",
-			},
-			"host_instance_type": {
-				Type:        schema.TypeString,
-				Optional:    true,
-				Description: "The instance type for the esx hosts added to this cluster.",
-				ValidateFunc: validation.StringInSlice(
-					[]string{HostInstancetypeI3, HostInstancetypeR5, HostInstancetypeI3EN}, false),
-			},
-			"storage_capacity": {
-				Type:     schema.TypeString,
-				Optional: true,
-				ForceNew: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					"15TB", "20TB", "25TB", "30TB", "35TB"}, false),
-			},
-			"edrs_policy_type": {
-				Type:     schema.TypeString,
-				Optional: true,
-				Default:  StorageScaleUpPolicyType,
-				ValidateFunc: validation.StringInSlice(
-					[]string{StorageScaleUpPolicyType, CostPolicyType, PerformancePolicyType, RapidScaleUpPolicyType}, false),
-				Description: "The EDRS policy type. This can either be 'cost', 'performance', 'storage-scaleup' or 'rapid-scaleup'. Default : storage-scaleup. ",
-			},
-			"enable_edrs": {
-				Type:        schema.TypeBool,
-				Optional:    true,
-				Default:     true,
-				Description: "True if EDRS is enabled",
-			},
-			"min_hosts": {
-				Type:         schema.TypeInt,
-				Default:      MinHosts,
-				Optional:     true,
-				ValidateFunc: validation.IntBetween(MinHosts, MaxHosts),
-				Description:  "The minimum number of hosts that the cluster can scale in to.",
-			},
-			"max_hosts": {
-				Type:         schema.TypeInt,
-				Default:      MaxHosts,
-				Optional:     true,
-				ValidateFunc: validation.IntBetween(MinHosts, MaxHosts),
-				Description:  "The maximum number of hosts that the cluster can scale out to.",
-			},
-			"microsoft_licensing_config": {
-				Type: schema.TypeList,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
-						"mssql_licensing": {
-							Type:        schema.TypeString,
-							Optional:    true,
-							Description: "The status of MSSQL licensing for this SDDC’s clusters. Possible values : enabled, ENABLED, disabled, DISABLED.",
-							ValidateFunc: validation.StringInSlice([]string{
-								LicenseConfigEnabled, LicenseConfigDisabled, CapitalLicenseConfigEnabled, CapitalLicenseConfigDisabled}, false),
-						},
-						"windows_licensing": {
-							Type:        schema.TypeString,
-							Optional:    true,
-							Description: "The status of Windows licensing for this SDDC's clusters. Possible values : enabled, ENABLED, disabled, DISABLED.",
-							ValidateFunc: validation.StringInSlice([]string{
-								LicenseConfigEnabled, LicenseConfigDisabled, CapitalLicenseConfigEnabled, CapitalLicenseConfigDisabled}, false),
-						},
-					},
-				},
-				Optional:    true,
-				Description: "Indicates the desired licensing support, if any, of Microsoft software.",
-			},
-			"cluster_info": {
-				Type:     schema.TypeMap,
-				Computed: true,
-			},
-		},
+		Schema: clusterSchema(),
 		CustomizeDiff: func(c context.Context, d *schema.ResourceDiff, meta interface{}) error {
 			newInstanceType := d.Get("host_instance_type").(string)
 
 			switch newInstanceType {
-
-			case HostInstancetypeI3, HostInstancetypeI3EN:
-
+			case HostInstancetypeI3, HostInstancetypeI3EN, HostInstancetypeI4I:
 				if d.Get("storage_capacity").(string) != "" {
-
 					return fmt.Errorf("storage_capacity is not supported for host_instance_type %q", newInstanceType)
-
 				}
 			case HostInstancetypeR5:
-
 				if d.Get("storage_capacity").(string) == "" {
-
-					return fmt.Errorf("storage_capacity is required for host_instance_type %q", newInstanceType)
-
+					return fmt.Errorf("storage_capacity is required for host_instance_type %q "+
+						"Possible values are 15TB, 20TB, 25TB, 30TB, 35TB per host", newInstanceType)
 				}
-
 			}
 			return nil
 		},
@@ -166,28 +73,14 @@ func resourceCluster() *schema.Resource {
 }
 
 func resourceClusterCreate(d *schema.ResourceData, m interface{}) error {
-	var storageCapacityConverted int64
-	sddcID := d.Get("sddc_id").(string)
-	numHosts := int64(d.Get("num_hosts").(int))
-	hostCPUCoresCount := int64(d.Get("host_cpu_cores_count").(int))
-
-	connector := m.(*ConnectorWrapper)
 	orgID := m.(*ConnectorWrapper).OrgID
+	sddcID := d.Get("sddc_id").(string)
+	clusterConfig, err := buildClusterConfig(d)
+	if err != nil {
+		return HandleCreateError("Cluster", err)
+	}
+	connector := m.(*ConnectorWrapper)
 	clusterClient := sddcs.NewClustersClient(connector)
-	hostInstanceType := model.HostInstanceTypesEnum(d.Get("host_instance_type").(string))
-	storageCapacity := d.Get("storage_capacity").(string)
-	if len(strings.TrimSpace(storageCapacity)) > 0 {
-		storageCapacityConverted = ConvertStorageCapacitytoInt(storageCapacity)
-	}
-	msftLicensingConfig := expandMsftLicenseConfig(d.Get("microsoft_licensing_config").([]interface{}))
-	clusterConfig := &model.ClusterConfig{
-		NumHosts:          numHosts,
-		HostCpuCoresCount: &hostCPUCoresCount,
-		HostInstanceType:  &hostInstanceType,
-		StorageCapacity:   &storageCapacityConverted,
-		MsftLicenseConfig: msftLicensingConfig,
-	}
-
 	task, err := clusterClient.Create(orgID, sddcID, *clusterConfig)
 	if err != nil {
 		return HandleCreateError("Cluster", err)
@@ -449,4 +342,121 @@ func resourceClusterUpdate(d *schema.ResourceData, m interface{}) error {
 
 	}
 	return nil
+}
+
+// clusterSchema this helper function extracts the creation of the Cluster schema, so that
+// it's made available for mocking in tests.
+func clusterSchema() map[string]*schema.Schema {
+	return map[string]*schema.Schema{
+		"sddc_id": {
+			Type:        schema.TypeString,
+			Required:    true,
+			Description: "SDDC identifier",
+		},
+		"num_hosts": {
+			Type:         schema.TypeInt,
+			Required:     true,
+			ValidateFunc: validation.IntBetween(MinHosts, MaxHosts),
+			Description:  "The number of hosts.",
+		},
+		"host_cpu_cores_count": {
+			Type:        schema.TypeInt,
+			Optional:    true,
+			Description: "Customize CPU cores on hosts in a cluster. Specify number of cores to be enabled on hosts in a cluster.",
+		},
+		"host_instance_type": {
+			Type:        schema.TypeString,
+			Optional:    true,
+			Description: "The instance type for the esx hosts added to this cluster.",
+			ValidateFunc: validation.StringInSlice(
+				[]string{HostInstancetypeI3, HostInstancetypeR5, HostInstancetypeI3EN, HostInstancetypeI4I}, false),
+		},
+		"storage_capacity": {
+			Type:     schema.TypeString,
+			Optional: true,
+			ForceNew: true,
+			ValidateFunc: validation.StringInSlice([]string{
+				"15TB", "20TB", "25TB", "30TB", "35TB"}, false),
+		},
+		"edrs_policy_type": {
+			Type:     schema.TypeString,
+			Optional: true,
+			Default:  StorageScaleUpPolicyType,
+			ValidateFunc: validation.StringInSlice(
+				[]string{StorageScaleUpPolicyType, CostPolicyType, PerformancePolicyType, RapidScaleUpPolicyType}, false),
+			Description: "The EDRS policy type. This can either be 'cost', 'performance', 'storage-scaleup' or 'rapid-scaleup'. Default : storage-scaleup. ",
+		},
+		"enable_edrs": {
+			Type:        schema.TypeBool,
+			Optional:    true,
+			Default:     true,
+			Description: "True if EDRS is enabled",
+		},
+		"min_hosts": {
+			Type:         schema.TypeInt,
+			Default:      MinHosts,
+			Optional:     true,
+			ValidateFunc: validation.IntBetween(MinHosts, MaxHosts),
+			Description:  "The minimum number of hosts that the cluster can scale in to.",
+		},
+		"max_hosts": {
+			Type:         schema.TypeInt,
+			Default:      MaxHosts,
+			Optional:     true,
+			ValidateFunc: validation.IntBetween(MinHosts, MaxHosts),
+			Description:  "The maximum number of hosts that the cluster can scale out to.",
+		},
+		"microsoft_licensing_config": {
+			Type: schema.TypeList,
+			Elem: &schema.Resource{
+				Schema: map[string]*schema.Schema{
+					"mssql_licensing": {
+						Type:        schema.TypeString,
+						Optional:    true,
+						Description: "The status of MSSQL licensing for this SDDC’s clusters. Possible values : enabled, ENABLED, disabled, DISABLED.",
+						ValidateFunc: validation.StringInSlice([]string{
+							LicenseConfigEnabled, LicenseConfigDisabled, CapitalLicenseConfigEnabled, CapitalLicenseConfigDisabled}, false),
+					},
+					"windows_licensing": {
+						Type:        schema.TypeString,
+						Optional:    true,
+						Description: "The status of Windows licensing for this SDDC's clusters. Possible values : enabled, ENABLED, disabled, DISABLED.",
+						ValidateFunc: validation.StringInSlice([]string{
+							LicenseConfigEnabled, LicenseConfigDisabled, CapitalLicenseConfigEnabled, CapitalLicenseConfigDisabled}, false),
+					},
+				},
+			},
+			Optional:    true,
+			Description: "Indicates the desired licensing support, if any, of Microsoft software.",
+		},
+		"cluster_info": {
+			Type:     schema.TypeMap,
+			Computed: true,
+		},
+	}
+}
+
+// buildClusterConfig extracts the creation of the model.ClusterConfig, so that it's
+// available for testing
+func buildClusterConfig(d *schema.ResourceData) (*model.ClusterConfig, error) {
+	numHosts := int64(d.Get("num_hosts").(int))
+	hostCPUCoresCount := int64(d.Get("host_cpu_cores_count").(int))
+
+	hostInstanceType, err := toHostInstanceType(d.Get("host_instance_type").(string))
+	if err != nil {
+		return nil, err
+	}
+	var storageCapacityConverted int64
+	storageCapacity := d.Get("storage_capacity").(string)
+	if len(strings.TrimSpace(storageCapacity)) > 0 {
+		storageCapacityConverted = ConvertStorageCapacitytoInt(storageCapacity)
+	}
+	msftLicensingConfig := expandMsftLicenseConfig(d.Get("microsoft_licensing_config").([]interface{}))
+	return &model.ClusterConfig{
+		NumHosts:          numHosts,
+		HostCpuCoresCount: &hostCPUCoresCount,
+		HostInstanceType:  &hostInstanceType,
+		StorageCapacity:   &storageCapacityConverted,
+		MsftLicenseConfig: msftLicensingConfig,
+	}, nil
 }

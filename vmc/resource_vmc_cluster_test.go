@@ -5,6 +5,8 @@ package vmc
 
 import (
 	"fmt"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/stretchr/testify/assert"
 	"os"
 	"strings"
 	"testing"
@@ -170,5 +172,45 @@ func testAccVmcClusterResourceImportStateIdFunc(resourceName string) resource.Im
 			return "", fmt.Errorf("Not found: %s", resourceName)
 		}
 		return fmt.Sprintf("%s,%s", rs.Primary.ID, rs.Primary.Attributes["sddc_id"]), nil
+	}
+}
+
+func TestBuildClusterConfig(t *testing.T) {
+	type test struct {
+		instanceType             string
+		expectedHostInstanceType string
+		expectedErr              error
+	}
+
+	tests := []test{
+		{instanceType: HostInstancetypeI3,
+			expectedHostInstanceType: model.SddcConfig_HOST_INSTANCE_TYPE_I3_METAL,
+			expectedErr:              nil},
+		{instanceType: HostInstancetypeI3EN,
+			expectedHostInstanceType: model.SddcConfig_HOST_INSTANCE_TYPE_I3EN_METAL,
+			expectedErr:              nil},
+		{instanceType: HostInstancetypeI4I,
+			expectedHostInstanceType: model.SddcConfig_HOST_INSTANCE_TYPE_I4I_METAL,
+			expectedErr:              nil},
+		{instanceType: HostInstancetypeR5,
+			expectedHostInstanceType: model.SddcConfig_HOST_INSTANCE_TYPE_R5_METAL,
+			expectedErr:              nil},
+		{instanceType: "RandomString",
+			expectedHostInstanceType: "",
+			expectedErr:              fmt.Errorf("unknown host instance type: RandomString"),
+		},
+	}
+
+	for _, testCase := range tests {
+		config := map[string]interface{}{
+			"num_hosts":          MinHosts,
+			"host_instance_type": testCase.instanceType,
+		}
+		var testResourceSchema = schema.TestResourceDataRaw(t, clusterSchema(), config)
+		got, err := buildClusterConfig(testResourceSchema)
+		assert.Equal(t, err, testCase.expectedErr)
+		if err == nil {
+			assert.Equal(t, *got.HostInstanceType, testCase.expectedHostInstanceType)
+		}
 	}
 }
