@@ -1,3 +1,14 @@
+## 1.10.0 (Jul 12, 2022)
+
+FEATURES:
+
+* `vmc_sddc` Added I4I_METAL host instance type support.
+
+BUG FIXES:
+
+* Allow min_hosts as low as 2 as per VMC service backend default value [\#147](https://github.com/vmware/terraform-provider-vmc/pull/147)
+* Removed references to R5 host instance type in examples as new deployments are unavailable [\#146](https://github.com/vmware/terraform-provider-vmc/pull/146)
+
 ## 1.9.3 (Jun 7, 2022)
 
 BUG FIXES:
