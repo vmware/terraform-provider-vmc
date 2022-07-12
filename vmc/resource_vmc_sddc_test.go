@@ -159,94 +159,51 @@ resource "vmc_sddc" "sddc_1" {
 	)
 }
 
-func TestBuildAwsSddcConfig(t *testing.T) {
+func TestBuildAwsSddcConfigHostInstanceType(t *testing.T) {
 	type test struct {
 		input    map[string]interface{}
-		expected model.AwsSddcConfig
+		expected string
+		err      error
 	}
 
 	tests := []test{
 		{input: map[string]interface{}{
-			"sddc_name":          "testName1",
-			"region":             "us-east-1",
-			"provider_type":      ZeroCloudProviderType,
-			"num_host":           MinHosts,
 			"host_instance_type": HostInstancetypeI3,
 		},
-			expected: model.AwsSddcConfig{
-				Name:             "testName1",
-				Region:           "us-east-1",
-				Provider:         ZeroCloudProviderType,
-				NumHosts:         MinHosts,
-				HostInstanceType: String(model.SddcConfig_HOST_INSTANCE_TYPE_I3_METAL),
-				Size:             String(MediumSDDCSize),
-				DeploymentType:   String(SingleAvailabilityZone),
-			}},
+			expected: model.SddcConfig_HOST_INSTANCE_TYPE_I3_METAL,
+			err:      nil,
+		},
 		{input: map[string]interface{}{
-			"sddc_name":          "testName2",
-			"region":             "us-east-2",
-			"provider_type":      AWSProviderType,
-			"num_host":           MaxHosts,
 			"host_instance_type": HostInstancetypeI3EN,
 		},
-			expected: model.AwsSddcConfig{
-				Name:             "testName2",
-				Region:           "us-east-2",
-				Provider:         AWSProviderType,
-				NumHosts:         MaxHosts,
-				HostInstanceType: String(model.SddcConfig_HOST_INSTANCE_TYPE_I3EN_METAL),
-				Size:             String(MediumSDDCSize),
-				DeploymentType:   String(SingleAvailabilityZone),
-			}},
+			expected: model.SddcConfig_HOST_INSTANCE_TYPE_I3EN_METAL,
+			err:      nil,
+		},
 		{input: map[string]interface{}{
-			"sddc_name":          "testName3",
-			"region":             "us-west-1",
-			"provider_type":      AWSProviderType,
-			"num_host":           7,
 			"host_instance_type": HostInstancetypeI4I,
 		},
-			expected: model.AwsSddcConfig{
-				Name:             "testName3",
-				Region:           "us-west-1",
-				Provider:         AWSProviderType,
-				NumHosts:         7,
-				HostInstanceType: String(model.SddcConfig_HOST_INSTANCE_TYPE_I4I_METAL),
-				Size:             String(MediumSDDCSize),
-				DeploymentType:   String(SingleAvailabilityZone),
-			}},
+			expected: model.SddcConfig_HOST_INSTANCE_TYPE_I4I_METAL,
+			err:      nil,
+		},
 		{input: map[string]interface{}{
-			"sddc_name":          "testName4",
-			"region":             "us-west-1",
-			"provider_type":      AWSProviderType,
-			"num_host":           MaxHosts,
 			"host_instance_type": HostInstancetypeR5,
 		},
-			expected: model.AwsSddcConfig{
-				Name:             "testName4",
-				Region:           "us-west-1",
-				Provider:         AWSProviderType,
-				NumHosts:         MaxHosts,
-				HostInstanceType: String(model.SddcConfig_HOST_INSTANCE_TYPE_R5_METAL),
-				Size:             String(MediumSDDCSize),
-				DeploymentType:   String(SingleAvailabilityZone),
-			}},
+			expected: model.SddcConfig_HOST_INSTANCE_TYPE_R5_METAL,
+			err:      nil,
+		},
+		{input: map[string]interface{}{
+			"host_instance_type": "RandomString",
+		},
+			expected: "",
+			err:      fmt.Errorf("unknown host instance type: RandomString")},
 	}
 
 	for _, testCase := range tests {
-		var mockResourceSchema = schema.TestResourceDataRaw(t, sddcSchema(), testCase.input)
-		got, _ := buildAwsSddcConfig(mockResourceSchema)
-		assert.Equal(t, got.NumHosts, testCase.expected.NumHosts)
-		assert.Equal(t, got.SddcType, testCase.expected.SddcType)
-		assert.Equal(t, got.SddcId, testCase.expected.SddcId)
-		assert.Equal(t, got.Region, testCase.expected.Region)
-		assert.Equal(t, got.Provider, testCase.expected.Provider)
-		assert.Equal(t, *got.HostInstanceType, *testCase.expected.HostInstanceType)
-		assert.Equal(t, got.Size, testCase.expected.Size)
-		assert.Equal(t, got.DeploymentType, testCase.expected.DeploymentType)
+		var testResourceSchema = schema.TestResourceDataRaw(t, sddcSchema(), testCase.input)
+		got, err := buildAwsSddcConfig(testResourceSchema)
+		assert.Equal(t, testCase.err, err)
+		if err == nil {
+			assert.Equal(t, testCase.expected, *got.HostInstanceType)
+		}
 	}
-}
-
-// String returns a pointer to the string value passed in.
-func String(v string) *string {
-	return &v
 }

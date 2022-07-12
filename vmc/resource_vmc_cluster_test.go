@@ -177,45 +177,40 @@ func testAccVmcClusterResourceImportStateIdFunc(resourceName string) resource.Im
 
 func TestBuildClusterConfig(t *testing.T) {
 	type test struct {
-		input    map[string]interface{}
-		expected model.ClusterConfig
+		instanceType             string
+		expectedHostInstanceType string
+		expectedErr              error
 	}
 
 	tests := []test{
-		{input: map[string]interface{}{
-			"num_hosts":          MinHosts,
-			"host_instance_type": HostInstancetypeI3,
-		}, expected: model.ClusterConfig{
-			NumHosts:         MinHosts,
-			HostInstanceType: String(model.SddcConfig_HOST_INSTANCE_TYPE_I3_METAL),
-		}},
-		{input: map[string]interface{}{
-			"num_hosts":          MinHosts,
-			"host_instance_type": HostInstancetypeI3EN,
-		}, expected: model.ClusterConfig{
-			NumHosts:         MinHosts,
-			HostInstanceType: String(model.SddcConfig_HOST_INSTANCE_TYPE_I3EN_METAL),
-		}},
-		{input: map[string]interface{}{
-			"num_hosts":          MinHosts,
-			"host_instance_type": HostInstancetypeI4I,
-		}, expected: model.ClusterConfig{
-			NumHosts:         MinHosts,
-			HostInstanceType: String(model.SddcConfig_HOST_INSTANCE_TYPE_I4I_METAL),
-		}},
-		{input: map[string]interface{}{
-			"num_hosts":          MinHosts,
-			"host_instance_type": HostInstancetypeR5,
-		}, expected: model.ClusterConfig{
-			NumHosts:         MinHosts,
-			HostInstanceType: String(model.SddcConfig_HOST_INSTANCE_TYPE_R5_METAL),
-		}},
+		{instanceType: HostInstancetypeI3,
+			expectedHostInstanceType: model.SddcConfig_HOST_INSTANCE_TYPE_I3_METAL,
+			expectedErr:              nil},
+		{instanceType: HostInstancetypeI3EN,
+			expectedHostInstanceType: model.SddcConfig_HOST_INSTANCE_TYPE_I3EN_METAL,
+			expectedErr:              nil},
+		{instanceType: HostInstancetypeI4I,
+			expectedHostInstanceType: model.SddcConfig_HOST_INSTANCE_TYPE_I4I_METAL,
+			expectedErr:              nil},
+		{instanceType: HostInstancetypeR5,
+			expectedHostInstanceType: model.SddcConfig_HOST_INSTANCE_TYPE_R5_METAL,
+			expectedErr:              nil},
+		{instanceType: "RandomString",
+			expectedHostInstanceType: "",
+			expectedErr:              fmt.Errorf("unknown host instance type: RandomString"),
+		},
 	}
 
 	for _, testCase := range tests {
-		var mockResourceSchema = schema.TestResourceDataRaw(t, clusterSchema(), testCase.input)
-		got, _ := buildClusterConfig(mockResourceSchema)
-		assert.Equal(t, got.NumHosts, testCase.expected.NumHosts)
-		assert.Equal(t, *got.HostInstanceType, *testCase.expected.HostInstanceType)
+		config := map[string]interface{}{
+			"num_hosts":          MinHosts,
+			"host_instance_type": testCase.instanceType,
+		}
+		var testResourceSchema = schema.TestResourceDataRaw(t, clusterSchema(), config)
+		got, err := buildClusterConfig(testResourceSchema)
+		assert.Equal(t, err, testCase.expectedErr)
+		if err == nil {
+			assert.Equal(t, *got.HostInstanceType, testCase.expectedHostInstanceType)
+		}
 	}
 }
