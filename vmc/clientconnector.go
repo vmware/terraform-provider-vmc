@@ -23,7 +23,7 @@ func NewClientConnectorByRefreshToken(refreshToken, serviceUrl, cspURL string,
 	httpClient http.Client) (client.Connector, error) {
 
 	if len(serviceUrl) <= 0 {
-		serviceUrl = DefaultVMCServer
+		serviceUrl = DefaultVMCUrl
 	}
 
 	if len(cspURL) <= 0 {

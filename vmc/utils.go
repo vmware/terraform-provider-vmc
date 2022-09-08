@@ -82,7 +82,8 @@ func getNSXTReverseProxyURLConnector(nsxtReverseProxyUrl string) (client.Connect
 	}
 	nsxtReverseProxyUrl = strings.Replace(nsxtReverseProxyUrl, SksNSXTManager, "", -1)
 	httpClient := http.Client{}
-	connector, err := NewClientConnectorByRefreshToken(apiToken, nsxtReverseProxyUrl, DefaultCSPUrl, httpClient)
+	cspUrl := os.Getenv(CSPUrl)
+	connector, err := NewClientConnectorByRefreshToken(apiToken, nsxtReverseProxyUrl, cspUrl, httpClient)
 	if err != nil {
 		return nil, HandleCreateError("NSXT reverse proxy URL connector", err)
 	}

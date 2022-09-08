@@ -65,6 +65,306 @@ func resourceSddc() *schema.Resource {
 	}
 }
 
+// sddcSchema this helper function extracts the creation of the SDDC schema, so that
+// it's made available for mocking in tests.
+func sddcSchema() map[string]*schema.Schema {
+	return map[string]*schema.Schema{
+		"storage_capacity": {
+			Type:     schema.TypeString,
+			Optional: true,
+			ForceNew: true,
+			ValidateFunc: validation.StringInSlice([]string{
+				"15TB", "20TB", "25TB", "30TB", "35TB"}, false),
+		},
+		"sddc_name": {
+			Type:         schema.TypeString,
+			Required:     true,
+			ValidateFunc: validation.NoZeroValues,
+		},
+		"size": {
+			Type:     schema.TypeString,
+			Optional: true,
+			Default:  MediumSDDCSize,
+			ValidateFunc: validation.StringInSlice([]string{
+				MediumSDDCSize, CapitalMediumSDDCSize, LargeSDDCSize, CapitalLargeSDDCSize}, false),
+			Description: "The size of the vCenter and NSX appliances. 'large' or 'LARGE' SDDC size corresponds to a large vCenter appliance and large NSX appliance. 'medium' or 'MEDIUM' SDDC size corresponds to medium vCenter appliance and medium NSX appliance. Default : 'medium'.",
+		},
+		"account_link_sddc_config": {
+			Type: schema.TypeList,
+			Elem: &schema.Resource{
+				Schema: map[string]*schema.Schema{
+					"customer_subnet_ids": {
+						Type: schema.TypeList,
+						Elem: &schema.Schema{
+							Type: schema.TypeString,
+						},
+						Optional: true,
+					},
+					"connected_account_id": {
+						Type:     schema.TypeString,
+						Optional: true,
+					},
+				},
+			},
+			Optional: true,
+			ForceNew: true,
+		},
+		"vpc_cidr": {
+			Type:     schema.TypeString,
+			Optional: true,
+			ForceNew: true,
+		},
+		"num_host": {
+			Type:         schema.TypeInt,
+			Required:     true,
+			ValidateFunc: validation.IntAtLeast(1),
+		},
+		"sddc_type": {
+			Type:     schema.TypeString,
+			Optional: true,
+		},
+		"vxlan_subnet": {
+			Type:     schema.TypeString,
+			Optional: true,
+			ForceNew: true,
+		},
+		"delay_account_link": {
+			Type:     schema.TypeBool,
+			Optional: true,
+			Default:  false,
+			ForceNew: true,
+		},
+		"provider_type": {
+			Type:     schema.TypeString,
+			Optional: true,
+			ForceNew: true,
+			Default:  AWSProviderType,
+			ValidateFunc: validation.StringInSlice([]string{
+				AWSProviderType, ZeroCloudProviderType}, false),
+		},
+		"skip_creating_vxlan": {
+			Type:     schema.TypeBool,
+			Optional: true,
+			Default:  true,
+			ForceNew: true,
+		},
+		"sso_domain": {
+			Type:     schema.TypeString,
+			Optional: true,
+			ForceNew: true,
+			Default:  "vmc.local",
+		},
+		"sddc_template_id": {
+			Type:     schema.TypeString,
+			Optional: true,
+			ForceNew: true,
+		},
+		"deployment_type": {
+			Type:     schema.TypeString,
+			Optional: true,
+			ForceNew: true,
+			Default:  SingleAvailabilityZone,
+			ValidateFunc: validation.StringInSlice([]string{
+				SingleAvailabilityZone, MultiAvailabilityZone,
+			}, false),
+		},
+		"region": {
+			Type:     schema.TypeString,
+			Required: true,
+			ForceNew: true,
+			ValidateFunc: validation.All(
+				validation.NoZeroValues,
+			),
+			DiffSuppressFunc: func(k, old, new string, d *schema.ResourceData) bool {
+				return old == strings.ReplaceAll(strings.ToUpper(new), "-", "_")
+			},
+		},
+		"cluster_id": {
+			Type:     schema.TypeString,
+			Computed: true,
+		},
+		"host_instance_type": {
+			Type:     schema.TypeString,
+			Optional: true,
+			ForceNew: true,
+			ValidateFunc: validation.StringInSlice(
+				[]string{HostInstancetypeI3, HostInstancetypeR5, HostInstancetypeI3EN, HostInstancetypeI4I}, false),
+		},
+		"edrs_policy_type": {
+			Type: schema.TypeString,
+			// Exact value known after create
+			Optional: true,
+			Computed: true,
+			ValidateFunc: validation.StringInSlice(
+				[]string{StorageScaleUpPolicyType, CostPolicyType, PerformancePolicyType, RapidScaleUpPolicyType}, false),
+			Description: "The EDRS policy type. This can either be 'cost', 'performance', 'storage-scaleup' or 'rapid-scaleup'. Default : storage-scaleup. ",
+		},
+		"enable_edrs": {
+			Type: schema.TypeBool,
+			// Value can be changed after create
+			Optional:    true,
+			Computed:    true,
+			Description: "True if EDRS is enabled",
+		},
+		"min_hosts": {
+			Type: schema.TypeInt,
+			// Exact value known after create
+			Optional:     true,
+			Computed:     true,
+			ValidateFunc: validation.IntBetween(MinHosts, MaxHosts),
+			Description:  "The minimum number of hosts that the cluster can scale in to.",
+		},
+		"max_hosts": {
+			Type: schema.TypeInt,
+			// Exact value known after create
+			Optional:     true,
+			Computed:     true,
+			ValidateFunc: validation.IntBetween(MinHosts, MaxHosts),
+			Description:  "The maximum number of hosts that the cluster can scale out to.",
+		},
+		"microsoft_licensing_config": {
+			Type: schema.TypeList,
+			Elem: &schema.Resource{
+				Schema: map[string]*schema.Schema{
+					"mssql_licensing": {
+						Type:        schema.TypeString,
+						Optional:    true,
+						Description: "The status of MSSQL licensing for this SDDC’s clusters. Possible values : enabled, ENABLED, disabled, DISABLED.",
+						ValidateFunc: validation.StringInSlice([]string{
+							LicenseConfigEnabled, LicenseConfigDisabled, CapitalLicenseConfigEnabled, CapitalLicenseConfigDisabled}, false),
+					},
+					"windows_licensing": {
+						Type:        schema.TypeString,
+						Optional:    true,
+						Description: "The status of Windows licensing for this SDDC's clusters. Possible values : enabled, ENABLED, disabled, DISABLED.",
+						ValidateFunc: validation.StringInSlice([]string{
+							LicenseConfigEnabled, LicenseConfigDisabled, CapitalLicenseConfigEnabled, CapitalLicenseConfigDisabled}, false),
+					},
+				},
+			},
+			Optional:    true,
+			Description: "Indicates the desired licensing support, if any, of Microsoft software.",
+		},
+		"intranet_mtu_uplink": {
+			Type:         schema.TypeInt,
+			Optional:     true,
+			Default:      MinIntranetMTULink,
+			Description:  "Uplink MTU of direct connect, SDDC-grouping and outposts traffic in edge tier-0 router port.",
+			ValidateFunc: validation.IntBetween(MinIntranetMTULink, MaxIntranetMTULink),
+		},
+		"sddc_state": {
+			Type:     schema.TypeString,
+			Computed: true,
+		},
+		"vc_url": {
+			Type:     schema.TypeString,
+			Computed: true,
+		},
+		"cloud_username": {
+			Type:     schema.TypeString,
+			Computed: true,
+		},
+		"cloud_password": {
+			Type:     schema.TypeString,
+			Computed: true,
+		},
+		"nsxt_reverse_proxy_url": {
+			Type:     schema.TypeString,
+			Computed: true,
+		},
+		"cluster_info": {
+			Type:     schema.TypeMap,
+			Computed: true,
+		},
+		"sddc_size": {
+			Type:     schema.TypeMap,
+			Computed: true,
+		},
+		"availability_zones": {
+			Type:     schema.TypeList,
+			Computed: true,
+			Elem:     &schema.Schema{Type: schema.TypeString},
+		},
+		"nsxt_ui": {
+			Type:     schema.TypeBool,
+			Optional: true,
+			Computed: true,
+		},
+		"nsxt_cloudadmin": {
+			Type:     schema.TypeString,
+			Optional: true,
+			Computed: true,
+		},
+		"nsxt_cloudadmin_password": {
+			Type:     schema.TypeString,
+			Optional: true,
+			Computed: true,
+		},
+		"nsxt_cloudaudit": {
+			Type:     schema.TypeString,
+			Optional: true,
+			Computed: true,
+		},
+		"nsxt_cloudaudit_password": {
+			Type:     schema.TypeString,
+			Optional: true,
+			Computed: true,
+		},
+		"nsxt_private_ip": {
+			Type:     schema.TypeString,
+			Optional: true,
+			Computed: true,
+		},
+		"nsxt_private_url": {
+			Type:     schema.TypeString,
+			Optional: true,
+			Computed: true,
+		},
+		// Following properties are set in the resourceSddcRead function and need to be
+		// present in the schema during E2E test result validation phase
+		"updated": {
+			Type:     schema.TypeString,
+			Computed: true,
+		},
+		"user_id": {
+			Type:     schema.TypeString,
+			Computed: true,
+		},
+		"updated_by_user_id": {
+			Type:     schema.TypeString,
+			Computed: true,
+		},
+		"created": {
+			Type:     schema.TypeString,
+			Computed: true,
+		},
+		"version": {
+			Type:     schema.TypeInt,
+			Computed: true,
+		},
+		"updated_by_user_name": {
+			Type:     schema.TypeString,
+			Computed: true,
+		},
+		"user_name": {
+			Type:     schema.TypeString,
+			Computed: true,
+		},
+		"org_id": {
+			Type:     schema.TypeString,
+			Computed: true,
+		},
+		"account_link_state": {
+			Type:     schema.TypeString,
+			Computed: true,
+		},
+		"sddc_access_state": {
+			Type:     schema.TypeString,
+			Computed: true,
+		},
+	}
+}
+
 func resourceSddcCreate(d *schema.ResourceData, m interface{}) error {
 	connectorWrapper := m.(*ConnectorWrapper)
 	sddcClient := orgs.NewSddcsClient(connectorWrapper)
@@ -84,6 +384,8 @@ func resourceSddcCreate(d *schema.ResourceData, m interface{}) error {
 	// Wait until Sddc is created
 	sddcID := task.ResourceId
 	d.SetId(*sddcID)
+	maxServiceUnavailableRetries := 20
+	serviceUnavailableRetries := 0
 	return resource.RetryContext(context.Background(), d.Timeout(schema.TimeoutCreate), func() *resource.RetryError {
 		tasksClient := orgs.NewTasksClient(connectorWrapper)
 		task, err := tasksClient.Get(orgID, task.Id)
@@ -96,11 +398,22 @@ func resourceSddcCreate(d *schema.ResourceData, m interface{}) error {
 				}
 				return resource.RetryableError(fmt.Errorf("instance creation still in progress"))
 			}
+			// Resiliency in case of difficulties the VMC service may experience,
+			// during the significant SDDC provisioning time
+			if err.Error() == (errors.ServiceUnavailable{}.Error()) {
+				serviceUnavailableRetries++
+				if serviceUnavailableRetries <= maxServiceUnavailableRetries {
+					return resource.RetryableError(fmt.Errorf(
+						"VMC backend is experiencing difficulties, retry to polling the SDDC Create Task"))
+				} else {
+					return resource.NonRetryableError(fmt.Errorf("VMC service is down"))
+				}
+			}
 			return resource.NonRetryableError(fmt.Errorf("error creating SDDC : %v", err))
 
 		}
 		if *task.Status == "FAILED" {
-			return resource.NonRetryableError(fmt.Errorf("task failed to create SDDC"))
+			return resource.NonRetryableError(fmt.Errorf("task failed to create SDDC: %s", *task.ErrorMessage))
 		} else if *task.Status != "FINISHED" {
 			return resource.RetryableError(fmt.Errorf("expected SDDC to be created but was in state %s", *task.Status))
 		}
@@ -130,16 +443,20 @@ func resourceSddcRead(d *schema.ResourceData, m interface{}) error {
 	d.SetId(sddc.Id)
 
 	d.Set("sddc_name", sddc.Name)
-	d.Set("updated", sddc.Updated)
+	// The Terraform SDK does not support the use of time.Time type, so save the string
+	// representation
+	d.Set("updated", sddc.Updated.String())
 	d.Set("user_id", sddc.UserId)
 	d.Set("updated_by_user_id", sddc.UpdatedByUserId)
-	d.Set("created", sddc.Created)
+	d.Set("created", sddc.Created.String())
 	d.Set("version", sddc.Version)
 	d.Set("updated_by_user_name", sddc.UpdatedByUserName)
 	d.Set("user_name", sddc.UserName)
 	d.Set("org_id", sddc.OrgId)
 	d.Set("sddc_type", sddc.SddcType)
-	d.Set("provider", sddc.Provider)
+	// the key "provider" is reserved by the Terraform SDK, however the same information
+	// is provided by the sddc.ResourceConfig.Provider variable
+	//d.Set("provider", sddc.Provider)
 	d.Set("account_link_state", sddc.AccountLinkState)
 	d.Set("sddc_access_state", sddc.SddcAccessState)
 	d.Set("sddc_state", sddc.SddcState)
@@ -498,256 +815,6 @@ func resourceSddcUpdate(d *schema.ResourceData, m interface{}) error {
 		})
 	}
 	return resourceSddcRead(d, m)
-}
-
-// sddcSchema this helper function extracts the creation of the SDDC schema, so that
-// it's made available for mocking in tests.
-func sddcSchema() map[string]*schema.Schema {
-	return map[string]*schema.Schema{
-		"storage_capacity": {
-			Type:     schema.TypeString,
-			Optional: true,
-			ForceNew: true,
-			ValidateFunc: validation.StringInSlice([]string{
-				"15TB", "20TB", "25TB", "30TB", "35TB"}, false),
-		},
-		"sddc_name": {
-			Type:         schema.TypeString,
-			Required:     true,
-			ValidateFunc: validation.NoZeroValues,
-		},
-		"size": {
-			Type:     schema.TypeString,
-			Optional: true,
-			Default:  MediumSDDCSize,
-			ValidateFunc: validation.StringInSlice([]string{
-				MediumSDDCSize, CapitalMediumSDDCSize, LargeSDDCSize, CapitalLargeSDDCSize}, false),
-			Description: "The size of the vCenter and NSX appliances. 'large' or 'LARGE' SDDC size corresponds to a large vCenter appliance and large NSX appliance. 'medium' or 'MEDIUM' SDDC size corresponds to medium vCenter appliance and medium NSX appliance. Default : 'medium'.",
-		},
-		"account_link_sddc_config": {
-			Type: schema.TypeList,
-			Elem: &schema.Resource{
-				Schema: map[string]*schema.Schema{
-					"customer_subnet_ids": {
-						Type: schema.TypeList,
-						Elem: &schema.Schema{
-							Type: schema.TypeString,
-						},
-						Optional: true,
-					},
-					"connected_account_id": {
-						Type:     schema.TypeString,
-						Optional: true,
-					},
-				},
-			},
-			Optional: true,
-			ForceNew: true,
-		},
-		"vpc_cidr": {
-			Type:     schema.TypeString,
-			Optional: true,
-			ForceNew: true,
-		},
-		"num_host": {
-			Type:         schema.TypeInt,
-			Required:     true,
-			ValidateFunc: validation.IntAtLeast(1),
-		},
-		"sddc_type": {
-			Type:     schema.TypeString,
-			Optional: true,
-		},
-		"vxlan_subnet": {
-			Type:     schema.TypeString,
-			Optional: true,
-			ForceNew: true,
-		},
-		"delay_account_link": {
-			Type:     schema.TypeBool,
-			Optional: true,
-			Default:  false,
-			ForceNew: true,
-		},
-		"provider_type": {
-			Type:     schema.TypeString,
-			Optional: true,
-			ForceNew: true,
-			Default:  AWSProviderType,
-			ValidateFunc: validation.StringInSlice([]string{
-				AWSProviderType, ZeroCloudProviderType}, false),
-		},
-		"skip_creating_vxlan": {
-			Type:     schema.TypeBool,
-			Optional: true,
-			Default:  true,
-			ForceNew: true,
-		},
-		"sso_domain": {
-			Type:     schema.TypeString,
-			Optional: true,
-			ForceNew: true,
-			Default:  "vmc.local",
-		},
-		"sddc_template_id": {
-			Type:     schema.TypeString,
-			Optional: true,
-			ForceNew: true,
-		},
-		"deployment_type": {
-			Type:     schema.TypeString,
-			Optional: true,
-			ForceNew: true,
-			Default:  SingleAvailabilityZone,
-			ValidateFunc: validation.StringInSlice([]string{
-				SingleAvailabilityZone, MultiAvailabilityZone,
-			}, false),
-		},
-		"region": {
-			Type:     schema.TypeString,
-			Required: true,
-			ForceNew: true,
-			ValidateFunc: validation.All(
-				validation.NoZeroValues,
-			),
-			DiffSuppressFunc: func(k, old, new string, d *schema.ResourceData) bool {
-				return old == strings.ReplaceAll(strings.ToUpper(new), "-", "_")
-			},
-		},
-		"cluster_id": {
-			Type:     schema.TypeString,
-			Computed: true,
-		},
-		"host_instance_type": {
-			Type:     schema.TypeString,
-			Optional: true,
-			ForceNew: true,
-			ValidateFunc: validation.StringInSlice(
-				[]string{HostInstancetypeI3, HostInstancetypeR5, HostInstancetypeI3EN, HostInstancetypeI4I}, false),
-		},
-		"edrs_policy_type": {
-			Type:     schema.TypeString,
-			Optional: true,
-			ValidateFunc: validation.StringInSlice(
-				[]string{StorageScaleUpPolicyType, CostPolicyType, PerformancePolicyType, RapidScaleUpPolicyType}, false),
-			Description: "The EDRS policy type. This can either be 'cost', 'performance', 'storage-scaleup' or 'rapid-scaleup'. Default : storage-scaleup. ",
-		},
-		"enable_edrs": {
-			Type:        schema.TypeBool,
-			Optional:    true,
-			Description: "True if EDRS is enabled",
-		},
-		"min_hosts": {
-			Type:         schema.TypeInt,
-			Optional:     true,
-			ValidateFunc: validation.IntBetween(MinHosts, MaxHosts),
-			Description:  "The minimum number of hosts that the cluster can scale in to.",
-		},
-		"max_hosts": {
-			Type:         schema.TypeInt,
-			Optional:     true,
-			ValidateFunc: validation.IntBetween(MinHosts, MaxHosts),
-			Description:  "The maximum number of hosts that the cluster can scale out to.",
-		},
-		"microsoft_licensing_config": {
-			Type: schema.TypeList,
-			Elem: &schema.Resource{
-				Schema: map[string]*schema.Schema{
-					"mssql_licensing": {
-						Type:        schema.TypeString,
-						Optional:    true,
-						Description: "The status of MSSQL licensing for this SDDC’s clusters. Possible values : enabled, ENABLED, disabled, DISABLED.",
-						ValidateFunc: validation.StringInSlice([]string{
-							LicenseConfigEnabled, LicenseConfigDisabled, CapitalLicenseConfigEnabled, CapitalLicenseConfigDisabled}, false),
-					},
-					"windows_licensing": {
-						Type:        schema.TypeString,
-						Optional:    true,
-						Description: "The status of Windows licensing for this SDDC's clusters. Possible values : enabled, ENABLED, disabled, DISABLED.",
-						ValidateFunc: validation.StringInSlice([]string{
-							LicenseConfigEnabled, LicenseConfigDisabled, CapitalLicenseConfigEnabled, CapitalLicenseConfigDisabled}, false),
-					},
-				},
-			},
-			Optional:    true,
-			Description: "Indicates the desired licensing support, if any, of Microsoft software.",
-		},
-		"intranet_mtu_uplink": {
-			Type:         schema.TypeInt,
-			Optional:     true,
-			Default:      MinIntranetMTULink,
-			Description:  "Uplink MTU of direct connect, SDDC-grouping and outposts traffic in edge tier-0 router port.",
-			ValidateFunc: validation.IntBetween(MinIntranetMTULink, MaxIntranetMTULink),
-		},
-		"sddc_state": {
-			Type:     schema.TypeString,
-			Computed: true,
-		},
-		"vc_url": {
-			Type:     schema.TypeString,
-			Computed: true,
-		},
-		"cloud_username": {
-			Type:     schema.TypeString,
-			Computed: true,
-		},
-		"cloud_password": {
-			Type:     schema.TypeString,
-			Computed: true,
-		},
-		"nsxt_reverse_proxy_url": {
-			Type:     schema.TypeString,
-			Computed: true,
-		},
-		"cluster_info": {
-			Type:     schema.TypeMap,
-			Computed: true,
-		},
-		"sddc_size": {
-			Type:     schema.TypeMap,
-			Computed: true,
-		},
-		"availability_zones": {
-			Type:     schema.TypeList,
-			Computed: true,
-			Elem:     &schema.Schema{Type: schema.TypeString},
-		},
-		"nsxt_ui": {
-			Type:     schema.TypeBool,
-			Optional: true,
-			Computed: true,
-		},
-		"nsxt_cloudadmin": {
-			Type:     schema.TypeString,
-			Optional: true,
-			Computed: true,
-		},
-		"nsxt_cloudadmin_password": {
-			Type:     schema.TypeString,
-			Optional: true,
-			Computed: true,
-		},
-		"nsxt_cloudaudit": {
-			Type:     schema.TypeString,
-			Optional: true,
-			Computed: true,
-		},
-		"nsxt_cloudaudit_password": {
-			Type:     schema.TypeString,
-			Optional: true,
-			Computed: true,
-		},
-		"nsxt_private_ip": {
-			Type:     schema.TypeString,
-			Optional: true,
-			Computed: true,
-		},
-		"nsxt_private_url": {
-			Type:     schema.TypeString,
-			Optional: true,
-			Computed: true,
-		},
-	}
 }
 
 // buildAwsSddcConfig extracts the creation of the model.AwsSddcConfig, so that it's

@@ -4,8 +4,8 @@
 package vmc
 
 const (
-	// DefaultVMCServer defines the default VMC server.
-	DefaultVMCServer string = "https://vmc.vmware.com"
+	// DefaultVMCUrl defines the default VMC server url.
+	DefaultVMCUrl string = "https://vmc.vmware.com"
 
 	// DefaultCSPUrl defines the default URL for CSP.
 	DefaultCSPUrl string = "https://console.cloud.vmware.com"
@@ -65,10 +65,14 @@ const (
 	MaxHosts = 16
 
 	// Env variables used in acceptance tests
-	APIToken            string = "API_TOKEN"
-	OrgID               string = "ORG_ID"
-	OrgDisplayName      string = "ORG_DISPLAY_NAME"
-	TestSDDCId          string = "TEST_SDDC_ID"
+	VMCUrl         string = "VMC_URL"
+	CSPUrl         string = "CSP_URL"
+	APIToken       string = "API_TOKEN"
+	OrgID          string = "ORG_ID"
+	OrgDisplayName string = "ORG_DISPLAY_NAME"
+	// ID of an existing SDDC used for sddc data source, site recovery and srm node tests
+	TestSDDCId string = "TEST_SDDC_ID"
+	// Name of an existing SDDC used for sddc data source tests
 	TestSDDCName        string = "TEST_SDDC_NAME"
 	AWSAccountNumber    string = "AWS_ACCOUNT_NUMBER"
 	NSXTReverseProxyUrl string = "NSXT_REVERSE_PROXY_URL"
