@@ -8,7 +8,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"reflect"
 	"strings"
@@ -60,7 +60,7 @@ func SecurityContextByRefreshToken(refreshToken string, cspURL string) (core.Sec
 	}
 
 	if res.StatusCode != 200 {
-		b, _ := ioutil.ReadAll(res.Body)
+		b, _ := io.ReadAll(res.Body)
 		return nil, fmt.Errorf("response from Cloud Service Provider contains status code %d : %s", res.StatusCode, string(b))
 	}
 
