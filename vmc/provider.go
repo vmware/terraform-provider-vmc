@@ -45,14 +45,14 @@ func Provider() *schema.Provider {
 				DefaultFunc: schema.EnvDefaultFunc("ORG_ID", nil),
 			},
 			"vmc_url": {
-				Type:     schema.TypeString,
-				Optional: true,
-				Default:  "https://vmc.vmware.com",
+				Type:        schema.TypeString,
+				Optional:    true,
+				DefaultFunc: schema.EnvDefaultFunc(VMCUrl, DefaultVMCUrl),
 			},
 			"csp_url": {
-				Type:     schema.TypeString,
-				Optional: true,
-				Default:  "https://console.cloud.vmware.com",
+				Type:        schema.TypeString,
+				Optional:    true,
+				DefaultFunc: schema.EnvDefaultFunc(CSPUrl, DefaultCSPUrl),
 			},
 		},
 
@@ -84,6 +84,7 @@ func providerConfigure(d *schema.ResourceData) (interface{}, error) {
 	os.Setenv(APIToken, refreshToken)
 	vmcURL := d.Get("vmc_url").(string)
 	cspURL := d.Get("csp_url").(string)
+	os.Setenv(CSPUrl, cspURL)
 	orgID := d.Get("org_id").(string)
 	httpClient := http.Client{}
 	connector, err := NewClientConnectorByRefreshToken(refreshToken, vmcURL, cspURL, httpClient)
