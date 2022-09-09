@@ -404,9 +404,10 @@ func resourceSddcCreate(d *schema.ResourceData, m interface{}) error {
 				serviceUnavailableRetries++
 				if serviceUnavailableRetries <= maxServiceUnavailableRetries {
 					return resource.RetryableError(fmt.Errorf(
-						"VMC backend is experiencing difficulties, retry to polling the SDDC Create Task"))
+						"VMC backend is experiencing difficulties, retry %d from %d to polling the SDDC Create Task",
+						serviceUnavailableRetries, maxServiceUnavailableRetries))
 				} else {
-					return resource.NonRetryableError(fmt.Errorf("VMC service is down"))
+					return resource.NonRetryableError(fmt.Errorf("max ServiceUnavailable retries (20) reached to create SDDC"))
 				}
 			}
 			return resource.NonRetryableError(fmt.Errorf("error creating SDDC : %v", err))
