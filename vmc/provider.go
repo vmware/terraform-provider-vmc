@@ -42,7 +42,7 @@ func Provider() *schema.Provider {
 			"org_id": {
 				Type:        schema.TypeString,
 				Required:    true,
-				DefaultFunc: schema.EnvDefaultFunc("ORG_ID", nil),
+				DefaultFunc: schema.EnvDefaultFunc(OrgID, nil),
 			},
 			"vmc_url": {
 				Type:        schema.TypeString,
