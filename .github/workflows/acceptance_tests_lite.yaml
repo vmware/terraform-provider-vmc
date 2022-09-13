@@ -1,4 +1,4 @@
-name: Terraform Provider Acceptance Tests
+name: Terraform Provider Acceptance Tests Lite
 on:
   #Every day at 08:00 UTC
   schedule:
@@ -12,7 +12,7 @@ jobs:
   # but with limited coverage
   acceptance_lite:
     environment: Acceptance Tests
-    name: Lite Acceptance Tests (Terraform ${{ matrix.terraform-version }})
+    name: Acceptance Tests Lite (Terraform ${{ matrix.terraform-version }})
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
