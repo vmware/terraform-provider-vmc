@@ -10,17 +10,8 @@ permissions:
 jobs:
   # Lite acceptance tests run on zerocloud provider only, which makes them really fast,
   # but with limited coverage
-  acceptance:
-    env:
-      TF_ACC: '1'
-      API_TOKEN: ${{ secrets.API_TOKEN }}
-      AWS_ACCOUNT_NUMBER: ${{ secrets.AWS_ACCOUNT_NUMBER }}
-      CSP_URL: ${{ secrets.CSP_URL }}
-      ORG_DISPLAY_NAME: ${{ secrets.ORG_DISPLAY_NAME }}
-      ORG_ID: ${{ secrets.ORG_ID }}
-      TEST_SDDC_ID: ${{ secrets.TEST_SDDC_ID }}
-      TEST_SDDC_NAME: ${{ secrets.TEST_SDDC_NAME }}
-      VMC_URL: ${{ secrets.VMC_URL }}
+  acceptance_lite:
+    environment: Acceptance Tests
     name: Lite Acceptance Tests (Terraform ${{ matrix.terraform-version }})
     runs-on: ubuntu-latest
     strategy:
@@ -38,6 +29,14 @@ jobs:
         with:
           terraform_version: ${{ matrix.terraform-version }}
           terraform_wrapper: false
-      - run: | 
-          echo ${{ secrets.TEST_SDDC_NAME }} | sed 's/.& /g'
-          make testacc TESTARGS="-run=TestAccResourceVmcSddc_Zerocloud"
+      - run: make testacc TESTARGS="-run=TestAccResourceVmcSddc_Zerocloud"
+        env:
+          TF_ACC: '1'
+          API_TOKEN: ${{ secrets.API_TOKEN }}
+          AWS_ACCOUNT_NUMBER: ${{ secrets.AWS_ACCOUNT_NUMBER }}
+          CSP_URL: ${{ secrets.CSP_URL }}
+          ORG_DISPLAY_NAME: ${{ secrets.ORG_DISPLAY_NAME }}
+          ORG_ID: ${{ secrets.ORG_ID }}
+          TEST_SDDC_ID: ${{ secrets.TEST_SDDC_ID }}
+          TEST_SDDC_NAME: ${{ secrets.TEST_SDDC_NAME }}
+          VMC_URL: ${{ secrets.VMC_URL }}
