@@ -42,6 +42,29 @@ func TestAccResourceVmcSddc_basic(t *testing.T) {
 	})
 }
 
+func TestAccResourceVmcSddc_Zerocloud(t *testing.T) {
+	var sddcResource model.Sddc
+	sddcName := "terraform_test_sddc_" + acctest.RandStringFromCharSet(10, acctest.CharSetAlphaNum)
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheckZerocloud(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckVmcSddcDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccVmcSddcConfigZerocloud(sddcName),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckVmcSddcExists("vmc_sddc.sddc_zerocloud", &sddcResource),
+					testCheckSddcAttributes(&sddcResource),
+					resource.TestCheckResourceAttr("vmc_sddc.sddc_zerocloud", "sddc_state", "READY"),
+					resource.TestCheckResourceAttrSet("vmc_sddc.sddc_zerocloud", "vc_url"),
+					resource.TestCheckResourceAttrSet("vmc_sddc.sddc_zerocloud", "cloud_username"),
+					resource.TestCheckResourceAttrSet("vmc_sddc.sddc_zerocloud", "cloud_password"),
+				),
+			},
+		},
+	})
+}
+
 func testCheckVmcSddcExists(name string, sddcResource *model.Sddc) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		rs, ok := s.RootModule().Resources[name]
@@ -129,13 +152,58 @@ resource "vmc_sddc" "sddc_1" {
 	provider_type = "AWS"
 
 	region = "US_WEST_2"
-
 	vxlan_subnet = "192.168.1.0/24"
 
 	delay_account_link  = false
 	skip_creating_vxlan = false
 	sso_domain          = "vmc.local"
-	size = "large"
+
+	deployment_type = "SingleAZ"
+	
+	account_link_sddc_config {
+    customer_subnet_ids  = [data.vmc_customer_subnets.my_subnets.ids[0]]
+    connected_account_id = data.vmc_connected_accounts.my_accounts.id
+	}
+	microsoft_licensing_config {
+        mssql_licensing = "DISABLED"
+        windows_licensing = "ENABLED"
+    }
+    timeouts {
+      create = "300m"
+      update = "300m"
+      delete = "180m"
+  }
+}
+`,
+		os.Getenv(AWSAccountNumber),
+		sddcName,
+	)
+}
+
+func testAccVmcSddcConfigZerocloud(sddcName string) string {
+	return fmt.Sprintf(`
+
+data "vmc_connected_accounts" "my_accounts" {
+      account_number = %q
+}
+
+data "vmc_customer_subnets" "my_subnets" {
+  connected_account_id = data.vmc_connected_accounts.my_accounts.id
+  region               = "US_WEST_2"
+}
+
+resource "vmc_sddc" "sddc_zerocloud" {
+	sddc_name = %q
+	vpc_cidr      = "10.2.0.0/16"
+	num_host      = 3
+	provider_type = "ZEROCLOUD"
+	host_instance_type = "I3_METAL"
+	region = "US_WEST_2"
+	vxlan_subnet = "192.168.1.0/24"
+
+	delay_account_link  = false
+	skip_creating_vxlan = false
+	sso_domain          = "vmc.local"
 
 	deployment_type = "SingleAZ"
 	

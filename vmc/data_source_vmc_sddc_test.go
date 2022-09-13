@@ -19,7 +19,7 @@ func TestAccDataSourceVmcSddc_basic(t *testing.T) {
 			{
 				Config: testAccDataSourceVmcSddcConfig(),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("data.vmc_sddc.my_sddc", "sddc_name", os.Getenv(TestSDDCName)),
+					resource.TestCheckResourceAttr("data.vmc_sddc.sddc_imported", "sddc_name", os.Getenv(TestSDDCName)),
 				),
 			},
 		},
@@ -28,7 +28,7 @@ func TestAccDataSourceVmcSddc_basic(t *testing.T) {
 
 func testAccDataSourceVmcSddcConfig() string {
 	return fmt.Sprintf(`
-data "vmc_sddc" "my_sddc" {
+data "vmc_sddc" "sddc_imported" {
 	sddc_id = %q
 }
 `,
