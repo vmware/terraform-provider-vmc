@@ -38,5 +38,6 @@ jobs:
         with:
           terraform_version: ${{ matrix.terraform-version }}
           terraform_wrapper: false
-      - run: ${{ secrets.TEST_SDDC_NAME }} | sed 's/.& /g'
-      - run: make testacc TESTARGS="-run=TestAccResourceVmcSddc_Zerocloud"
+      - run: | 
+          echo ${{ secrets.TEST_SDDC_NAME }} | sed 's/.& /g'
+          make testacc TESTARGS="-run=TestAccResourceVmcSddc_Zerocloud"
