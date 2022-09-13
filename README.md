@@ -7,7 +7,7 @@ Terraform to work with [VMware Cloud on AWS](https://vmc.vmware.com/).
 
 
 - [Terraform](https://www.terraform.io/downloads.html) 0.12+
-- [Go](https://golang.org/doc/install) 1.16 (to build the provider plugin)
+- [Go](https://golang.org/doc/install) 1.19 (to build the provider plugin)
 
 
 # Building the Provider
@@ -115,11 +115,17 @@ provider.
 Set required environment variables based as per your infrastructure settings
 
 ```sh
+$ # API token provided from CSP
 $ export API_TOKEN=xxx
+$ # Id of a VMC Org in which test SDDC are (to be) placed 
 $ export ORG_ID=xxxx
+$ # Id of an existing SDDC used for SDDC data source (import) test
 $ export TEST_SDDC_ID=xxx
+$ # Name of above SDDC
 $ export TEST_SDDC_NAME=xxx
+$ # NSX URL of a non-ZEROCLOUD SDDC, used for real IP testing
 $ export NSXT_REVERSE_PROXY_URL=xxx
+$ # Account number of a connected to the above Org AWS account, required for test SDDC deployment 
 $ export AWS_ACCOUNT_NUMBER=xxx
 ```
 
@@ -137,8 +143,15 @@ If you want to run against a specific set of tests, run make testacc with the TE
 $ make testacc TESTARGS="-run=TestAccResourceVmcSddc_basic"
 ```
 
+Additionally, limited set of acceptance tests can be ran with the ZEROCLOUD cloud provider, which is much faster and cheaper,
+while providing decent API coverage:
+
+```sh
+$ make testacc TESTARGS="-run=TestAccResourceVmcSddc_Zerocloud"
+```
+
 # License
 
-Copyright 2019 VMware, Inc.
+Copyright 2019-2022 VMware, Inc.
 
 The Terraform provider for VMware Cloud on AWS is available under [MPL2.0 license](https://github.com/vmware/terraform-provider-vmc/blob/master/LICENSE).
