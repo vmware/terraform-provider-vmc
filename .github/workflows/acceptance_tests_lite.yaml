@@ -11,7 +11,6 @@ jobs:
   # Lite acceptance tests run on zerocloud provider only, which makes them really fast,
   # but with limited coverage
   acceptance_lite:
-    environment: Acceptance Tests
     name: Acceptance Tests Lite (Terraform ${{ matrix.terraform-version }})
     runs-on: ubuntu-latest
     strategy:
