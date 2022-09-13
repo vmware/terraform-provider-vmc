@@ -3,7 +3,7 @@ on:
   #Every day at 08:00 UTC
   schedule:
     - cron: '0 8 * * *'
-  pull_request:
+  push:
 permissions:
   # Permission for checking out code
   contents: read
