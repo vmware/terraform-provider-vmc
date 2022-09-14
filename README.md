@@ -115,7 +115,8 @@ provider.
 Set required environment variables based as per your infrastructure settings
 
 ```sh
-$ # API token provided from CSP
+$ # API token provided from CSP with at least "Organization Member" role and service role
+$ # on "VMware Cloud on AWS" service that is allowed to deploy SDDCs.
 $ export API_TOKEN=xxx
 $ # Id of a VMC Org in which test SDDC are (to be) placed 
 $ export ORG_ID=xxxx
