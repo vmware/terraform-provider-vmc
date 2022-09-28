@@ -34,3 +34,65 @@ func TestToHostInstanceType(t *testing.T) {
 		assert.Equal(t, err, testCase.want.err)
 	}
 }
+
+func TestGetHostCountOnPrimaryCluster(t *testing.T) {
+	type inputStruct struct {
+		sddc             *model.Sddc
+		primaryClusterId string
+	}
+	type test struct {
+		input inputStruct
+		want  int
+	}
+	var cluster1Id = "Cluster-1"
+	var cluster2Id = "Cluster-2"
+	tests := []test{
+		{input: inputStruct{nil, cluster1Id}, want: 0},
+		{input: inputStruct{&model.Sddc{}, cluster1Id}, want: 0},
+		{input: inputStruct{&model.Sddc{
+			ResourceConfig: &model.AwsSddcResourceConfig{},
+		}, cluster1Id}, want: 0},
+		{input: inputStruct{&model.Sddc{
+			ResourceConfig: &model.AwsSddcResourceConfig{
+				Clusters: []model.Cluster{
+					{
+						ClusterId: cluster1Id,
+						EsxHostList: []model.AwsEsxHost{
+							{EsxId: new(string)},
+							{EsxId: new(string)},
+						},
+					},
+					{
+						ClusterId: cluster2Id,
+						EsxHostList: []model.AwsEsxHost{
+							{EsxId: new(string)},
+						},
+					},
+				},
+			},
+		}, cluster1Id}, want: 2},
+		{input: inputStruct{&model.Sddc{
+			ResourceConfig: &model.AwsSddcResourceConfig{
+				Clusters: []model.Cluster{
+					{
+						ClusterId: cluster1Id,
+						EsxHostList: []model.AwsEsxHost{
+							{EsxId: new(string)},
+						},
+					},
+					{
+						ClusterId: cluster2Id,
+						EsxHostList: []model.AwsEsxHost{
+							{EsxId: new(string)},
+							{EsxId: new(string)},
+						},
+					},
+				},
+			},
+		}, cluster1Id}, want: 1},
+	}
+	for _, testCase := range tests {
+		got := getHostCountOnPrimaryCluster(testCase.input.sddc, testCase.input.primaryClusterId)
+		assert.Equal(t, got, testCase.want)
+	}
+}

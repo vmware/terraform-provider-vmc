@@ -461,6 +461,25 @@ func resourceSddcRead(d *schema.ResourceData, m interface{}) error {
 	d.Set("account_link_state", sddc.AccountLinkState)
 	d.Set("sddc_access_state", sddc.SddcAccessState)
 	d.Set("sddc_state", sddc.SddcState)
+	primaryClusterClient := sddcs.NewPrimaryclusterClient(connector)
+	primaryCluster, err := primaryClusterClient.Get(orgID, sddcID)
+	if err != nil {
+		return HandleReadError(d, "Primary Cluster", sddcID, err)
+	}
+	d.Set("cluster_id", primaryCluster.ClusterId)
+	cluster := map[string]string{}
+	cluster["cluster_name"] = *primaryCluster.ClusterName
+	cluster["cluster_state"] = *primaryCluster.ClusterState
+	cluster["host_instance_type"] = *primaryCluster.EsxHostInfo.InstanceType
+	if primaryCluster.MsftLicenseConfig != nil {
+		if primaryCluster.MsftLicenseConfig.MssqlLicensing != nil {
+			cluster["mssql_licensing"] = *primaryCluster.MsftLicenseConfig.MssqlLicensing
+		}
+		if primaryCluster.MsftLicenseConfig.WindowsLicensing != nil {
+			cluster["windows_licensing"] = *primaryCluster.MsftLicenseConfig.WindowsLicensing
+		}
+	}
+	d.Set("cluster_info", cluster)
 	if sddc.ResourceConfig != nil {
 		d.Set("vc_url", sddc.ResourceConfig.VcUrl)
 		d.Set("cloud_username", sddc.ResourceConfig.CloudUsername)
@@ -472,7 +491,9 @@ func resourceSddcRead(d *schema.ResourceData, m interface{}) error {
 		d.Set("sso_domain", *sddc.ResourceConfig.SsoDomain)
 		d.Set("skip_creating_vxlan", *sddc.ResourceConfig.SkipCreatingVxlan)
 		d.Set("provider_type", sddc.ResourceConfig.Provider)
-		d.Set("num_host", getTotalSddcHosts(&sddc))
+		// SDDS's num_host should account for the amount of hosts on its primary cluster only.
+		// Otherwise, there will be no way to scale up or down the primary cluster.
+		d.Set("num_host", getHostCountOnPrimaryCluster(&sddc, primaryCluster.ClusterId))
 		if sddc.ResourceConfig.VpcInfo != nil && sddc.ResourceConfig.VpcInfo.VpcCidr != nil {
 			d.Set("vpc_cidr", *sddc.ResourceConfig.VpcInfo.VpcCidr)
 		}
@@ -493,26 +514,6 @@ func resourceSddcRead(d *schema.ResourceData, m interface{}) error {
 			d.Set("nsxt_private_url", *sddc.ResourceConfig.NsxMgrLoginUrl)
 		}
 	}
-	sddcClient := sddcs.NewPrimaryclusterClient(connector)
-	primaryCluster, err := sddcClient.Get(orgID, sddcID)
-	if err != nil {
-		return HandleReadError(d, "Primary Cluster", sddcID, err)
-	}
-	d.Set("cluster_id", primaryCluster.ClusterId)
-	cluster := map[string]string{}
-	cluster["cluster_name"] = *primaryCluster.ClusterName
-	cluster["cluster_state"] = *primaryCluster.ClusterState
-	cluster["host_instance_type"] = *primaryCluster.EsxHostInfo.InstanceType
-	if primaryCluster.MsftLicenseConfig != nil {
-		if primaryCluster.MsftLicenseConfig.MssqlLicensing != nil {
-			cluster["mssql_licensing"] = *primaryCluster.MsftLicenseConfig.MssqlLicensing
-		}
-		if primaryCluster.MsftLicenseConfig.WindowsLicensing != nil {
-			cluster["windows_licensing"] = *primaryCluster.MsftLicenseConfig.WindowsLicensing
-		}
-	}
-	d.Set("cluster_info", cluster)
-
 	edrsPolicyClient := autoscalercluster.NewEdrsPolicyClient(connector)
 	edrsPolicy, err := edrsPolicyClient.Get(orgID, sddcID, primaryCluster.ClusterId)
 	if err != nil {
@@ -634,17 +635,14 @@ func resourceSddcUpdate(d *schema.ResourceData, m interface{}) error {
 
 	// Add,remove hosts
 	if d.HasChange("num_host") {
-		sddc, err := sddcClient.Get(orgID, sddcID)
-		if err != nil {
-			return err
-		}
-		if sddc.ResourceConfig != nil && len(sddc.ResourceConfig.Clusters) > 1 {
-			return fmt.Errorf("scaling is not supported for SDDC's with multiple clusters. Please add/delete hosts in individual cluster")
-		}
+		primaryClusterId := d.Get("cluster_id").(string)
 		oldTmp, newTmp := d.GetChange("num_host")
 		oldNum := oldTmp.(int)
 		newNum := newTmp.(int)
 
+		if len(primaryClusterId) == 0 {
+			return fmt.Errorf("cannot find primary cluster on SDDC %s", sddcID)
+		}
 		action := "add"
 		diffNum := newNum - oldNum
 
@@ -657,7 +655,8 @@ func resourceSddcUpdate(d *schema.ResourceData, m interface{}) error {
 			return fmt.Errorf("for multiAZ deployment type, SDDC hosts must be added in pairs across availability zones")
 		}
 		esxConfig := model.EsxConfig{
-			NumHosts: int64(diffNum),
+			NumHosts:  int64(diffNum),
+			ClusterId: &primaryClusterId,
 		}
 
 		task, err := esxsClient.Create(orgID, sddcID, esxConfig, &action)
