@@ -118,6 +118,7 @@ func sddcSchema() map[string]*schema.Schema {
 			Type:         schema.TypeInt,
 			Required:     true,
 			ValidateFunc: validation.IntAtLeast(1),
+			Description:  "The amount of hosts in the primary cluster of the SDDC",
 		},
 		"sddc_type": {
 			Type:     schema.TypeString,
