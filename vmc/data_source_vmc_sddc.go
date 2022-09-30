@@ -202,7 +202,7 @@ func dataSourceVmcSddcRead(d *schema.ResourceData, m interface{}) error {
 		if err != nil {
 			return HandleReadError(d, "Primary Cluster", sddcID, err)
 		}
-		d.Set("num_host", getHostCountOnPrimaryCluster(&sddc, primaryCluster.ClusterId))
+		d.Set("num_host", getHostCountCluster(&sddc, primaryCluster.ClusterId))
 		d.Set("provider_type", sddc.ResourceConfig.Provider)
 		d.Set("availability_zones", sddc.ResourceConfig.AvailabilityZones)
 		d.Set("deployment_type", ConvertDeployType(*sddc.ResourceConfig.DeploymentType))

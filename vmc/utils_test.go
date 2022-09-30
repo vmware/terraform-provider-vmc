@@ -35,10 +35,10 @@ func TestToHostInstanceType(t *testing.T) {
 	}
 }
 
-func TestGetHostCountOnPrimaryCluster(t *testing.T) {
+func TestGetHostCountOnCluster(t *testing.T) {
 	type inputStruct struct {
-		sddc             *model.Sddc
-		primaryClusterId string
+		sddc      *model.Sddc
+		clusterId string
 	}
 	type test struct {
 		input inputStruct
@@ -92,7 +92,7 @@ func TestGetHostCountOnPrimaryCluster(t *testing.T) {
 		}, cluster1Id}, want: 1},
 	}
 	for _, testCase := range tests {
-		got := getHostCountOnPrimaryCluster(testCase.input.sddc, testCase.input.primaryClusterId)
+		got := getHostCountCluster(testCase.input.sddc, testCase.input.clusterId)
 		assert.Equal(t, got, testCase.want)
 	}
 }

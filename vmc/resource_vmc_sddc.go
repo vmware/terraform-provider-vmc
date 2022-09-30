@@ -492,9 +492,9 @@ func resourceSddcRead(d *schema.ResourceData, m interface{}) error {
 		d.Set("sso_domain", *sddc.ResourceConfig.SsoDomain)
 		d.Set("skip_creating_vxlan", *sddc.ResourceConfig.SkipCreatingVxlan)
 		d.Set("provider_type", sddc.ResourceConfig.Provider)
-		// SDDS's num_host should account for the amount of hosts on its primary cluster only.
+		// SDDC's num_host should account for the amount of hosts on its primary cluster only.
 		// Otherwise, there will be no way to scale up or down the primary cluster.
-		d.Set("num_host", getHostCountOnPrimaryCluster(&sddc, primaryCluster.ClusterId))
+		d.Set("num_host", getHostCountCluster(&sddc, primaryCluster.ClusterId))
 		if sddc.ResourceConfig.VpcInfo != nil && sddc.ResourceConfig.VpcInfo.VpcCidr != nil {
 			d.Set("vpc_cidr", *sddc.ResourceConfig.VpcInfo.VpcCidr)
 		}

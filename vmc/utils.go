@@ -90,19 +90,19 @@ func getNSXTReverseProxyURLConnector(nsxtReverseProxyUrl string) (client.Connect
 	return connector, nil
 }
 
-// getHostCountOnPrimaryCluster tries to find the amount of hosts on the primary Cluster in
+// getHostCountCluster tries to find the amount of hosts on a Cluster in
 // the ResourceConfig of the provided SDDC. If there is no ResourceConfig/Cluster 0 is returned.
-// The primary Cluster is distinguished by its id
-func getHostCountOnPrimaryCluster(sddc *model.Sddc, primaryClusterId string) int {
-	primaryClusterHostCount := 0
+// A Cluster is distinguished by its id
+func getHostCountCluster(sddc *model.Sddc, clusterId string) int {
+	clusterHostCount := 0
 	if sddc != nil && sddc.ResourceConfig != nil && sddc.ResourceConfig.Clusters != nil {
 		for _, cluster := range sddc.ResourceConfig.Clusters {
-			if cluster.ClusterId == primaryClusterId {
-				primaryClusterHostCount += len(cluster.EsxHostList)
+			if cluster.ClusterId == clusterId {
+				clusterHostCount += len(cluster.EsxHostList)
 			}
 		}
 	}
-	return primaryClusterHostCount
+	return clusterHostCount
 }
 
 // toHostInstanceType converts from the Schema format of the host_instance_type to
