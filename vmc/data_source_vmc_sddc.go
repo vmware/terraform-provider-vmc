@@ -5,6 +5,7 @@ package vmc
 
 import (
 	"fmt"
+	"github.com/vmware/vsphere-automation-sdk-go/services/vmc/orgs/sddcs"
 	"log"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
@@ -194,7 +195,14 @@ func dataSourceVmcSddcRead(d *schema.ResourceData, m interface{}) error {
 		d.Set("cloud_username", sddc.ResourceConfig.CloudUsername)
 		d.Set("nsxt_reverse_proxy_url", sddc.ResourceConfig.NsxApiPublicEndpointUrl)
 		d.Set("region", sddc.ResourceConfig.Region)
-		d.Set("num_host", getTotalSddcHosts(&sddc))
+		// Query the API for primary Cluster ID so only it's hosts can be added to the
+		// sddc host
+		primaryClusterClient := sddcs.NewPrimaryclusterClient(connector)
+		primaryCluster, err := primaryClusterClient.Get(orgID, sddcID)
+		if err != nil {
+			return HandleReadError(d, "Primary Cluster", sddcID, err)
+		}
+		d.Set("num_host", getHostCountCluster(&sddc, primaryCluster.ClusterId))
 		d.Set("provider_type", sddc.ResourceConfig.Provider)
 		d.Set("availability_zones", sddc.ResourceConfig.AvailabilityZones)
 		d.Set("deployment_type", ConvertDeployType(*sddc.ResourceConfig.DeploymentType))

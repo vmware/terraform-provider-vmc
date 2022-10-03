@@ -35,7 +35,7 @@ func ConvertStorageCapacitytoInt(s string) int64 {
 	return storageCapacity
 }
 
-// Mapping for deployment_type field
+// ConvertDeployType Mapping for deployment_type field
 // During refresh/import state, return value of VMC API should be converted to uppercamel case in terraform
 // to maintain consistency
 func ConvertDeployType(s string) string {
@@ -90,14 +90,19 @@ func getNSXTReverseProxyURLConnector(nsxtReverseProxyUrl string) (client.Connect
 	return connector, nil
 }
 
-func getTotalSddcHosts(sddc *model.Sddc) int {
-	totalHosts := 0
-	if sddc != nil && sddc.ResourceConfig.Clusters != nil {
+// getHostCountCluster tries to find the amount of hosts on a Cluster in
+// the ResourceConfig of the provided SDDC. If there is no ResourceConfig/Cluster 0 is returned.
+// A Cluster is distinguished by its id
+func getHostCountCluster(sddc *model.Sddc, clusterId string) int {
+	clusterHostCount := 0
+	if sddc != nil && sddc.ResourceConfig != nil && sddc.ResourceConfig.Clusters != nil {
 		for _, cluster := range sddc.ResourceConfig.Clusters {
-			totalHosts += len(cluster.EsxHostList)
+			if cluster.ClusterId == clusterId {
+				clusterHostCount += len(cluster.EsxHostList)
+			}
 		}
 	}
-	return totalHosts
+	return clusterHostCount
 }
 
 // toHostInstanceType converts from the Schema format of the host_instance_type to
