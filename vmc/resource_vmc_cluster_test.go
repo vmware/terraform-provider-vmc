@@ -1,4 +1,4 @@
-/* Copyright 2020 VMware, Inc.
+/* Copyright 2020-2022 VMware, Inc.
    SPDX-License-Identifier: MPL-2.0 */
 
 package vmc
@@ -19,7 +19,7 @@ import (
 	"github.com/vmware/vsphere-automation-sdk-go/services/vmc/orgs"
 )
 
-func TestAccResourceVmcCluster_basic(t *testing.T) {
+func TestAccResourceVmcClusterBasic(t *testing.T) {
 	var sddcResource model.Sddc
 	resourceName := "vmc_cluster.cluster_1"
 	sddcName := "terraform_test_sddc_" + acctest.RandStringFromCharSet(10, acctest.CharSetAlphaNum)
@@ -45,11 +45,41 @@ func TestAccResourceVmcCluster_basic(t *testing.T) {
 	})
 }
 
-func testAccCheckVmcClusterExists(name string, sddcResource *model.Sddc) resource.TestCheckFunc {
+func TestAccResourceVmcClusterZerocloud(t *testing.T) {
+	var sddcResource model.Sddc
+	clusterRef := "cluster_zerocloud"
+	resourceName := "vmc_cluster." + clusterRef
+	sddcName := "terraform_test_sddc_" + acctest.RandStringFromCharSet(10, acctest.CharSetAlphaNum)
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheckZerocloud(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckVmcClusterDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccVmcClusterConfigBasicZerocloud(sddcName, clusterRef),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckVmcClusterExists(resourceName, &sddcResource),
+					resource.TestCheckResourceAttrSet(resourceName, "id"),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportStateIdFunc: testAccVmcClusterResourceImportStateIdFunc(resourceName),
+				ImportState:       true,
+				ImportStateVerify: true,
+				// "microsoft_licensing_config" and "host_instance_type" are set in the
+				// cluster_info map, not on the cluster resource itself.
+				ImportStateVerifyIgnore: []string{"microsoft_licensing_config", "host_instance_type"},
+			},
+		},
+	})
+}
+
+func testAccCheckVmcClusterExists(clusterRef string, sddcResource *model.Sddc) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		rs, ok := s.RootModule().Resources[name]
+		rs, ok := s.RootModule().Resources[clusterRef]
 		if !ok {
-			return fmt.Errorf("not found: %s", name)
+			return fmt.Errorf("not found: %s", clusterRef)
 		}
 		sddcID := rs.Primary.Attributes["sddc_id"]
 
@@ -67,7 +97,7 @@ func testAccCheckVmcClusterExists(name string, sddcResource *model.Sddc) resourc
 		clusterExists := false
 		for i := 0; i < len(sddcResource.ResourceConfig.Clusters); i++ {
 			currentResourceConfig := sddcResource.ResourceConfig.Clusters[i]
-			if strings.Contains(*currentResourceConfig.ClusterName, "Cluster-2") {
+			if strings.HasSuffix(*currentResourceConfig.ClusterName, "-2") {
 				clusterExists = true
 				break
 			}
@@ -134,6 +164,7 @@ resource "vmc_sddc" "sddc_1" {
 	vpc_cidr      = "10.2.0.0/16"
 	num_host      = 3
 	provider_type = "AWS"
+	host_instance_type = "I3_METAL"
 	region = "US_WEST_2"
 	vxlan_subnet = "192.168.1.0/24"
 	delay_account_link  = false
@@ -153,6 +184,7 @@ resource "vmc_sddc" "sddc_1" {
 
 resource "vmc_cluster" "cluster_1" {
 	sddc_id = vmc_sddc.sddc_1.id
+	host_instance_type = "I3_METAL"
 	num_hosts = 3
 	microsoft_licensing_config {
         mssql_licensing = "DISABLED"
@@ -162,6 +194,57 @@ resource "vmc_cluster" "cluster_1" {
 `,
 		os.Getenv(AWSAccountNumber),
 		sddcName,
+	)
+}
+
+func testAccVmcClusterConfigBasicZerocloud(sddcName string, clusterRef string) string {
+	return fmt.Sprintf(`
+
+data "vmc_connected_accounts" "my_accounts" {
+      account_number = %q
+}
+
+data "vmc_customer_subnets" "my_subnets" {
+  connected_account_id = data.vmc_connected_accounts.my_accounts.id
+  region               = "US_WEST_2"
+}
+
+resource "vmc_sddc" "sddc_zerocloud_cluster" {
+	sddc_name = %q
+	vpc_cidr      = "10.2.0.0/16"
+	num_host      = 2
+	provider_type = "ZEROCLOUD"
+	host_instance_type = "I3_METAL"
+	region = "US_WEST_2"
+	vxlan_subnet = "192.168.1.0/24"
+	delay_account_link  = false
+	skip_creating_vxlan = false
+	sso_domain          = "vmc.local"
+	deployment_type = "SingleAZ"
+    account_link_sddc_config {
+    customer_subnet_ids  = [data.vmc_customer_subnets.my_subnets.ids[0]]
+    connected_account_id = data.vmc_connected_accounts.my_accounts.id
+    }
+    timeouts {
+      create = "300m"
+      update = "300m"
+      delete = "180m"
+  }
+}
+
+resource "vmc_cluster" %q {
+	sddc_id = vmc_sddc.sddc_zerocloud_cluster.id
+	host_instance_type = "I3_METAL"
+	num_hosts = 4
+	microsoft_licensing_config {
+        mssql_licensing = "DISABLED"
+        windows_licensing = "ENABLED"
+    }
+}
+`,
+		os.Getenv(AWSAccountNumber),
+		sddcName,
+		clusterRef,
 	)
 }
 
