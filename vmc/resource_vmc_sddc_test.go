@@ -1,4 +1,4 @@
-/* Copyright 2019 VMware, Inc.
+/* Copyright 2019-2022 VMware, Inc.
    SPDX-License-Identifier: MPL-2.0 */
 
 package vmc
@@ -42,10 +42,10 @@ func TestAccResourceVmcSddc_basic(t *testing.T) {
 	})
 }
 
-func TestAccResourceVmcSddc_Zerocloud(t *testing.T) {
+func TestAccResourceVmcSddcZerocloud(t *testing.T) {
 	var sddcResource model.Sddc
 	sddcName := "terraform_test_sddc_" + acctest.RandStringFromCharSet(10, acctest.CharSetAlphaNum)
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheckZerocloud(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckVmcSddcDestroy,

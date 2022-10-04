@@ -1,4 +1,4 @@
-/* Copyright 2020 VMware, Inc.
+/* Copyright 2020-2022 VMware, Inc.
    SPDX-License-Identifier: MPL-2.0 */
 
 package vmc
@@ -68,6 +68,10 @@ func resourceSiteRecovery() *schema.Resource {
 				Type:     schema.TypeMap,
 				Computed: true,
 			},
+			"draas_h5_url": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
 		},
 	}
 }
@@ -113,9 +117,9 @@ func resourceSiteRecoveryCreate(d *schema.ResourceData, m interface{}) error {
 			}
 			return resource.NonRetryableError(fmt.Errorf("error activation site recovery : %v", err))
 		}
-		if *task.Status == "FAILED" {
+		if *task.Status == model.Task_STATUS_FAILED {
 			return resource.NonRetryableError(fmt.Errorf("task failed to activate site recovery"))
-		} else if *task.Status != "FINISHED" {
+		} else if *task.Status != model.Task_STATUS_FINISHED {
 			return resource.RetryableError(fmt.Errorf("expected site recovery to be activated but was in state %s", *task.Status))
 		}
 		err = resourceSiteRecoveryRead(d, m)
@@ -153,7 +157,10 @@ func resourceSiteRecoveryRead(d *schema.ResourceData, m interface{}) error {
 				srmNodeMap["host_name"] = *SRMNode.Hostname
 				srmNodeMap["state"] = *SRMNode.State
 				srmNodeMap["type"] = *SRMNode.Type_
-				srmNodeMap["vm_moref_id"] = *SRMNode.VmMorefId
+				// During tests VmMorefId might be nil
+				if SRMNode.VmMorefId != nil {
+					srmNodeMap["vm_moref_id"] = *SRMNode.VmMorefId
+				}
 				break
 			}
 		} else if strings.Contains(*SRMNode.Hostname, strings.TrimSpace(srmExtensionKey)) {
@@ -162,13 +169,19 @@ func resourceSiteRecoveryRead(d *schema.ResourceData, m interface{}) error {
 			srmNodeMap["host_name"] = *SRMNode.Hostname
 			srmNodeMap["state"] = *SRMNode.State
 			srmNodeMap["type"] = *SRMNode.Type_
-			srmNodeMap["vm_moref_id"] = *SRMNode.VmMorefId
+			// During tests VmMorefId might be nil
+			if SRMNode.VmMorefId != nil {
+				srmNodeMap["vm_moref_id"] = *SRMNode.VmMorefId
+			}
 			break
 		}
 	}
 
 	vrNodeMap := map[string]string{}
-	vrNodeMap["vm_moref_id"] = *siteRecovery.VrNode.VmMorefId
+	// During tests VmMorefId might be nil
+	if siteRecovery.VrNode.VmMorefId != nil {
+		vrNodeMap["vm_moref_id"] = *siteRecovery.VrNode.VmMorefId
+	}
 	vrNodeMap["id"] = *siteRecovery.VrNode.Id
 	vrNodeMap["hostname"] = *siteRecovery.VrNode.Hostname
 	vrNodeMap["type"] = *siteRecovery.VrNode.Type_
@@ -197,9 +210,9 @@ func resourceSiteRecoveryDelete(d *schema.ResourceData, m interface{}) error {
 		if err != nil {
 			return resource.NonRetryableError(fmt.Errorf("error deactivating site recovery for SDDC %s : %v", sddcID, err))
 		}
-		if *task.Status == "FAILED" {
+		if *task.Status == model.Task_STATUS_FAILED {
 			return resource.NonRetryableError(fmt.Errorf("task failed to deactivate site recovery"))
-		} else if *task.Status != "FINISHED" {
+		} else if *task.Status != model.Task_STATUS_FINISHED {
 			return resource.RetryableError(fmt.Errorf("expected site recovery to be deactivated but was in state %s", *task.Status))
 		}
 		d.SetId("")

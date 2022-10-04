@@ -1,3 +1,8 @@
+## 1.10.1 (Sep 20, 2022)
+
+BUG FIXES:
+Defaults for enable_edrs, edrs_policy_type, max_hosts, min_hosts should not be set to null https://github.com/vmware/terraform-provider-vmc/issues/94
+
 ## 1.10.0 (Jul 12, 2022)
 
 FEATURES:
