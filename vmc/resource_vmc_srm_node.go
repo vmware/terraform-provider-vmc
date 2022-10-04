@@ -1,4 +1,4 @@
-/* Copyright 2020 VMware, Inc.
+/* Copyright 2020-2022 VMware, Inc.
    SPDX-License-Identifier: MPL-2.0 */
 
 package vmc
@@ -69,7 +69,6 @@ func resourceSRMNode() *schema.Resource {
 }
 
 func resourceSRMNodeCreate(d *schema.ResourceData, m interface{}) error {
-
 	err := (m.(*ConnectorWrapper)).authenticate()
 	if err != nil {
 		return fmt.Errorf("authentication error from Cloud Service Provider: %s", err)
@@ -107,9 +106,9 @@ func resourceSRMNodeCreate(d *schema.ResourceData, m interface{}) error {
 			}
 			return resource.NonRetryableError(fmt.Errorf("error creating SRM node : %v", err))
 		}
-		if *task.Status == "FAILED" {
+		if *task.Status == model.Task_STATUS_FAILED {
 			return resource.NonRetryableError(fmt.Errorf("task failed to create SRM node"))
-		} else if *task.Status != "FINISHED" {
+		} else if *task.Status != model.Task_STATUS_FINISHED {
 			return resource.RetryableError(fmt.Errorf("expected SRM node to be created but was in state %s", *task.Status))
 		}
 		err = resourceSRMNodeRead(d, m)
@@ -139,7 +138,10 @@ func resourceSRMNodeRead(d *schema.ResourceData, m interface{}) error {
 			srmNodeMap["host_name"] = *SRMNode.Hostname
 			srmNodeMap["state"] = *SRMNode.State
 			srmNodeMap["type"] = *SRMNode.Type_
-			srmNodeMap["vm_moref_id"] = *SRMNode.VmMorefId
+			// During tests VmMorefId might be nil
+			if SRMNode.VmMorefId != nil {
+				srmNodeMap["vm_moref_id"] = *SRMNode.VmMorefId
+			}
 			hostName := strings.TrimPrefix(*SRMNode.Hostname, SRMPrefix)
 			partStr := strings.Split(hostName, SDDCSuffix)
 			d.Set("srm_node_extension_key_suffix", partStr[0])
@@ -167,9 +169,9 @@ func resourceSRMNodeDelete(d *schema.ResourceData, m interface{}) error {
 		if err != nil {
 			return resource.NonRetryableError(fmt.Errorf("error deleting SRM node for SDDC %s : %v", sddcID, err))
 		}
-		if *task.Status == "FAILED" {
+		if *task.Status == model.Task_STATUS_FAILED {
 			return resource.NonRetryableError(fmt.Errorf("task failed to delete SRM node"))
-		} else if *task.Status != "FINISHED" {
+		} else if *task.Status != model.Task_STATUS_FINISHED {
 			return resource.RetryableError(fmt.Errorf("expected SRM node to be deleted but was in state %s", *task.Status))
 		}
 		d.SetId("")

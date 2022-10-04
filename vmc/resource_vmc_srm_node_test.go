@@ -1,11 +1,11 @@
-/* Copyright 2020 VMware, Inc.
+/* Copyright 2020-2022 VMware, Inc.
    SPDX-License-Identifier: MPL-2.0 */
 
 package vmc
 
 import (
 	"fmt"
-	"os"
+	"github.com/vmware/vsphere-automation-sdk-go/services/vmc/draas/model"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
@@ -15,24 +15,24 @@ import (
 	"github.com/vmware/vsphere-automation-sdk-go/services/vmc/draas"
 )
 
-func TestAccResourceVmcSRMNode_basic(t *testing.T) {
+func TestAccResourceVmcSrmNodeZerocloud(t *testing.T) {
 	resourceName := "vmc_srm_node.srm_node_1"
 	srmExtensionKeySuffix := acctest.RandStringFromCharSet(10, acctest.CharSetAlphaNum)
-	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheckZerocloud(t) },
 		Providers:    testAccProviders,
-		CheckDestroy: testCheckVmcSRMNodeDestroy,
+		CheckDestroy: testCheckVmcSrmNodeDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccVmcSRMNodeConfigBasic(srmExtensionKeySuffix),
+				Config: testAccVmcSrmNodeConfigBasic(srmExtensionKeySuffix),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckVmcSRMNodeExists(resourceName),
+					testCheckVmcSrmNodeExists(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "srm_node_extension_key_suffix"),
 				),
 			},
 			{
 				ResourceName:            resourceName,
-				ImportStateIdFunc:       testAccVmcSRMResourceImportStateIdFunc(resourceName),
+				ImportStateIdFunc:       testAccVmcSrmResourceImportStateIdFunc(resourceName),
 				ImportStateVerifyIgnore: []string{"srm_node_extension_key_suffix"},
 				ImportState:             true,
 				ImportStateVerify:       true,
@@ -41,7 +41,7 @@ func TestAccResourceVmcSRMNode_basic(t *testing.T) {
 	})
 }
 
-func testCheckVmcSRMNodeExists(name string) resource.TestCheckFunc {
+func testCheckVmcSrmNodeExists(name string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		rs, ok := s.RootModule().Resources[name]
 		if !ok {
@@ -67,7 +67,7 @@ func testCheckVmcSRMNodeExists(name string) resource.TestCheckFunc {
 	}
 }
 
-func testCheckVmcSRMNodeDestroy(s *terraform.State) error {
+func testCheckVmcSrmNodeDestroy(s *terraform.State) error {
 	connectorWrapper := testAccProvider.Meta().(*ConnectorWrapper)
 	connector := connectorWrapper.Connector
 	draasClient := draas.NewSiteRecoveryClient(connector)
@@ -81,7 +81,8 @@ func testCheckVmcSRMNodeDestroy(s *terraform.State) error {
 		orgID := connectorWrapper.OrgID
 		siteRecovery, err := draasClient.Get(orgID, sddcID)
 		if err == nil {
-			if *siteRecovery.SiteRecoveryState != "DEACTIVATED" {
+			if *siteRecovery.SiteRecoveryState != model.SiteRecovery_SITE_RECOVERY_STATE_DEACTIVATED &&
+				*siteRecovery.SiteRecoveryState != model.SiteRecovery_SITE_RECOVERY_STATE_DELETED {
 				return fmt.Errorf("Site recovery activated for  SDDC with ID : %s ", sddcID)
 			}
 			return nil
@@ -95,24 +96,31 @@ func testCheckVmcSRMNodeDestroy(s *terraform.State) error {
 	return nil
 }
 
-func testAccVmcSRMNodeConfigBasic(srmExtensionKeySuffix string) string {
+func testAccVmcSrmNodeConfigBasic(srmExtensionKeySuffix string) string {
 	return fmt.Sprintf(`
+resource "vmc_sddc" "srm_node_test_sddc" {
+	sddc_name           = "srm_node_test_sddc"
+	num_host            = 2
+	provider_type       = "ZEROCLOUD"
+	host_instance_type  = "I3_METAL"
+	region = "US_WEST_2"
+	delay_account_link  = true
+}
+
 resource "vmc_site_recovery" "site_recovery_1" {
- sddc_id = %q
+	sddc_id = vmc_sddc.srm_node_test_sddc.id
 }
 
 resource "vmc_srm_node" "srm_node_1"{
-  sddc_id = %q
-  srm_node_extension_key_suffix = %q
-  depends_on = [vmc_site_recovery.site_recovery_1]
+	sddc_id = vmc_sddc.srm_node_test_sddc.id
+	srm_node_extension_key_suffix = %q
+	depends_on = [vmc_site_recovery.site_recovery_1]
 }`,
-		os.Getenv(TestSDDCId),
-		os.Getenv(TestSDDCId),
 		srmExtensionKeySuffix,
 	)
 }
 
-func testAccVmcSRMResourceImportStateIdFunc(resourceName string) resource.ImportStateIdFunc {
+func testAccVmcSrmResourceImportStateIdFunc(resourceName string) resource.ImportStateIdFunc {
 	return func(s *terraform.State) (string, error) {
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {

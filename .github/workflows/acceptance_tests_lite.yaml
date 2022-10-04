@@ -17,7 +17,6 @@ jobs:
       fail-fast: false
       matrix:
         terraform-version:
-          - '1.1.*'
           - '1.2.*'
     steps:
       - uses: actions/checkout@v3
@@ -28,7 +27,7 @@ jobs:
         with:
           terraform_version: ${{ matrix.terraform-version }}
           terraform_wrapper: false
-      - run: make testacc TESTARGS="-run=TestAccResourceVmcSddc_Zerocloud"
+      - run: make testacc TESTARGS="-run='TestAccResourceVmcSddcZerocloud|TestAccResourceVmcClusterZerocloud|TestAccResourceVmcSiteRecoveryZerocloud|TestAccResourceVmcSrmNodeZerocloud|TestAccDataSourceVmcCustomerSubnetsBasic' -parallel 4"
         env:
           TF_ACC: '1'
           API_TOKEN: ${{ secrets.API_TOKEN }}

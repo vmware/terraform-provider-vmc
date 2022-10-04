@@ -1,4 +1,4 @@
-/* Copyright 2020 VMware, Inc.
+/* Copyright 2020-2022 VMware, Inc.
    SPDX-License-Identifier: MPL-2.0 */
 
 package vmc
@@ -40,9 +40,9 @@ func ConvertStorageCapacitytoInt(s string) int64 {
 // to maintain consistency
 func ConvertDeployType(s string) string {
 	if s == "SINGLE_AZ" {
-		return "SingleAZ"
+		return SingleAvailabilityZone
 	} else if s == "MULTI_AZ" {
-		return "MultiAZ"
+		return MultiAvailabilityZone
 	} else {
 		return ""
 	}
@@ -94,15 +94,14 @@ func getNSXTReverseProxyURLConnector(nsxtReverseProxyUrl string) (client.Connect
 // the ResourceConfig of the provided SDDC. If there is no ResourceConfig/Cluster 0 is returned.
 // A Cluster is distinguished by its id
 func getHostCountCluster(sddc *model.Sddc, clusterId string) int {
-	clusterHostCount := 0
 	if sddc != nil && sddc.ResourceConfig != nil && sddc.ResourceConfig.Clusters != nil {
 		for _, cluster := range sddc.ResourceConfig.Clusters {
 			if cluster.ClusterId == clusterId {
-				clusterHostCount += len(cluster.EsxHostList)
+				return len(cluster.EsxHostList)
 			}
 		}
 	}
-	return clusterHostCount
+	return 0
 }
 
 // toHostInstanceType converts from the Schema format of the host_instance_type to
