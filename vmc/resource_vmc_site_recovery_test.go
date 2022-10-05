@@ -1,11 +1,10 @@
-/* Copyright 2020 VMware, Inc.
+/* Copyright 2020-2022 VMware, Inc.
    SPDX-License-Identifier: MPL-2.0 */
 
 package vmc
 
 import (
 	"fmt"
-	"os"
 	"testing"
 
 	"github.com/vmware/vsphere-automation-sdk-go/services/vmc/draas"
@@ -17,12 +16,12 @@ import (
 	"github.com/vmware/vsphere-automation-sdk-go/services/vmc/draas/model"
 )
 
-func TestAccResourceVmcSiteRecovery_basic(t *testing.T) {
+func TestAccResourceVmcSiteRecoveryZerocloud(t *testing.T) {
 	var siteRecovery model.SiteRecovery
 	resourceName := "vmc_site_recovery.site_recovery_1"
 	srmExtensionKeySuffix := acctest.RandStringFromCharSet(10, acctest.CharSetAlphaNum)
-	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheckZerocloud(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckVmcSiteRecoveryDestroy,
 		Steps: []resource.TestStep{
@@ -30,7 +29,8 @@ func TestAccResourceVmcSiteRecovery_basic(t *testing.T) {
 				Config: testAccVmcSiteConfigBasic(srmExtensionKeySuffix),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckVmcSiteRecoveryExists("vmc_site_recovery.site_recovery_1", &siteRecovery),
-					resource.TestCheckResourceAttr("vmc_site_recovery.site_recovery_1", "site_recovery_state", "ACTIVATED"),
+					resource.TestCheckResourceAttr("vmc_site_recovery.site_recovery_1",
+						"site_recovery_state", model.SiteRecovery_SITE_RECOVERY_STATE_ACTIVATED),
 				),
 			},
 			{
@@ -85,7 +85,8 @@ func testCheckVmcSiteRecoveryDestroy(s *terraform.State) error {
 		orgID := connectorWrapper.OrgID
 		siteRecovery, err := draasClient.Get(orgID, sddcID)
 		if err == nil {
-			if *siteRecovery.SiteRecoveryState != "DEACTIVATED" {
+			if *siteRecovery.SiteRecoveryState != model.SiteRecovery_SITE_RECOVERY_STATE_DEACTIVATED &&
+				*siteRecovery.SiteRecoveryState != model.SiteRecovery_SITE_RECOVERY_STATE_DELETED {
 				return fmt.Errorf("Site recovery activated for  SDDC with ID : %s ", sddcID)
 			}
 			return nil
@@ -101,11 +102,19 @@ func testCheckVmcSiteRecoveryDestroy(s *terraform.State) error {
 
 func testAccVmcSiteConfigBasic(srmExtensionKeySuffix string) string {
 	return fmt.Sprintf(`
-  resource "vmc_site_recovery" "site_recovery_1" {
-	sddc_id = %q
-    srm_extension_key_suffix = %q
-  }`,
-		os.Getenv(TestSDDCId),
+resource "vmc_sddc" "srm_test_sddc" {
+	sddc_name           = "srm_test_sddc"
+	num_host            = 2
+	provider_type       = "ZEROCLOUD"
+	host_instance_type = "I3_METAL"
+	region = "US_WEST_2"
+	delay_account_link  = true
+}
+
+	resource "vmc_site_recovery" "site_recovery_1" {
+		sddc_id = vmc_sddc.srm_test_sddc.id
+	srm_extension_key_suffix = %q
+	}`,
 		srmExtensionKeySuffix,
 	)
 }

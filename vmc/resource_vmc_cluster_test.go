@@ -50,7 +50,7 @@ func TestAccResourceVmcClusterZerocloud(t *testing.T) {
 	clusterRef := "cluster_zerocloud"
 	resourceName := "vmc_cluster." + clusterRef
 	sddcName := "terraform_test_sddc_" + acctest.RandStringFromCharSet(10, acctest.CharSetAlphaNum)
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheckZerocloud(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckVmcClusterDestroy,
@@ -114,7 +114,6 @@ func testAccCheckVmcClusterExists(clusterRef string, sddcResource *model.Sddc) r
 }
 
 func testCheckVmcClusterDestroy(s *terraform.State) error {
-
 	connectorWrapper := testAccProvider.Meta().(*ConnectorWrapper)
 	connector := connectorWrapper.Connector
 	sddcClient := orgs.NewSddcsClient(connector)
@@ -125,12 +124,13 @@ func testCheckVmcClusterDestroy(s *terraform.State) error {
 		}
 
 		sddcID := rs.Primary.Attributes["sddc_id"]
+		clusterId := rs.Primary.Attributes["id"]
 		orgID := connectorWrapper.OrgID
 		sddcResource, err := sddcClient.Get(orgID, sddcID)
 
 		for i := 0; i < len(sddcResource.ResourceConfig.Clusters); i++ {
 			currentResourceConfig := sddcResource.ResourceConfig.Clusters[i]
-			if strings.Contains(*currentResourceConfig.ClusterName, "Cluster-2") {
+			if currentResourceConfig.ClusterId == clusterId {
 				return fmt.Errorf("cluster still exists : %v", err)
 			}
 		}

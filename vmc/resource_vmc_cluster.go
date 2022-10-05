@@ -379,30 +379,34 @@ func clusterSchema() map[string]*schema.Schema {
 				"15TB", "20TB", "25TB", "30TB", "35TB"}, false),
 		},
 		"edrs_policy_type": {
-			Type:     schema.TypeString,
+			Type: schema.TypeString,
+			// Exact value known after create
 			Optional: true,
-			Default:  StorageScaleUpPolicyType,
+			Computed: true,
 			ValidateFunc: validation.StringInSlice(
 				[]string{StorageScaleUpPolicyType, CostPolicyType, PerformancePolicyType, RapidScaleUpPolicyType}, false),
 			Description: "The EDRS policy type. This can either be 'cost', 'performance', 'storage-scaleup' or 'rapid-scaleup'. Default : storage-scaleup. ",
 		},
 		"enable_edrs": {
-			Type:        schema.TypeBool,
+			Type: schema.TypeBool,
+			// Value can be changed after create
 			Optional:    true,
-			Default:     true,
+			Computed:    true,
 			Description: "True if EDRS is enabled",
 		},
 		"min_hosts": {
-			Type:         schema.TypeInt,
-			Default:      MinHosts,
+			Type: schema.TypeInt,
+			// Exact value known after create
 			Optional:     true,
+			Computed:     true,
 			ValidateFunc: validation.IntBetween(MinHosts, MaxHosts),
 			Description:  "The minimum number of hosts that the cluster can scale in to.",
 		},
 		"max_hosts": {
-			Type:         schema.TypeInt,
-			Default:      MaxHosts,
+			Type: schema.TypeInt,
+			// Exact value known after create
 			Optional:     true,
+			Computed:     true,
 			ValidateFunc: validation.IntBetween(MinHosts, MaxHosts),
 			Description:  "The maximum number of hosts that the cluster can scale out to.",
 		},
