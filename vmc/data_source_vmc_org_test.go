@@ -1,4 +1,4 @@
-/* Copyright 2019 VMware, Inc.
+/* Copyright 2019-2022 VMware, Inc.
    SPDX-License-Identifier: MPL-2.0 */
 
 package vmc
@@ -10,9 +10,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 )
 
-func TestAccDataSourceVmcOrg_basic(t *testing.T) {
+func TestAccDataSourceVmcOrgBasic(t *testing.T) {
 	resource.Test(t, resource.TestCase{
-		PreCheck:  func() { testAccPreCheck(t) },
+		PreCheck:  func() { testAccPreCheckZerocloud(t) },
 		Providers: testAccProviders,
 		Steps: []resource.TestStep{
 			{
