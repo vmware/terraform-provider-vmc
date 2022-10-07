@@ -27,7 +27,7 @@ jobs:
         with:
           terraform_version: ${{ matrix.terraform-version }}
           terraform_wrapper: false
-      - run: make testacc TESTARGS="-run='TestAccResourceVmcSddcZerocloud|TestAccResourceVmcClusterZerocloud|TestAccResourceVmcSiteRecoveryZerocloud|TestAccResourceVmcSrmNodeZerocloud|TestAccDataSourceVmcCustomerSubnetsBasic' -parallel 4"
+      - run: make testacc TESTARGS="-run='TestAccResourceVmcSddcZerocloud|TestAccResourceVmcClusterZerocloud|TestAccResourceVmcSiteRecoveryZerocloud|TestAccResourceVmcSrmNodeZerocloud|TestAccDataSourceVmcCustomerSubnetsBasic|TestAccDataSourceVmcConnectedAccountsBasic|TestAccDataSourceVmcOrgBasic|TestAccDataSourceVmcSddcBasic' -parallel 4"
         env:
           TF_ACC: '1'
           API_TOKEN: ${{ secrets.API_TOKEN }}
