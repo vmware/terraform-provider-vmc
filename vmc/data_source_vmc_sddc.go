@@ -5,6 +5,7 @@ package vmc
 
 import (
 	"fmt"
+	"github.com/vmware/vsphere-automation-sdk-go/services/vmc/orgs/sddcs"
 	"log"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
@@ -103,6 +104,48 @@ func dataSourceVmcSddc() *schema.Resource {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
+			// Below are added as part of the schema as they are set in the
+			// dataSourceVmcSddcRead method
+			"updated": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+			"user_id": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+			"updated_by_user_id": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+			"created": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+			"version": {
+				Type:     schema.TypeInt,
+				Computed: true,
+			},
+			"updated_by_user_name": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+			"user_name": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+			"org_id": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+			"account_link_state": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+			"sddc_access_state": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
 		},
 	}
 }
@@ -131,16 +174,18 @@ func dataSourceVmcSddcRead(d *schema.ResourceData, m interface{}) error {
 	d.SetId(sddc.Id)
 
 	d.Set("sddc_name", sddc.Name)
-	d.Set("updated", sddc.Updated)
+	d.Set("updated", sddc.Updated.String())
 	d.Set("user_id", sddc.UserId)
 	d.Set("updated_by_user_id", sddc.UpdatedByUserId)
-	d.Set("created", sddc.Created)
+	d.Set("created", sddc.Created.String())
 	d.Set("version", sddc.Version)
 	d.Set("updated_by_user_name", sddc.UpdatedByUserName)
 	d.Set("user_name", sddc.UserName)
 	d.Set("org_id", sddc.OrgId)
 	d.Set("sddc_type", sddc.SddcType)
-	d.Set("provider", sddc.Provider)
+	// the key "provider" is reserved by the Terraform SDK, however the same information
+	// is carried by the sddc.ResourceConfig.Provider variable
+	//d.Set("provider", sddc.Provider)
 	d.Set("account_link_state", sddc.AccountLinkState)
 	d.Set("sddc_access_state", sddc.SddcAccessState)
 	d.Set("sddc_type", sddc.SddcType)
@@ -150,7 +195,14 @@ func dataSourceVmcSddcRead(d *schema.ResourceData, m interface{}) error {
 		d.Set("cloud_username", sddc.ResourceConfig.CloudUsername)
 		d.Set("nsxt_reverse_proxy_url", sddc.ResourceConfig.NsxApiPublicEndpointUrl)
 		d.Set("region", sddc.ResourceConfig.Region)
-		d.Set("num_host", getTotalSddcHosts(&sddc))
+		// Query the API for primary Cluster ID so only it's hosts can be added to the
+		// sddc host
+		primaryClusterClient := sddcs.NewPrimaryclusterClient(connector)
+		primaryCluster, err := primaryClusterClient.Get(orgID, sddcID)
+		if err != nil {
+			return HandleReadError(d, "Primary Cluster", sddcID, err)
+		}
+		d.Set("num_host", getHostCountCluster(&sddc, primaryCluster.ClusterId))
 		d.Set("provider_type", sddc.ResourceConfig.Provider)
 		d.Set("availability_zones", sddc.ResourceConfig.AvailabilityZones)
 		d.Set("deployment_type", ConvertDeployType(*sddc.ResourceConfig.DeploymentType))

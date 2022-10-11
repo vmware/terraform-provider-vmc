@@ -55,3 +55,18 @@ func testAccPreCheck(t *testing.T) {
 		t.Fatal(NSXTReverseProxyUrl + " must be set for acceptance tests")
 	}
 }
+
+// testAccPreCheckZerocloud this function validates a smaller set ot
+// environment variables needed for lightweight E2E testing using
+// the Zerocloud SDDC cloud provider option
+func testAccPreCheckZerocloud(t *testing.T) {
+	if v := os.Getenv(APIToken); v == "" {
+		t.Fatal(APIToken + " must be set for acceptance tests")
+	}
+	if v := os.Getenv(OrgID); v == "" {
+		t.Fatal(OrgID + " must be set for acceptance tests")
+	}
+	if v := os.Getenv(AWSAccountNumber); v == "" {
+		t.Fatal(AWSAccountNumber + " must be set for acceptance tests")
+	}
+}

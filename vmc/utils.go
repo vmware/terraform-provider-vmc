@@ -1,4 +1,4 @@
-/* Copyright 2020 VMware, Inc.
+/* Copyright 2020-2022 VMware, Inc.
    SPDX-License-Identifier: MPL-2.0 */
 
 package vmc
@@ -35,14 +35,14 @@ func ConvertStorageCapacitytoInt(s string) int64 {
 	return storageCapacity
 }
 
-// Mapping for deployment_type field
+// ConvertDeployType Mapping for deployment_type field
 // During refresh/import state, return value of VMC API should be converted to uppercamel case in terraform
 // to maintain consistency
 func ConvertDeployType(s string) string {
 	if s == "SINGLE_AZ" {
-		return "SingleAZ"
+		return SingleAvailabilityZone
 	} else if s == "MULTI_AZ" {
-		return "MultiAZ"
+		return MultiAvailabilityZone
 	} else {
 		return ""
 	}
@@ -82,21 +82,26 @@ func getNSXTReverseProxyURLConnector(nsxtReverseProxyUrl string) (client.Connect
 	}
 	nsxtReverseProxyUrl = strings.Replace(nsxtReverseProxyUrl, SksNSXTManager, "", -1)
 	httpClient := http.Client{}
-	connector, err := NewClientConnectorByRefreshToken(apiToken, nsxtReverseProxyUrl, DefaultCSPUrl, httpClient)
+	cspUrl := os.Getenv(CSPUrl)
+	connector, err := NewClientConnectorByRefreshToken(apiToken, nsxtReverseProxyUrl, cspUrl, httpClient)
 	if err != nil {
 		return nil, HandleCreateError("NSXT reverse proxy URL connector", err)
 	}
 	return connector, nil
 }
 
-func getTotalSddcHosts(sddc *model.Sddc) int {
-	totalHosts := 0
-	if sddc != nil && sddc.ResourceConfig.Clusters != nil {
+// getHostCountCluster tries to find the amount of hosts on a Cluster in
+// the ResourceConfig of the provided SDDC. If there is no ResourceConfig/Cluster 0 is returned.
+// A Cluster is distinguished by its id
+func getHostCountCluster(sddc *model.Sddc, clusterId string) int {
+	if sddc != nil && sddc.ResourceConfig != nil && sddc.ResourceConfig.Clusters != nil {
 		for _, cluster := range sddc.ResourceConfig.Clusters {
-			totalHosts += len(cluster.EsxHostList)
+			if cluster.ClusterId == clusterId {
+				return len(cluster.EsxHostList)
+			}
 		}
 	}
-	return totalHosts
+	return 0
 }
 
 // toHostInstanceType converts from the Schema format of the host_instance_type to

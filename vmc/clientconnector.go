@@ -8,7 +8,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"reflect"
 	"strings"
@@ -23,7 +23,7 @@ func NewClientConnectorByRefreshToken(refreshToken, serviceUrl, cspURL string,
 	httpClient http.Client) (client.Connector, error) {
 
 	if len(serviceUrl) <= 0 {
-		serviceUrl = DefaultVMCServer
+		serviceUrl = DefaultVMCUrl
 	}
 
 	if len(cspURL) <= 0 {
@@ -60,7 +60,7 @@ func SecurityContextByRefreshToken(refreshToken string, cspURL string) (core.Sec
 	}
 
 	if res.StatusCode != 200 {
-		b, _ := ioutil.ReadAll(res.Body)
+		b, _ := io.ReadAll(res.Body)
 		return nil, fmt.Errorf("response from Cloud Service Provider contains status code %d : %s", res.StatusCode, string(b))
 	}
 

@@ -38,8 +38,8 @@ variable host_instance_type {
   default     = ""
 }
 
-variable num_hosts {
-  description = "The number of hosts."
+variable sddc_primary_cluster_num_hosts {
+  description = "The number of hosts in the primary cluster of the SDDC."
   default     = 1
 }
 
