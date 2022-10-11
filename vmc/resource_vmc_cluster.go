@@ -109,9 +109,9 @@ func resourceClusterCreate(d *schema.ResourceData, m interface{}) error {
 			}
 			d.SetId(clusterID)
 		}
-		if *task.Status == "FAILED" {
-			return resource.NonRetryableError(fmt.Errorf("task failed to create cluster"))
-		} else if *task.Status != "FINISHED" {
+		if *task.Status == model.Task_STATUS_FAILED {
+			return resource.NonRetryableError(fmt.Errorf("task failed to create cluster: %s", *task.ErrorMessage))
+		} else if *task.Status != model.Task_STATUS_FINISHED {
 			return resource.RetryableError(fmt.Errorf("expected cluster to be created but was in state %s", *task.Status))
 		}
 		err = resourceClusterRead(d, m)
@@ -199,9 +199,9 @@ func resourceClusterDelete(d *schema.ResourceData, m interface{}) error {
 		if err != nil {
 			return resource.NonRetryableError(fmt.Errorf("error deleting cluster %s : %v", clusterID, err))
 		}
-		if *task.Status == "FAILED" {
-			return resource.NonRetryableError(fmt.Errorf("task failed to delete cluster"))
-		} else if *task.Status != "FINISHED" {
+		if *task.Status == model.Task_STATUS_FAILED {
+			return resource.NonRetryableError(fmt.Errorf("task failed to delete cluster %s", *task.ErrorMessage))
+		} else if *task.Status != model.Task_STATUS_FINISHED {
 			return resource.RetryableError(fmt.Errorf("expected cluster to be deleted but was in state %s", *task.Status))
 		}
 		d.SetId("")
@@ -246,9 +246,9 @@ func resourceClusterUpdate(d *schema.ResourceData, m interface{}) error {
 			if err != nil {
 				return resource.NonRetryableError(fmt.Errorf("error updating hosts for cluster : %v", err))
 			}
-			if *task.Status == "FAILED" {
-				return resource.NonRetryableError(fmt.Errorf("task failed to update hosts for cluster"))
-			} else if *task.Status != "FINISHED" {
+			if *task.Status == model.Task_STATUS_FAILED {
+				return resource.NonRetryableError(fmt.Errorf("task failed to update hosts for cluster: %s", *task.ErrorMessage))
+			} else if *task.Status != model.Task_STATUS_FINISHED {
 				return resource.RetryableError(fmt.Errorf("expected hosts to be updated but was in state %s", *task.Status))
 			}
 			err = resourceClusterRead(d, m)
@@ -294,9 +294,9 @@ func resourceClusterUpdate(d *schema.ResourceData, m interface{}) error {
 				}
 				return resource.NonRetryableError(fmt.Errorf("error updating EDRS policy configuration : %v", err))
 			}
-			if *task.Status == "FAILED" {
-				return resource.NonRetryableError(fmt.Errorf("task failed to update EDRS policy configuration"))
-			} else if *task.Status != "FINISHED" {
+			if *task.Status == model.Task_STATUS_FAILED {
+				return resource.NonRetryableError(fmt.Errorf("task failed to update EDRS policy configuration: %s", *task.ErrorMessage))
+			} else if *task.Status != model.Task_STATUS_FINISHED {
 				return resource.RetryableError(fmt.Errorf("expected EDRS policy configuration to be updated but was in state %s", *task.Status))
 			}
 			err = resourceClusterRead(d, m)
@@ -328,10 +328,12 @@ func resourceClusterUpdate(d *schema.ResourceData, m interface{}) error {
 				}
 				return resource.NonRetryableError(fmt.Errorf("error updating microsoft licensing configuration : %v", err))
 			}
-			if *task.Status == "FAILED" {
-				return resource.NonRetryableError(fmt.Errorf("task failed to update microsoft licensing configuration"))
-			} else if *task.Status != "FINISHED" {
-				return resource.RetryableError(fmt.Errorf("expected microsoft licensing configuration to be updated but was in state %s", *task.Status))
+			if *task.Status == model.Task_STATUS_FAILED {
+				return resource.NonRetryableError(
+					fmt.Errorf("task failed to update microsoft licensing configuration %s", *task.ErrorMessage))
+			} else if *task.Status != model.Task_STATUS_FINISHED {
+				return resource.RetryableError(
+					fmt.Errorf("expected microsoft licensing configuration to be updated but was in state %s", *task.Status))
 			}
 			err = resourceClusterRead(d, m)
 			if err == nil {
