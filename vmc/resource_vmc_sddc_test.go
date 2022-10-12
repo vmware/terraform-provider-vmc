@@ -44,7 +44,7 @@ func TestAccResourceVmcSddc_basic(t *testing.T) {
 
 func TestAccResourceVmcSddcZerocloud(t *testing.T) {
 	var sddcResource model.Sddc
-	sddcName := "terraform_test_sddc_" + acctest.RandStringFromCharSet(10, acctest.CharSetAlphaNum)
+	sddcName := "terraform_sddc_test_" + acctest.RandStringFromCharSet(10, acctest.CharSetAlphaNum)
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheckZerocloud(t) },
 		Providers:    testAccProviders,

@@ -6,7 +6,6 @@ package vmc
 import (
 	"context"
 	"fmt"
-	"log"
 	"strings"
 	"time"
 
@@ -14,9 +13,9 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-	"github.com/vmware/vsphere-automation-sdk-go/lib/vapi/std/errors"
 	"github.com/vmware/vsphere-automation-sdk-go/services/vmc/draas"
-	"github.com/vmware/vsphere-automation-sdk-go/services/vmc/draas/model"
+	draasmodel "github.com/vmware/vsphere-automation-sdk-go/services/vmc/draas/model"
+	"github.com/vmware/vsphere-automation-sdk-go/services/vmc/model"
 )
 
 func resourceSiteRecovery() *schema.Resource {
@@ -82,15 +81,15 @@ func resourceSiteRecoveryCreate(d *schema.ResourceData, m interface{}) error {
 	if err != nil {
 		return fmt.Errorf("authentication error from Cloud Service Provider: %s", err)
 	}
-	connector := (m.(*ConnectorWrapper)).Connector
+	connectorWrapper := (m.(*ConnectorWrapper))
 
-	siteRecoveryClient := draas.NewSiteRecoveryClient(connector)
+	siteRecoveryClient := draas.NewSiteRecoveryClient(connectorWrapper)
 
 	srmExtensionKeySuffix := d.Get("srm_extension_key_suffix").(string)
 	orgID := (m.(*ConnectorWrapper)).OrgID
 	sddcID := d.Get("sddc_id").(string)
 
-	activateSiteRecoveryConfigParam := &model.ActivateSiteRecoveryConfig{
+	activateSiteRecoveryConfigParam := &draasmodel.ActivateSiteRecoveryConfig{
 		SrmExtensionKeySuffix: &srmExtensionKeySuffix,
 	}
 
@@ -104,23 +103,14 @@ func resourceSiteRecoveryCreate(d *schema.ResourceData, m interface{}) error {
 	taskID := task.ResourceId
 	d.SetId(*taskID)
 	return resource.RetryContext(context.Background(), d.Timeout(schema.TimeoutCreate), func() *resource.RetryError {
-		tasksClient := draas.NewTaskClient(connector)
-		task, err := tasksClient.Get(orgID, task.Id)
-		if err != nil {
-			if err.Error() == (errors.Unauthenticated{}.Error()) {
-				log.Printf("Authentication error : %v", errors.Unauthenticated{}.Error())
-				err = (m.(*ConnectorWrapper)).authenticate()
-				if err != nil {
-					return resource.NonRetryableError(fmt.Errorf("authentication error from Cloud Service Provider:: %s", err))
-				}
-				return resource.RetryableError(fmt.Errorf("instance creation still in progress"))
-			}
-			return resource.NonRetryableError(fmt.Errorf("error activation site recovery : %v", err))
-		}
-		if *task.Status == model.Task_STATUS_FAILED {
-			return resource.NonRetryableError(fmt.Errorf("task failed to activate site recovery"))
-		} else if *task.Status != model.Task_STATUS_FINISHED {
-			return resource.RetryableError(fmt.Errorf("expected site recovery to be activated but was in state %s", *task.Status))
+		taskErr := retryTaskUntilFinished(connectorWrapper,
+			func() (model.Task, error) {
+				return getDraasTask(connectorWrapper, task.Id)
+			},
+			"error activation site recovery ",
+			nil)
+		if taskErr != nil {
+			return taskErr
 		}
 		err = resourceSiteRecoveryRead(d, m)
 		if err == nil {
@@ -194,8 +184,8 @@ func resourceSiteRecoveryRead(d *schema.ResourceData, m interface{}) error {
 }
 
 func resourceSiteRecoveryDelete(d *schema.ResourceData, m interface{}) error {
-	connector := (m.(*ConnectorWrapper)).Connector
-	siteRecoveryClient := draas.NewSiteRecoveryClient(connector)
+	connectorWrapper := m.(*ConnectorWrapper)
+	siteRecoveryClient := draas.NewSiteRecoveryClient(connectorWrapper)
 
 	orgID := (m.(*ConnectorWrapper)).OrgID
 	sddcID := d.Get("sddc_id").(string)
@@ -204,16 +194,15 @@ func resourceSiteRecoveryDelete(d *schema.ResourceData, m interface{}) error {
 	if err != nil {
 		return HandleDeleteError("Site recovery", sddcID, err)
 	}
-	tasksClient := draas.NewTaskClient(connector)
 	return resource.RetryContext(context.Background(), d.Timeout(schema.TimeoutDelete), func() *resource.RetryError {
-		task, err := tasksClient.Get(orgID, task.Id)
-		if err != nil {
-			return resource.NonRetryableError(fmt.Errorf("error deactivating site recovery for SDDC %s : %v", sddcID, err))
-		}
-		if *task.Status == model.Task_STATUS_FAILED {
-			return resource.NonRetryableError(fmt.Errorf("task failed to deactivate site recovery"))
-		} else if *task.Status != model.Task_STATUS_FINISHED {
-			return resource.RetryableError(fmt.Errorf("expected site recovery to be deactivated but was in state %s", *task.Status))
+		taskErr := retryTaskUntilFinished(connectorWrapper,
+			func() (model.Task, error) {
+				return getDraasTask(connectorWrapper, task.Id)
+			},
+			"error deactivating site recovery for SDDC ",
+			nil)
+		if taskErr != nil {
+			return taskErr
 		}
 		d.SetId("")
 		return nil

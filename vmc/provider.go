@@ -12,6 +12,10 @@ import (
 	"github.com/vmware/vsphere-automation-sdk-go/runtime/protocol/client"
 )
 
+type Authenticator interface {
+	authenticate() error
+}
+
 type ConnectorWrapper struct {
 	client.Connector
 	RefreshToken string
@@ -60,7 +64,7 @@ func Provider() *schema.Provider {
 			"vmc_sddc":          resourceSddc(),
 			"vmc_public_ip":     resourcePublicIp(),
 			"vmc_site_recovery": resourceSiteRecovery(),
-			"vmc_srm_node":      resourceSRMNode(),
+			"vmc_srm_node":      resourceSrmNode(),
 			"vmc_cluster":       resourceCluster(),
 		},
 

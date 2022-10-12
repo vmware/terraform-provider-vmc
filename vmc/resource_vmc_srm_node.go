@@ -6,7 +6,7 @@ package vmc
 import (
 	"context"
 	"fmt"
-	"log"
+	"github.com/vmware/vsphere-automation-sdk-go/services/vmc/model"
 	"strings"
 	"time"
 
@@ -14,16 +14,15 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-	"github.com/vmware/vsphere-automation-sdk-go/lib/vapi/std/errors"
 	"github.com/vmware/vsphere-automation-sdk-go/services/vmc/draas"
-	"github.com/vmware/vsphere-automation-sdk-go/services/vmc/draas/model"
+	draasmodel "github.com/vmware/vsphere-automation-sdk-go/services/vmc/draas/model"
 )
 
-func resourceSRMNode() *schema.Resource {
+func resourceSrmNode() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceSRMNodeCreate,
-		Read:   resourceSRMNodeRead,
-		Delete: resourceSRMNodeDelete,
+		Create: resourceSrmNodeCreate,
+		Read:   resourceSrmNodeRead,
+		Delete: resourceSrmNodeDelete,
 		Importer: &schema.ResourceImporter{
 			State: func(d *schema.ResourceData, meta interface{}) ([]*schema.ResourceData, error) {
 				idParts := strings.Split(d.Id(), ",")
@@ -68,20 +67,20 @@ func resourceSRMNode() *schema.Resource {
 	}
 }
 
-func resourceSRMNodeCreate(d *schema.ResourceData, m interface{}) error {
+func resourceSrmNodeCreate(d *schema.ResourceData, m interface{}) error {
 	err := (m.(*ConnectorWrapper)).authenticate()
 	if err != nil {
 		return fmt.Errorf("authentication error from Cloud Service Provider: %s", err)
 	}
-	connector := (m.(*ConnectorWrapper)).Connector
+	connectorWrapper := m.(*ConnectorWrapper)
 
-	siteRecoverySrmNodesClient := draas.NewSiteRecoverySrmNodesClient(connector)
+	siteRecoverySrmNodesClient := draas.NewSiteRecoverySrmNodesClient(connectorWrapper)
 
 	srmExtensionKeySuffix := d.Get("srm_node_extension_key_suffix").(string)
 	orgID := (m.(*ConnectorWrapper)).OrgID
 	sddcID := d.Get("sddc_id").(string)
 
-	provisionSrmConfigParam := &model.ProvisionSrmConfig{
+	provisionSrmConfigParam := &draasmodel.ProvisionSrmConfig{
 		SrmExtensionKeySuffix: &srmExtensionKeySuffix,
 	}
 
@@ -93,25 +92,16 @@ func resourceSRMNodeCreate(d *schema.ResourceData, m interface{}) error {
 
 	d.SetId(*task.ResourceId)
 	return resource.RetryContext(context.Background(), d.Timeout(schema.TimeoutCreate), func() *resource.RetryError {
-		tasksClient := draas.NewTaskClient(connector)
-		task, err := tasksClient.Get(orgID, task.Id)
-		if err != nil {
-			if err.Error() == (errors.Unauthenticated{}.Error()) {
-				log.Printf("Authentication error : %v", errors.Unauthenticated{}.Error())
-				err = (m.(*ConnectorWrapper)).authenticate()
-				if err != nil {
-					return resource.NonRetryableError(fmt.Errorf("authentication error from Cloud Service Provider: %s", err))
-				}
-				return resource.RetryableError(fmt.Errorf("instance creation still in progress"))
-			}
-			return resource.NonRetryableError(fmt.Errorf("error creating SRM node : %v", err))
+		taskErr := retryTaskUntilFinished(connectorWrapper,
+			func() (model.Task, error) {
+				return getDraasTask(connectorWrapper, task.Id)
+			},
+			"error creating SRM node",
+			nil)
+		if taskErr != nil {
+			return taskErr
 		}
-		if *task.Status == model.Task_STATUS_FAILED {
-			return resource.NonRetryableError(fmt.Errorf("task failed to create SRM node"))
-		} else if *task.Status != model.Task_STATUS_FINISHED {
-			return resource.RetryableError(fmt.Errorf("expected SRM node to be created but was in state %s", *task.Status))
-		}
-		err = resourceSRMNodeRead(d, m)
+		err = resourceSrmNodeRead(d, m)
 		if err == nil {
 			return nil
 		}
@@ -119,7 +109,7 @@ func resourceSRMNodeCreate(d *schema.ResourceData, m interface{}) error {
 	})
 }
 
-func resourceSRMNodeRead(d *schema.ResourceData, m interface{}) error {
+func resourceSrmNodeRead(d *schema.ResourceData, m interface{}) error {
 	connector := (m.(*ConnectorWrapper)).Connector
 	orgID := (m.(*ConnectorWrapper)).OrgID
 	sddcID := d.Get("sddc_id").(string)
@@ -152,9 +142,9 @@ func resourceSRMNodeRead(d *schema.ResourceData, m interface{}) error {
 	return nil
 }
 
-func resourceSRMNodeDelete(d *schema.ResourceData, m interface{}) error {
-	connector := (m.(*ConnectorWrapper)).Connector
-	siteRecoverySrmNodesClient := draas.NewSiteRecoverySrmNodesClient(connector)
+func resourceSrmNodeDelete(d *schema.ResourceData, m interface{}) error {
+	connectorWrapper := m.(*ConnectorWrapper)
+	siteRecoverySrmNodesClient := draas.NewSiteRecoverySrmNodesClient(connectorWrapper)
 
 	orgID := (m.(*ConnectorWrapper)).OrgID
 	sddcID := d.Get("sddc_id").(string)
@@ -163,16 +153,15 @@ func resourceSRMNodeDelete(d *schema.ResourceData, m interface{}) error {
 	if err != nil {
 		return HandleDeleteError("SRM Node", sddcID, err)
 	}
-	tasksClient := draas.NewTaskClient(connector)
 	return resource.RetryContext(context.Background(), d.Timeout(schema.TimeoutDelete), func() *resource.RetryError {
-		task, err := tasksClient.Get(orgID, task.Id)
-		if err != nil {
-			return resource.NonRetryableError(fmt.Errorf("error deleting SRM node for SDDC %s : %v", sddcID, err))
-		}
-		if *task.Status == model.Task_STATUS_FAILED {
-			return resource.NonRetryableError(fmt.Errorf("task failed to delete SRM node"))
-		} else if *task.Status != model.Task_STATUS_FINISHED {
-			return resource.RetryableError(fmt.Errorf("expected SRM node to be deleted but was in state %s", *task.Status))
+		taskErr := retryTaskUntilFinished(connectorWrapper,
+			func() (model.Task, error) {
+				return getDraasTask(connectorWrapper, task.Id)
+			},
+			"failed to delete SRM node",
+			nil)
+		if taskErr != nil {
+			return taskErr
 		}
 		d.SetId("")
 		return nil

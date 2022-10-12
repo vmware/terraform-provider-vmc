@@ -13,15 +13,15 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
-	"github.com/vmware/vsphere-automation-sdk-go/lib/vapi/std/errors"
-	autoscalerapi "github.com/vmware/vsphere-automation-sdk-go/services/vmc/autoscaler/api"
 	autoscalercluster "github.com/vmware/vsphere-automation-sdk-go/services/vmc/autoscaler/api/orgs/sddcs/clusters"
 	autoscalermodel "github.com/vmware/vsphere-automation-sdk-go/services/vmc/autoscaler/model"
 	"github.com/vmware/vsphere-automation-sdk-go/services/vmc/model"
-	"github.com/vmware/vsphere-automation-sdk-go/services/vmc/orgs"
 	"github.com/vmware/vsphere-automation-sdk-go/services/vmc/orgs/sddcs"
 	"github.com/vmware/vsphere-automation-sdk-go/services/vmc/orgs/sddcs/clusters/msft_licensing"
 )
+
+// clusterMutationKeyedMutex a mutex that allows only a single cluster per sddc to be mutated.
+var clusterMutationKeyedMutex = KeyedMutex{}
 
 func resourceCluster() *schema.Resource {
 	return &schema.Resource{
@@ -70,280 +70,6 @@ func resourceCluster() *schema.Resource {
 			return nil
 		},
 	}
-}
-
-func resourceClusterCreate(d *schema.ResourceData, m interface{}) error {
-	orgID := m.(*ConnectorWrapper).OrgID
-	sddcID := d.Get("sddc_id").(string)
-	clusterConfig, err := buildClusterConfig(d)
-	if err != nil {
-		return HandleCreateError("Cluster", err)
-	}
-	connector := m.(*ConnectorWrapper)
-	clusterClient := sddcs.NewClustersClient(connector)
-	task, err := clusterClient.Create(orgID, sddcID, *clusterConfig)
-	if err != nil {
-		return HandleCreateError("Cluster", err)
-	}
-
-	return resource.RetryContext(context.Background(), d.Timeout(schema.TimeoutCreate), func() *resource.RetryError {
-		tasksClient := orgs.NewTasksClient(connector)
-		task, err := tasksClient.Get(orgID, task.Id)
-		if err != nil {
-			if err.Error() == (errors.Unauthenticated{}.Error()) {
-				log.Printf("Authentication error : %v", errors.Unauthenticated{}.Error())
-				err = connector.authenticate()
-				if err != nil {
-					return resource.NonRetryableError(fmt.Errorf("authentication error from Cloud Service Provider : %s", err))
-				}
-				return resource.RetryableError(fmt.Errorf("instance creation still in progress"))
-			}
-			return resource.NonRetryableError(fmt.Errorf("error creating cluster : %v", err))
-
-		}
-		if task.Params.HasField(ClusterIdFieldName) {
-			clusterID, err := task.Params.String(ClusterIdFieldName)
-			if err != nil {
-				return resource.NonRetryableError(fmt.Errorf("error getting clusterID : %s", err))
-
-			}
-			d.SetId(clusterID)
-		}
-		if *task.Status == model.Task_STATUS_FAILED {
-			return resource.NonRetryableError(fmt.Errorf("task failed to create cluster: %s", *task.ErrorMessage))
-		} else if *task.Status != model.Task_STATUS_FINISHED {
-			return resource.RetryableError(fmt.Errorf("expected cluster to be created but was in state %s", *task.Status))
-		}
-		err = resourceClusterRead(d, m)
-		if err == nil {
-			return nil
-		}
-		return resource.NonRetryableError(err)
-	})
-}
-
-func resourceClusterRead(d *schema.ResourceData, m interface{}) error {
-	connector := (m.(*ConnectorWrapper)).Connector
-	clusterID := d.Id()
-	sddcID := d.Get("sddc_id").(string)
-	orgID := (m.(*ConnectorWrapper)).OrgID
-	sddc, err := GetSDDC(connector, orgID, sddcID)
-	if err != nil {
-		return HandleReadError(d, "Cluster", clusterID, err)
-	}
-
-	if *sddc.SddcState == "DELETED" {
-		log.Printf("Unable to retrieve SDDC with ID %s", sddc.Id)
-		d.SetId("")
-		return nil
-	}
-	clusterExists := false
-
-	for _, clusterConfig := range sddc.ResourceConfig.Clusters {
-		if strings.Contains(clusterConfig.ClusterId, clusterID) {
-			clusterExists = true
-		}
-	}
-	if !clusterExists {
-		log.Printf("Unable to retrieve cluster with ID %s", clusterID)
-		d.SetId("")
-		return nil
-	}
-	d.SetId(clusterID)
-	cluster := map[string]string{}
-	for _, clusterConfig := range sddc.ResourceConfig.Clusters {
-		if strings.Contains(clusterConfig.ClusterId, clusterID) {
-			cluster["cluster_name"] = *clusterConfig.ClusterName
-			cluster["cluster_state"] = *clusterConfig.ClusterState
-			cluster["host_instance_type"] = *clusterConfig.EsxHostInfo.InstanceType
-			if clusterConfig.MsftLicenseConfig != nil {
-				if clusterConfig.MsftLicenseConfig.MssqlLicensing != nil {
-					cluster["mssql_licensing"] = *clusterConfig.MsftLicenseConfig.MssqlLicensing
-				}
-				if clusterConfig.MsftLicenseConfig.WindowsLicensing != nil {
-					cluster["windows_licensing"] = *clusterConfig.MsftLicenseConfig.WindowsLicensing
-				}
-			}
-			d.Set("cluster_info", cluster)
-			d.Set("num_hosts", len(clusterConfig.EsxHostList))
-			break
-		}
-	}
-
-	edrsPolicyClient := autoscalercluster.NewEdrsPolicyClient(connector)
-	edrsPolicy, err := edrsPolicyClient.Get(orgID, sddcID, clusterID)
-	if err != nil {
-		return HandleReadError(d, "Cluster", clusterID, err)
-	}
-	d.Set("edrs_policy_type", *edrsPolicy.PolicyType)
-	d.Set("enable_edrs", edrsPolicy.EnableEdrs)
-	d.Set("max_hosts", *edrsPolicy.MaxHosts)
-	d.Set("min_hosts", *edrsPolicy.MinHosts)
-	return nil
-}
-
-func resourceClusterDelete(d *schema.ResourceData, m interface{}) error {
-	connector := (m.(*ConnectorWrapper)).Connector
-	clusterID := d.Id()
-
-	orgID := (m.(*ConnectorWrapper)).OrgID
-	sddcID := d.Get("sddc_id").(string)
-	clusterClient := sddcs.NewClustersClient(connector)
-	task, err := clusterClient.Delete(orgID, sddcID, clusterID)
-	if err != nil {
-		return HandleDeleteError("Cluster", clusterID, err)
-	}
-	tasksClient := orgs.NewTasksClient(connector)
-	return resource.RetryContext(context.Background(), d.Timeout(schema.TimeoutDelete), func() *resource.RetryError {
-		task, err := tasksClient.Get(orgID, task.Id)
-		if err != nil {
-			return resource.NonRetryableError(fmt.Errorf("error deleting cluster %s : %v", clusterID, err))
-		}
-		if *task.Status == model.Task_STATUS_FAILED {
-			return resource.NonRetryableError(fmt.Errorf("task failed to delete cluster %s", *task.ErrorMessage))
-		} else if *task.Status != model.Task_STATUS_FINISHED {
-			return resource.RetryableError(fmt.Errorf("expected cluster to be deleted but was in state %s", *task.Status))
-		}
-		d.SetId("")
-		return nil
-	})
-}
-
-func resourceClusterUpdate(d *schema.ResourceData, m interface{}) error {
-	connectorWrapper := m.(*ConnectorWrapper)
-	esxsClient := sddcs.NewEsxsClient(connectorWrapper)
-	sddcID := d.Get("sddc_id").(string)
-	orgID := (m.(*ConnectorWrapper)).OrgID
-	clusterID := d.Id()
-
-	// Add or remove hosts from a cluster
-	if d.HasChange("num_hosts") {
-		oldTmp, newTmp := d.GetChange("num_hosts")
-		oldNum := oldTmp.(int)
-		newNum := newTmp.(int)
-
-		action := "add"
-		diffNum := newNum - oldNum
-
-		if newNum < oldNum {
-			action = "remove"
-			diffNum = oldNum - newNum
-		}
-
-		esxConfig := model.EsxConfig{
-			NumHosts:  int64(diffNum),
-			ClusterId: &clusterID,
-		}
-
-		task, err := esxsClient.Create(orgID, sddcID, esxConfig, &action)
-
-		if err != nil {
-			return HandleUpdateError("Cluster", err)
-		}
-		tasksClient := orgs.NewTasksClient(connectorWrapper)
-		err = resource.RetryContext(context.Background(), d.Timeout(schema.TimeoutUpdate), func() *resource.RetryError {
-			task, err := tasksClient.Get(orgID, task.Id)
-			if err != nil {
-				return resource.NonRetryableError(fmt.Errorf("error updating hosts for cluster : %v", err))
-			}
-			if *task.Status == model.Task_STATUS_FAILED {
-				return resource.NonRetryableError(fmt.Errorf("task failed to update hosts for cluster: %s", *task.ErrorMessage))
-			} else if *task.Status != model.Task_STATUS_FINISHED {
-				return resource.RetryableError(fmt.Errorf("expected hosts to be updated but was in state %s", *task.Status))
-			}
-			err = resourceClusterRead(d, m)
-			if err == nil {
-				return nil
-			}
-			return resource.NonRetryableError(err)
-		})
-		if err != nil {
-			return err
-		}
-	}
-	if d.HasChange("edrs_policy_type") || d.HasChange("enable_edrs") || d.HasChange("min_hosts") || d.HasChange("max_hosts") {
-		edrsPolicyClient := autoscalercluster.NewEdrsPolicyClient(connectorWrapper)
-		minHosts := int64(d.Get("min_hosts").(int))
-		maxHosts := int64(d.Get("max_hosts").(int))
-		policyType := d.Get("edrs_policy_type").(string)
-		enableEDRS := d.Get("enable_edrs").(bool)
-		edrsPolicy := &autoscalermodel.EdrsPolicy{
-			EnableEdrs: enableEDRS,
-			PolicyType: &policyType,
-			MinHosts:   &minHosts,
-			MaxHosts:   &maxHosts,
-		}
-		if policyType == StorageScaleUpPolicyType && !enableEDRS {
-			return fmt.Errorf("EDRS policy %s is the default and cannot be disabled", StorageScaleUpPolicyType)
-		}
-		task, err := edrsPolicyClient.Post(orgID, sddcID, clusterID, *edrsPolicy)
-		if err != nil {
-			return HandleUpdateError("EDRS Policy", err)
-		}
-		return resource.RetryContext(context.Background(), d.Timeout(schema.TimeoutUpdate), func() *resource.RetryError {
-			taskClient := autoscalerapi.NewAutoscalerClient(connectorWrapper)
-			task, err := taskClient.Get(orgID, task.Id)
-			if err != nil {
-				if err.Error() == (errors.Unauthenticated{}.Error()) {
-					log.Printf("Authentication error : %v", errors.Unauthenticated{}.Error())
-					err = connectorWrapper.authenticate()
-					if err != nil {
-						return resource.NonRetryableError(fmt.Errorf("authentication error from Cloud Service Provider : %s", err))
-					}
-					return resource.RetryableError(fmt.Errorf("instance update still in progress"))
-				}
-				return resource.NonRetryableError(fmt.Errorf("error updating EDRS policy configuration : %v", err))
-			}
-			if *task.Status == model.Task_STATUS_FAILED {
-				return resource.NonRetryableError(fmt.Errorf("task failed to update EDRS policy configuration: %s", *task.ErrorMessage))
-			} else if *task.Status != model.Task_STATUS_FINISHED {
-				return resource.RetryableError(fmt.Errorf("expected EDRS policy configuration to be updated but was in state %s", *task.Status))
-			}
-			err = resourceClusterRead(d, m)
-			if err == nil {
-				return nil
-			}
-			return resource.NonRetryableError(err)
-		})
-	}
-	// Update microsoft licensing config
-	if d.HasChange("microsoft_licensing_config") {
-		configChangeParam := expandMsftLicenseConfig(d.Get("microsoft_licensing_config").([]interface{}))
-		publishClient := msft_licensing.NewPublishClient(connectorWrapper)
-		task, err := publishClient.Post(orgID, sddcID, clusterID, *configChangeParam)
-		if err != nil {
-			return HandleUpdateError("Microsoft Licensing Config", err)
-		}
-		return resource.RetryContext(context.Background(), d.Timeout(schema.TimeoutCreate), func() *resource.RetryError {
-			tasksClient := orgs.NewTasksClient(connectorWrapper)
-			task, err := tasksClient.Get(orgID, task.Id)
-			if err != nil {
-				if err.Error() == (errors.Unauthenticated{}.Error()) {
-					log.Printf("Authentication error : %v", errors.Unauthenticated{}.Error())
-					err = connectorWrapper.authenticate()
-					if err != nil {
-						return resource.NonRetryableError(fmt.Errorf("authentication error from Cloud Service Provider : %s", err))
-					}
-					return resource.RetryableError(fmt.Errorf("instance update still in progress"))
-				}
-				return resource.NonRetryableError(fmt.Errorf("error updating microsoft licensing configuration : %v", err))
-			}
-			if *task.Status == model.Task_STATUS_FAILED {
-				return resource.NonRetryableError(
-					fmt.Errorf("task failed to update microsoft licensing configuration %s", *task.ErrorMessage))
-			} else if *task.Status != model.Task_STATUS_FINISHED {
-				return resource.RetryableError(
-					fmt.Errorf("expected microsoft licensing configuration to be updated but was in state %s", *task.Status))
-			}
-			err = resourceClusterRead(d, m)
-			if err == nil {
-				return nil
-			}
-			return resource.NonRetryableError(err)
-		})
-
-	}
-	return nil
 }
 
 // clusterSchema this helper function extracts the creation of the Cluster schema, so that
@@ -440,6 +166,265 @@ func clusterSchema() map[string]*schema.Schema {
 			Computed: true,
 		},
 	}
+}
+
+func resourceClusterCreate(d *schema.ResourceData, m interface{}) error {
+	sddcID := d.Get("sddc_id").(string)
+	clusterConfig, err := buildClusterConfig(d)
+	if err != nil {
+		return HandleCreateError("Cluster", err)
+	}
+	// Obtain a lock to allow only a single cluster creation at a time for a specific SDDC.
+	var unlockFunction = clusterMutationKeyedMutex.lock(sddcID)
+	connectorWrapper := m.(*ConnectorWrapper)
+	orgID := m.(*ConnectorWrapper).OrgID
+	clusterClient := sddcs.NewClustersClient(connectorWrapper)
+	task, err := clusterClient.Create(orgID, sddcID, *clusterConfig)
+	if err != nil {
+		return HandleCreateError("Cluster", err)
+	}
+	var clusterID = ""
+	return resource.RetryContext(context.Background(), d.Timeout(schema.TimeoutCreate), func() *resource.RetryError {
+		taskErr := retryTaskUntilFinished(connectorWrapper,
+			func() (model.Task, error) {
+				return getTask(connectorWrapper, task.Id)
+			},
+			"error creating cluster ",
+			func(task model.Task) {
+				unlockFunction()
+				// Obtain the ID of the newly created cluster
+				if task.Params.HasField(ClusterIdFieldName) {
+					clusterID, err = task.Params.String(ClusterIdFieldName)
+					d.SetId(clusterID)
+				}
+			})
+		if taskErr != nil {
+			return taskErr
+		}
+		if clusterID == "" {
+			return resource.NonRetryableError(fmt.Errorf("error getting clusterID"))
+		}
+		err = resourceClusterRead(d, m)
+		if err == nil {
+			return nil
+		}
+		return resource.NonRetryableError(err)
+	})
+}
+
+func resourceClusterRead(d *schema.ResourceData, m interface{}) error {
+	connector := (m.(*ConnectorWrapper)).Connector
+	clusterID := d.Id()
+	sddcID := d.Get("sddc_id").(string)
+	orgID := (m.(*ConnectorWrapper)).OrgID
+	sddc, err := GetSDDC(connector, orgID, sddcID)
+	if err != nil {
+		return HandleReadError(d, "Cluster", clusterID, err)
+	}
+
+	if *sddc.SddcState == "DELETED" {
+		log.Printf("Unable to retrieve SDDC with ID %s", sddc.Id)
+		d.SetId("")
+		return nil
+	}
+	clusterExists := false
+
+	for _, clusterConfig := range sddc.ResourceConfig.Clusters {
+		if clusterConfig.ClusterId == clusterID {
+			clusterExists = true
+		}
+	}
+	if !clusterExists {
+		log.Printf("Unable to retrieve cluster with ID %s", clusterID)
+		d.SetId("")
+		return nil
+	}
+	d.SetId(clusterID)
+	cluster := map[string]string{}
+	for _, clusterConfig := range sddc.ResourceConfig.Clusters {
+		if clusterConfig.ClusterId == clusterID {
+			cluster["cluster_name"] = *clusterConfig.ClusterName
+			cluster["cluster_state"] = *clusterConfig.ClusterState
+			cluster["host_instance_type"] = *clusterConfig.EsxHostInfo.InstanceType
+			if clusterConfig.MsftLicenseConfig != nil {
+				if clusterConfig.MsftLicenseConfig.MssqlLicensing != nil {
+					cluster["mssql_licensing"] = *clusterConfig.MsftLicenseConfig.MssqlLicensing
+				}
+				if clusterConfig.MsftLicenseConfig.WindowsLicensing != nil {
+					cluster["windows_licensing"] = *clusterConfig.MsftLicenseConfig.WindowsLicensing
+				}
+			}
+			d.Set("cluster_info", cluster)
+			d.Set("num_hosts", len(clusterConfig.EsxHostList))
+			break
+		}
+	}
+
+	edrsPolicyClient := autoscalercluster.NewEdrsPolicyClient(connector)
+	edrsPolicy, err := edrsPolicyClient.Get(orgID, sddcID, clusterID)
+	if err != nil {
+		return HandleReadError(d, "Cluster", clusterID, err)
+	}
+	d.Set("edrs_policy_type", *edrsPolicy.PolicyType)
+	d.Set("enable_edrs", edrsPolicy.EnableEdrs)
+	d.Set("max_hosts", *edrsPolicy.MaxHosts)
+	d.Set("min_hosts", *edrsPolicy.MinHosts)
+	return nil
+}
+
+func resourceClusterDelete(d *schema.ResourceData, m interface{}) error {
+	connectorWrapper := m.(*ConnectorWrapper)
+	clusterID := d.Id()
+
+	orgID := (m.(*ConnectorWrapper)).OrgID
+	sddcID := d.Get("sddc_id").(string)
+	var unlockFunction = clusterMutationKeyedMutex.lock(sddcID)
+	clusterClient := sddcs.NewClustersClient(connectorWrapper)
+	task, err := clusterClient.Delete(orgID, sddcID, clusterID)
+	if err != nil {
+		return HandleDeleteError("Cluster", clusterID, err)
+	}
+	return resource.RetryContext(context.Background(), d.Timeout(schema.TimeoutDelete), func() *resource.RetryError {
+		taskErr := retryTaskUntilFinished(connectorWrapper,
+			func() (model.Task, error) {
+				return getTask(connectorWrapper, task.Id)
+			},
+			"error deleting cluster "+clusterID,
+			func(task model.Task) {
+				unlockFunction()
+			})
+		if taskErr != nil {
+			return taskErr
+		}
+		d.SetId("")
+		return nil
+	})
+}
+
+func resourceClusterUpdate(d *schema.ResourceData, m interface{}) error {
+	connectorWrapper := m.(*ConnectorWrapper)
+	esxsClient := sddcs.NewEsxsClient(connectorWrapper)
+	sddcID := d.Get("sddc_id").(string)
+	orgID := (m.(*ConnectorWrapper)).OrgID
+	clusterID := d.Id()
+
+	// Add or remove hosts from a cluster
+	if d.HasChange("num_hosts") {
+		oldTmp, newTmp := d.GetChange("num_hosts")
+		oldNum := oldTmp.(int)
+		newNum := newTmp.(int)
+
+		action := "add"
+		diffNum := newNum - oldNum
+
+		if newNum < oldNum {
+			action = "remove"
+			diffNum = oldNum - newNum
+		}
+
+		esxConfig := model.EsxConfig{
+			NumHosts:  int64(diffNum),
+			ClusterId: &clusterID,
+		}
+
+		var unlockFunction = clusterMutationKeyedMutex.lock(sddcID)
+		task, err := esxsClient.Create(orgID, sddcID, esxConfig, &action)
+		if err != nil {
+			return HandleUpdateError("Cluster", err)
+		}
+		err = resource.RetryContext(context.Background(), d.Timeout(schema.TimeoutUpdate), func() *resource.RetryError {
+			taskErr := retryTaskUntilFinished(connectorWrapper,
+				func() (model.Task, error) {
+					return getTask(connectorWrapper, task.Id)
+				},
+				"error updating hosts for cluster "+clusterID,
+				func(task model.Task) {
+					unlockFunction()
+				})
+			if taskErr != nil {
+				return taskErr
+			}
+			err = resourceClusterRead(d, m)
+			if err == nil {
+				return nil
+			}
+			return resource.NonRetryableError(err)
+		})
+		if err != nil {
+			return err
+		}
+	}
+	if d.HasChange("edrs_policy_type") || d.HasChange("enable_edrs") || d.HasChange("min_hosts") || d.HasChange("max_hosts") {
+		edrsPolicyClient := autoscalercluster.NewEdrsPolicyClient(connectorWrapper)
+		minHosts := int64(d.Get("min_hosts").(int))
+		maxHosts := int64(d.Get("max_hosts").(int))
+		policyType := d.Get("edrs_policy_type").(string)
+		enableEDRS := d.Get("enable_edrs").(bool)
+		edrsPolicy := &autoscalermodel.EdrsPolicy{
+			EnableEdrs: enableEDRS,
+			PolicyType: &policyType,
+			MinHosts:   &minHosts,
+			MaxHosts:   &maxHosts,
+		}
+		if policyType == StorageScaleUpPolicyType && !enableEDRS {
+			return fmt.Errorf("EDRS policy %s is the default and cannot be disabled", StorageScaleUpPolicyType)
+		}
+		var unlockFunction = clusterMutationKeyedMutex.lock(sddcID)
+		task, err := edrsPolicyClient.Post(orgID, sddcID, clusterID, *edrsPolicy)
+		if err != nil {
+			return HandleUpdateError("EDRS Policy", err)
+		}
+		// The taskClient here has the same methods, but they return the autoscalerapi.Task instead of model.Task,
+		// so the retryTaskUntilFinished method cannot be used
+		return resource.RetryContext(context.Background(), d.Timeout(schema.TimeoutUpdate), func() *resource.RetryError {
+			taskErr := retryTaskUntilFinished(connectorWrapper,
+				func() (model.Task, error) {
+					return getAutoscalerTask(connectorWrapper, task.Id)
+				},
+				"error updating EDRS policy configuration "+clusterID,
+				func(task model.Task) {
+					unlockFunction()
+				})
+			if taskErr != nil {
+				return taskErr
+			}
+			err = resourceClusterRead(d, m)
+			if err == nil {
+				return nil
+			}
+			return resource.NonRetryableError(err)
+		})
+	}
+	// Update microsoft licensing config
+	if d.HasChange("microsoft_licensing_config") {
+		configChangeParam := expandMsftLicenseConfig(d.Get("microsoft_licensing_config").([]interface{}))
+		publishClient := msft_licensing.NewPublishClient(connectorWrapper)
+		var unlockFunction = clusterMutationKeyedMutex.lock(sddcID)
+		task, err := publishClient.Post(orgID, sddcID, clusterID, *configChangeParam)
+		if err != nil {
+			return HandleUpdateError("Microsoft Licensing Config", err)
+		}
+		return resource.RetryContext(context.Background(), d.Timeout(schema.TimeoutCreate), func() *resource.RetryError {
+			taskErr := retryTaskUntilFinished(connectorWrapper,
+				func() (model.Task, error) {
+					return getTask(connectorWrapper, task.Id)
+				},
+				"error updating microsoft licensing configuration "+clusterID,
+				func(task model.Task) {
+					unlockFunction()
+				})
+			if taskErr != nil {
+				return taskErr
+			}
+			err = resourceClusterRead(d, m)
+			if err == nil {
+				return nil
+			}
+			return resource.NonRetryableError(err)
+		})
+
+	}
+	return nil
 }
 
 // buildClusterConfig extracts the creation of the model.ClusterConfig, so that it's

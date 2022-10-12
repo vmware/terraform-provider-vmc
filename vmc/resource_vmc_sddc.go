@@ -13,10 +13,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
-	"github.com/vmware/vsphere-automation-sdk-go/lib/vapi/std/errors"
 	nsxtawsintegrationapi "github.com/vmware/vsphere-automation-sdk-go/services/nsxt-vmc-aws-integration/api"
 	nsxtawsintegrationmodel "github.com/vmware/vsphere-automation-sdk-go/services/nsxt-vmc-aws-integration/model"
-	autoscalerapi "github.com/vmware/vsphere-automation-sdk-go/services/vmc/autoscaler/api"
 	autoscalercluster "github.com/vmware/vsphere-automation-sdk-go/services/vmc/autoscaler/api/orgs/sddcs/clusters"
 	autoscalermodel "github.com/vmware/vsphere-automation-sdk-go/services/vmc/autoscaler/model"
 	"github.com/vmware/vsphere-automation-sdk-go/services/vmc/model"
@@ -382,42 +380,14 @@ func resourceSddcCreate(d *schema.ResourceData, m interface{}) error {
 		return HandleCreateError("SDDC", err)
 	}
 
-	// Wait until Sddc is created
 	sddcID := task.ResourceId
 	d.SetId(*sddcID)
-	maxServiceUnavailableRetries := 20
-	serviceUnavailableRetries := 0
 	return resource.RetryContext(context.Background(), d.Timeout(schema.TimeoutCreate), func() *resource.RetryError {
-		tasksClient := orgs.NewTasksClient(connectorWrapper)
-		task, err := tasksClient.Get(orgID, task.Id)
-		if err != nil {
-			if err.Error() == (errors.Unauthenticated{}.Error()) {
-				log.Printf("Authentication error : %v", errors.Unauthenticated{}.Error())
-				err = connectorWrapper.authenticate()
-				if err != nil {
-					return resource.NonRetryableError(fmt.Errorf("authentication error from Cloud Service Provider : %v", err))
-				}
-				return resource.RetryableError(fmt.Errorf("instance creation still in progress"))
-			}
-			// Resiliency in case of difficulties the VMC service may experience,
-			// during the significant SDDC provisioning time
-			if err.Error() == (errors.ServiceUnavailable{}.Error()) {
-				serviceUnavailableRetries++
-				if serviceUnavailableRetries <= maxServiceUnavailableRetries {
-					return resource.RetryableError(fmt.Errorf(
-						"VMC backend is experiencing difficulties, retry %d from %d to polling the SDDC Create Task",
-						serviceUnavailableRetries, maxServiceUnavailableRetries))
-				} else {
-					return resource.NonRetryableError(fmt.Errorf("max ServiceUnavailable retries (20) reached to create SDDC"))
-				}
-			}
-			return resource.NonRetryableError(fmt.Errorf("error creating SDDC : %v", err))
-
-		}
-		if *task.Status == "FAILED" {
-			return resource.NonRetryableError(fmt.Errorf("task failed to create SDDC: %s", *task.ErrorMessage))
-		} else if *task.Status != "FINISHED" {
-			return resource.RetryableError(fmt.Errorf("expected SDDC to be created but was in state %s", *task.Status))
+		taskErr := retryTaskUntilFinished(connectorWrapper, func() (model.Task, error) {
+			return getTask(connectorWrapper, task.Id)
+		}, "error creating SDDC", nil)
+		if taskErr != nil {
+			return taskErr
 		}
 		err = resourceSddcRead(d, m)
 		if err == nil {
@@ -543,8 +513,8 @@ func resourceSddcRead(d *schema.ResourceData, m interface{}) error {
 }
 
 func resourceSddcDelete(d *schema.ResourceData, m interface{}) error {
-	connector := (m.(*ConnectorWrapper)).Connector
-	sddcClient := orgs.NewSddcsClient(connector)
+	connectorWrapper := m.(*ConnectorWrapper)
+	sddcClient := orgs.NewSddcsClient(connectorWrapper.Connector)
 	sddcID := d.Id()
 	orgID := (m.(*ConnectorWrapper)).OrgID
 
@@ -552,16 +522,12 @@ func resourceSddcDelete(d *schema.ResourceData, m interface{}) error {
 	if err != nil {
 		return HandleDeleteError("SDDC", sddcID, err)
 	}
-	tasksClient := orgs.NewTasksClient(connector)
 	return resource.RetryContext(context.Background(), d.Timeout(schema.TimeoutDelete), func() *resource.RetryError {
-		task, err := tasksClient.Get(orgID, task.Id)
-		if err != nil {
-			return resource.NonRetryableError(fmt.Errorf("error deleting SDDC %s: %v", sddcID, err))
-		}
-		if *task.Status == "FAILED" {
-			return resource.NonRetryableError(fmt.Errorf("task failed to delete SDDC"))
-		} else if *task.Status != "FINISHED" {
-			return resource.RetryableError(fmt.Errorf("expected SDDC to be deleted but was in state %s", *task.Status))
+		taskErr := retryTaskUntilFinished(connectorWrapper, func() (model.Task, error) {
+			return getTask(connectorWrapper, task.Id)
+		}, "failed to delete SDDC", nil)
+		if taskErr != nil {
+			return taskErr
 		}
 		d.SetId("")
 		return nil
@@ -600,24 +566,11 @@ func resourceSddcUpdate(d *schema.ResourceData, m interface{}) error {
 					return HandleUpdateError("SDDC", err)
 				}
 				err = resource.RetryContext(context.Background(), d.Timeout(schema.TimeoutUpdate), func() *resource.RetryError {
-					tasksClient := orgs.NewTasksClient(connectorWrapper)
-					task, err := tasksClient.Get(orgID, task.Id)
-
-					if err != nil {
-						if err.Error() == (errors.Unauthenticated{}.Error()) {
-							log.Printf("Authentication error : %v", errors.Unauthenticated{}.Error())
-							err = connectorWrapper.authenticate()
-							if err != nil {
-								return resource.NonRetryableError(fmt.Errorf("authentication error from Cloud Service Provider : %s", err))
-							}
-							return resource.RetryableError(fmt.Errorf("SDDC scaling still in progress"))
-						}
-						return resource.NonRetryableError(fmt.Errorf("error scaling SDDC : %v", err))
-					}
-					if *task.Status == "FAILED" {
-						return resource.NonRetryableError(fmt.Errorf("task failed to scale SDDC"))
-					} else if *task.Status != "FINISHED" {
-						return resource.RetryableError(fmt.Errorf("expected SDDC type to be updated but was in state %s", *task.Status))
+					taskErr := retryTaskUntilFinished(connectorWrapper, func() (model.Task, error) {
+						return getTask(connectorWrapper, task.Id)
+					}, "error scaling SDDC", nil)
+					if taskErr != nil {
+						return taskErr
 					}
 					err = resourceSddcRead(d, m)
 					if err == nil {
@@ -665,16 +618,12 @@ func resourceSddcUpdate(d *schema.ResourceData, m interface{}) error {
 		if err != nil {
 			return HandleUpdateError("SDDC", err)
 		}
-		tasksClient := orgs.NewTasksClient(connectorWrapper)
 		err = resource.RetryContext(context.Background(), d.Timeout(schema.TimeoutUpdate), func() *resource.RetryError {
-			task, err := tasksClient.Get(orgID, task.Id)
-			if err != nil {
-				return resource.NonRetryableError(fmt.Errorf("error updating hosts : %v", err))
-			}
-			if *task.Status == "FAILED" {
-				return resource.NonRetryableError(fmt.Errorf("task failed to update hosts"))
-			} else if *task.Status != "FINISHED" {
-				return resource.RetryableError(fmt.Errorf("expected hosts to be updated but was in state %s", *task.Status))
+			taskErr := retryTaskUntilFinished(connectorWrapper, func() (model.Task, error) {
+				return getTask(connectorWrapper, task.Id)
+			}, "failed to update hosts", nil)
+			if taskErr != nil {
+				return taskErr
 			}
 			err = resourceSddcRead(d, m)
 			if err == nil {
@@ -745,23 +694,11 @@ func resourceSddcUpdate(d *schema.ResourceData, m interface{}) error {
 		}
 
 		return resource.RetryContext(context.Background(), d.Timeout(schema.TimeoutUpdate), func() *resource.RetryError {
-			taskClient := autoscalerapi.NewAutoscalerClient(connectorWrapper)
-			task, err := taskClient.Get(orgID, task.Id)
-			if err != nil {
-				if err.Error() == (errors.Unauthenticated{}.Error()) {
-					log.Printf("Authentication error : %v", errors.Unauthenticated{}.Error())
-					err = connectorWrapper.authenticate()
-					if err != nil {
-						return resource.NonRetryableError(fmt.Errorf("authentication error from Cloud Service Provider : %s", err))
-					}
-					return resource.RetryableError(fmt.Errorf("instance update still in progress"))
-				}
-				return resource.NonRetryableError(fmt.Errorf("error updating EDRS policy configuration : %v", err))
-			}
-			if *task.Status == "FAILED" {
-				return resource.NonRetryableError(fmt.Errorf("task failed to update EDRS policy configuration"))
-			} else if *task.Status != "FINISHED" {
-				return resource.RetryableError(fmt.Errorf("expected EDRS policy configuration to be updated but was in state %s", *task.Status))
+			taskErr := retryTaskUntilFinished(connectorWrapper, func() (model.Task, error) {
+				return getTask(connectorWrapper, task.Id)
+			}, "failed to update EDRS policy configuration", nil)
+			if taskErr != nil {
+				return taskErr
 			}
 			err = resourceSddcRead(d, m)
 			if err == nil {
@@ -787,26 +724,14 @@ func resourceSddcUpdate(d *schema.ResourceData, m interface{}) error {
 		publishClient := msft_licensing.NewPublishClient(connectorWrapper)
 		task, err := publishClient.Post(orgID, sddcID, primaryCluster.ClusterId, *configChangeParam)
 		if err != nil {
-			return fmt.Errorf("Error updating license : %s", err)
+			return fmt.Errorf("error updating license : %s", err)
 		}
 		return resource.RetryContext(context.Background(), d.Timeout(schema.TimeoutCreate), func() *resource.RetryError {
-			tasksClient := orgs.NewTasksClient(connectorWrapper)
-			task, err := tasksClient.Get(orgID, task.Id)
-			if err != nil || *task.Status == "FAILED" {
-				if err.Error() == (errors.Unauthenticated{}.Error()) {
-					log.Printf("Authentication error : %v", errors.Unauthenticated{}.Error())
-					err = connectorWrapper.authenticate()
-					if err != nil {
-						return resource.NonRetryableError(fmt.Errorf("authentication error from Cloud Service Provider : %s", err))
-					}
-					return resource.RetryableError(fmt.Errorf("instance update still in progress"))
-				}
-				return resource.NonRetryableError(fmt.Errorf("error updating microsoft licensing configuration : %v", err))
-			}
-			if *task.Status == "FAILED" {
-				return resource.NonRetryableError(fmt.Errorf("task failed to update microsoft licensing configuration"))
-			} else if *task.Status != "FINISHED" {
-				return resource.RetryableError(fmt.Errorf("expected microsoft licensing configuration to be updated but was in state %s", *task.Status))
+			taskErr := retryTaskUntilFinished(connectorWrapper, func() (model.Task, error) {
+				return getTask(connectorWrapper, task.Id)
+			}, "failed updating microsoft licensing configuration", nil)
+			if taskErr != nil {
+				return taskErr
 			}
 			err = resourceSddcRead(d, m)
 			if err == nil {

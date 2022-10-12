@@ -99,7 +99,7 @@ func testCheckVmcSrmNodeDestroy(s *terraform.State) error {
 func testAccVmcSrmNodeConfigBasic(srmExtensionKeySuffix string) string {
 	return fmt.Sprintf(`
 resource "vmc_sddc" "srm_node_test_sddc" {
-	sddc_name           = "srm_node_test_sddc"
+	sddc_name           = "terraform_srm_node_test"
 	num_host            = 2
 	provider_type       = "ZEROCLOUD"
 	host_instance_type  = "I3_METAL"

@@ -49,7 +49,7 @@ func TestAccResourceVmcClusterZerocloud(t *testing.T) {
 	var sddcResource model.Sddc
 	clusterRef := "cluster_zerocloud"
 	resourceName := "vmc_cluster." + clusterRef
-	sddcName := "terraform_test_sddc_" + acctest.RandStringFromCharSet(10, acctest.CharSetAlphaNum)
+	sddcName := "terraform_cluster_test_" + acctest.RandStringFromCharSet(10, acctest.CharSetAlphaNum)
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheckZerocloud(t) },
 		Providers:    testAccProviders,
@@ -235,7 +235,17 @@ resource "vmc_sddc" "sddc_zerocloud_cluster" {
 resource "vmc_cluster" %q {
 	sddc_id = vmc_sddc.sddc_zerocloud_cluster.id
 	host_instance_type = "I3_METAL"
-	num_hosts = 4
+	num_hosts = 2
+	microsoft_licensing_config {
+        mssql_licensing = "DISABLED"
+        windows_licensing = "ENABLED"
+    }
+}
+
+resource "vmc_cluster" "cluster_2" {
+	sddc_id = vmc_sddc.sddc_zerocloud_cluster.id
+	host_instance_type = "I3_METAL"
+	num_hosts = 2
 	microsoft_licensing_config {
         mssql_licensing = "DISABLED"
         windows_licensing = "ENABLED"

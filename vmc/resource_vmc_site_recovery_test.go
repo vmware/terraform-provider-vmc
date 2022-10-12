@@ -103,7 +103,7 @@ func testCheckVmcSiteRecoveryDestroy(s *terraform.State) error {
 func testAccVmcSiteConfigBasic(srmExtensionKeySuffix string) string {
 	return fmt.Sprintf(`
 resource "vmc_sddc" "srm_test_sddc" {
-	sddc_name           = "srm_test_sddc"
+	sddc_name           = "terraform_srm_test"
 	num_host            = 2
 	provider_type       = "ZEROCLOUD"
 	host_instance_type = "I3_METAL"
