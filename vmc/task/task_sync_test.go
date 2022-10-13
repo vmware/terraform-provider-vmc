@@ -1,9 +1,13 @@
-package vmc
+/* Copyright 2022 VMware, Inc.
+   SPDX-License-Identifier: MPL-2.0 */
+
+package task
 
 import (
 	"fmt"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/stretchr/testify/assert"
+	"github.com/vmware/terraform-provider-vmc/vmc/connector"
 	"github.com/vmware/vsphere-automation-sdk-go/lib/vapi/std/errors"
 	"github.com/vmware/vsphere-automation-sdk-go/services/vmc/model"
 	"testing"
@@ -18,15 +22,15 @@ func TestKeyedMutexLock(t *testing.T) {
 	lock1Obtained := false
 	lock2Obtained := false
 
-	var unlockFunction = keyedMutex.lock(key1)
+	var unlockFunction = keyedMutex.Lock(key1)
 	// Try to flip the flag 1 in a separate thread
 	go func() {
-		keyedMutex.lock(key1)
+		keyedMutex.Lock(key1)
 		lock1Obtained = true
 	}()
 	// Try to flip the flag 2 in a separate thread
 	go func() {
-		keyedMutex.lock(key2)
+		keyedMutex.Lock(key2)
 		lock2Obtained = true
 	}()
 
@@ -40,23 +44,23 @@ func TestKeyedMutexLock(t *testing.T) {
 	assert.True(t, lock1Obtained)
 }
 
-type AuthenticatorMock struct {
+type AuthenticatorStub struct {
 }
 
-func (connector AuthenticatorMock) authenticate() error {
+func (stub AuthenticatorStub) Authenticate() error {
 	return nil
 }
 
-type BrokenAuthenticatorMock struct {
+type BrokenAuthenticatorStub struct {
 }
 
-func (connector BrokenAuthenticatorMock) authenticate() error {
+func (stub BrokenAuthenticatorStub) Authenticate() error {
 	return fmt.Errorf("authentication broken")
 }
 
 func TestRetryTaskUntilFinished(t *testing.T) {
 	type inputStruct struct {
-		connectorWrapper Authenticator
+		connectorWrapper connector.Authenticator
 		taskSupplier     func() (model.Task, error)
 		errorMessage     string
 		finishCallback   func(task model.Task)
@@ -70,7 +74,7 @@ func TestRetryTaskUntilFinished(t *testing.T) {
 		// Unauthenticated handling - retry authentication
 		{
 			input: inputStruct{
-				connectorWrapper: AuthenticatorMock{},
+				connectorWrapper: AuthenticatorStub{},
 				taskSupplier: func() (model.Task, error) {
 					return model.Task{}, errors.Unauthenticated{}
 				},
@@ -84,7 +88,7 @@ func TestRetryTaskUntilFinished(t *testing.T) {
 		// Unauthenticated handling - fail
 		{
 			input: inputStruct{
-				connectorWrapper: BrokenAuthenticatorMock{},
+				connectorWrapper: BrokenAuthenticatorStub{},
 				taskSupplier: func() (model.Task, error) {
 					return model.Task{Id: "Unauthenticated handling - fail"}, errors.Unauthenticated{}
 				},
@@ -98,7 +102,7 @@ func TestRetryTaskUntilFinished(t *testing.T) {
 		// Service unavailable retry
 		{
 			input: inputStruct{
-				connectorWrapper: AuthenticatorMock{},
+				connectorWrapper: AuthenticatorStub{},
 				taskSupplier: func() (model.Task, error) {
 					// Set the global counter to the last acceptable value
 					serviceUnavailableRetries = 19
@@ -115,7 +119,7 @@ func TestRetryTaskUntilFinished(t *testing.T) {
 		// Service unavailable fail
 		{
 			input: inputStruct{
-				connectorWrapper: AuthenticatorMock{},
+				connectorWrapper: AuthenticatorStub{},
 				taskSupplier: func() (model.Task, error) {
 					return model.Task{Id: "Service unavailable fail"}, errors.ServiceUnavailable{}
 				},
@@ -129,7 +133,7 @@ func TestRetryTaskUntilFinished(t *testing.T) {
 		// Task status failed
 		{
 			input: inputStruct{
-				connectorWrapper: AuthenticatorMock{},
+				connectorWrapper: AuthenticatorStub{},
 				taskSupplier: func() (model.Task, error) {
 					status := model.Task_STATUS_FAILED
 					taskErrorMessage := "mnogoGrumna"
@@ -147,7 +151,7 @@ func TestRetryTaskUntilFinished(t *testing.T) {
 		// Task status not finished
 		{
 			input: inputStruct{
-				connectorWrapper: AuthenticatorMock{},
+				connectorWrapper: AuthenticatorStub{},
 				taskSupplier: func() (model.Task, error) {
 					status := model.Task_STATUS_STARTED
 					taskType := "notMyType"
@@ -163,7 +167,7 @@ func TestRetryTaskUntilFinished(t *testing.T) {
 		// Task status finished
 		{
 			input: inputStruct{
-				connectorWrapper: AuthenticatorMock{},
+				connectorWrapper: AuthenticatorStub{},
 				taskSupplier: func() (model.Task, error) {
 					status := model.Task_STATUS_FINISHED
 					return model.Task{Status: &status}, nil
@@ -178,7 +182,7 @@ func TestRetryTaskUntilFinished(t *testing.T) {
 		},
 	}
 	for _, testCase := range tests {
-		got := retryTaskUntilFinished(testCase.input.connectorWrapper,
+		got := RetryTaskUntilFinished(testCase.input.connectorWrapper,
 			testCase.input.taskSupplier,
 			testCase.input.errorMessage,
 			testCase.input.finishCallback)

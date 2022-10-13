@@ -5,6 +5,7 @@ package vmc
 
 import (
 	"fmt"
+	"github.com/vmware/terraform-provider-vmc/vmc/connector"
 	"github.com/vmware/vsphere-automation-sdk-go/services/vmc/orgs/sddcs"
 	"log"
 
@@ -151,10 +152,10 @@ func dataSourceVmcSddc() *schema.Resource {
 }
 
 func dataSourceVmcSddcRead(d *schema.ResourceData, m interface{}) error {
-	connector := (m.(*ConnectorWrapper)).Connector
-	sddcClient := orgs.NewSddcsClient(connector)
+	connectorWrapper := (m.(*connector.ConnectorWrapper)).Connector
+	sddcClient := orgs.NewSddcsClient(connectorWrapper)
 	sddcID := d.Get("sddc_id").(string)
-	orgID := (m.(*ConnectorWrapper)).OrgID
+	orgID := (m.(*connector.ConnectorWrapper)).OrgID
 	sddc, err := sddcClient.Get(orgID, sddcID)
 	if err != nil {
 		if err.Error() == errors.NewNotFound().Error() {
@@ -197,7 +198,7 @@ func dataSourceVmcSddcRead(d *schema.ResourceData, m interface{}) error {
 		d.Set("region", sddc.ResourceConfig.Region)
 		// Query the API for primary Cluster ID so only it's hosts can be added to the
 		// sddc host
-		primaryClusterClient := sddcs.NewPrimaryclusterClient(connector)
+		primaryClusterClient := sddcs.NewPrimaryclusterClient(connectorWrapper)
 		primaryCluster, err := primaryClusterClient.Get(orgID, sddcID)
 		if err != nil {
 			return HandleReadError(d, "Primary Cluster", sddcID, err)

@@ -1,38 +1,17 @@
-/* Copyright 2019 VMware, Inc.
+/* Copyright 2019-2022 VMware, Inc.
    SPDX-License-Identifier: MPL-2.0 */
 
 package vmc
 
 import (
 	"fmt"
+	"github.com/vmware/terraform-provider-vmc/vmc/connector"
+	"github.com/vmware/terraform-provider-vmc/vmc/constants"
 	"net/http"
 	"os"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-	"github.com/vmware/vsphere-automation-sdk-go/runtime/protocol/client"
 )
-
-type Authenticator interface {
-	authenticate() error
-}
-
-type ConnectorWrapper struct {
-	client.Connector
-	RefreshToken string
-	OrgID        string
-	VmcURL       string
-	CspURL       string
-}
-
-func (c *ConnectorWrapper) authenticate() error {
-	var err error
-	httpClient := http.Client{}
-	c.Connector, err = NewClientConnectorByRefreshToken(c.RefreshToken, c.VmcURL, c.CspURL, httpClient)
-	if err != nil {
-		return err
-	}
-	return nil
-}
 
 // Provider for VMware VMC Console APIs. Returns terraform.ResourceProvider
 func Provider() *schema.Provider {
@@ -41,22 +20,22 @@ func Provider() *schema.Provider {
 			"refresh_token": {
 				Type:        schema.TypeString,
 				Required:    true,
-				DefaultFunc: schema.EnvDefaultFunc(APIToken, nil),
+				DefaultFunc: schema.EnvDefaultFunc(constants.ApiToken, nil),
 			},
 			"org_id": {
 				Type:        schema.TypeString,
 				Required:    true,
-				DefaultFunc: schema.EnvDefaultFunc(OrgID, nil),
+				DefaultFunc: schema.EnvDefaultFunc(constants.OrgID, nil),
 			},
 			"vmc_url": {
 				Type:        schema.TypeString,
 				Optional:    true,
-				DefaultFunc: schema.EnvDefaultFunc(VMCUrl, DefaultVMCUrl),
+				DefaultFunc: schema.EnvDefaultFunc(constants.VmcUrl, constants.DefaultVmcUrl),
 			},
 			"csp_url": {
 				Type:        schema.TypeString,
 				Optional:    true,
-				DefaultFunc: schema.EnvDefaultFunc(CSPUrl, DefaultCSPUrl),
+				DefaultFunc: schema.EnvDefaultFunc(constants.CspUrl, constants.DefaultCspUrl),
 			},
 		},
 
@@ -85,16 +64,22 @@ func providerConfigure(d *schema.ResourceData) (interface{}, error) {
 		return nil, fmt.Errorf("refresh token cannot be empty")
 	}
 	// set refresh token to env variable so that it can be used by other connectors
-	os.Setenv(APIToken, refreshToken)
+	os.Setenv(constants.ApiToken, refreshToken)
 	vmcURL := d.Get("vmc_url").(string)
 	cspURL := d.Get("csp_url").(string)
-	os.Setenv(CSPUrl, cspURL)
+	os.Setenv(constants.CspUrl, cspURL)
 	orgID := d.Get("org_id").(string)
 	httpClient := http.Client{}
-	connector, err := NewClientConnectorByRefreshToken(refreshToken, vmcURL, cspURL, httpClient)
+	apiConnector, err := connector.NewClientConnectorByRefreshToken(refreshToken, vmcURL, cspURL, httpClient)
 	if err != nil {
 		return nil, HandleCreateError("Client connector", err)
 	}
 
-	return &ConnectorWrapper{connector, refreshToken, orgID, vmcURL, cspURL}, nil
+	return &connector.ConnectorWrapper{
+			Connector:    apiConnector,
+			RefreshToken: refreshToken,
+			OrgID:        orgID,
+			VmcURL:       vmcURL,
+			CspURL:       cspURL},
+		nil
 }

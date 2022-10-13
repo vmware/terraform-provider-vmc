@@ -1,10 +1,11 @@
-/* Copyright 2019 VMware, Inc.
+/* Copyright 2019-2022 VMware, Inc.
    SPDX-License-Identifier: MPL-2.0 */
 
 package vmc
 
 import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/vmware/terraform-provider-vmc/vmc/connector"
 	"github.com/vmware/vsphere-automation-sdk-go/services/vmc"
 )
 
@@ -33,9 +34,9 @@ func dataSourceVmcOrg() *schema.Resource {
 }
 
 func dataSourceVmcOrgRead(d *schema.ResourceData, m interface{}) error {
-	orgID := (m.(*ConnectorWrapper)).OrgID
-	connector := (m.(*ConnectorWrapper)).Connector
-	orgClient := vmc.NewOrgsClient(connector)
+	orgID := (m.(*connector.ConnectorWrapper)).OrgID
+	connectorWrapper := (m.(*connector.ConnectorWrapper)).Connector
+	orgClient := vmc.NewOrgsClient(connectorWrapper)
 	org, err := orgClient.Get(orgID)
 	if err != nil {
 		return HandleDataSourceReadError(d, "VMC Organization", err)

@@ -6,6 +6,9 @@ package vmc
 import (
 	"context"
 	"fmt"
+	"github.com/vmware/terraform-provider-vmc/vmc/connector"
+	"github.com/vmware/terraform-provider-vmc/vmc/constants"
+	task "github.com/vmware/terraform-provider-vmc/vmc/task"
 	"log"
 	"strings"
 	"time"
@@ -21,7 +24,7 @@ import (
 )
 
 // clusterMutationKeyedMutex a mutex that allows only a single cluster per sddc to be mutated.
-var clusterMutationKeyedMutex = KeyedMutex{}
+var clusterMutationKeyedMutex = task.KeyedMutex{}
 
 func resourceCluster() *schema.Resource {
 	return &schema.Resource{
@@ -35,10 +38,10 @@ func resourceCluster() *schema.Resource {
 				if len(idParts) != 2 || idParts[0] == "" || idParts[1] == "" {
 					return nil, fmt.Errorf("unexpected format of ID (%q), expected id,sddc_id", d.Id())
 				}
-				if err := IsValidUUID(idParts[0]); err != nil {
+				if err := IsValidUuid(idParts[0]); err != nil {
 					return nil, fmt.Errorf("invalid format for id : %v", err)
 				}
-				if err := IsValidUUID(idParts[1]); err != nil {
+				if err := IsValidUuid(idParts[1]); err != nil {
 					return nil, fmt.Errorf("invalid format for sddc_id : %v", err)
 				}
 
@@ -57,11 +60,11 @@ func resourceCluster() *schema.Resource {
 			newInstanceType := d.Get("host_instance_type").(string)
 
 			switch newInstanceType {
-			case HostInstancetypeI3, HostInstancetypeI3EN, HostInstancetypeI4I:
+			case constants.HostInstancetypeI3, constants.HostInstancetypeI3EN, constants.HostInstancetypeI4I:
 				if d.Get("storage_capacity").(string) != "" {
 					return fmt.Errorf("storage_capacity is not supported for host_instance_type %q", newInstanceType)
 				}
-			case HostInstancetypeR5:
+			case constants.HostInstancetypeR5:
 				if d.Get("storage_capacity").(string) == "" {
 					return fmt.Errorf("storage_capacity is required for host_instance_type %q "+
 						"Possible values are 15TB, 20TB, 25TB, 30TB, 35TB per host", newInstanceType)
@@ -84,7 +87,7 @@ func clusterSchema() map[string]*schema.Schema {
 		"num_hosts": {
 			Type:         schema.TypeInt,
 			Required:     true,
-			ValidateFunc: validation.IntBetween(MinHosts, MaxHosts),
+			ValidateFunc: validation.IntBetween(constants.MinHosts, constants.MaxHosts),
 			Description:  "The number of hosts.",
 		},
 		"host_cpu_cores_count": {
@@ -97,7 +100,7 @@ func clusterSchema() map[string]*schema.Schema {
 			Optional:    true,
 			Description: "The instance type for the esx hosts added to this cluster.",
 			ValidateFunc: validation.StringInSlice(
-				[]string{HostInstancetypeI3, HostInstancetypeR5, HostInstancetypeI3EN, HostInstancetypeI4I}, false),
+				[]string{constants.HostInstancetypeI3, constants.HostInstancetypeR5, constants.HostInstancetypeI3EN, constants.HostInstancetypeI4I}, false),
 		},
 		"storage_capacity": {
 			Type:     schema.TypeString,
@@ -112,7 +115,7 @@ func clusterSchema() map[string]*schema.Schema {
 			Optional: true,
 			Computed: true,
 			ValidateFunc: validation.StringInSlice(
-				[]string{StorageScaleUpPolicyType, CostPolicyType, PerformancePolicyType, RapidScaleUpPolicyType}, false),
+				[]string{constants.StorageScaleUpPolicyType, constants.CostPolicyType, constants.PerformancePolicyType, constants.RapidScaleUpPolicyType}, false),
 			Description: "The EDRS policy type. This can either be 'cost', 'performance', 'storage-scaleup' or 'rapid-scaleup'. Default : storage-scaleup. ",
 		},
 		"enable_edrs": {
@@ -127,7 +130,7 @@ func clusterSchema() map[string]*schema.Schema {
 			// Exact value known after create
 			Optional:     true,
 			Computed:     true,
-			ValidateFunc: validation.IntBetween(MinHosts, MaxHosts),
+			ValidateFunc: validation.IntBetween(constants.MinHosts, constants.MaxHosts),
 			Description:  "The minimum number of hosts that the cluster can scale in to.",
 		},
 		"max_hosts": {
@@ -135,7 +138,7 @@ func clusterSchema() map[string]*schema.Schema {
 			// Exact value known after create
 			Optional:     true,
 			Computed:     true,
-			ValidateFunc: validation.IntBetween(MinHosts, MaxHosts),
+			ValidateFunc: validation.IntBetween(constants.MinHosts, constants.MaxHosts),
 			Description:  "The maximum number of hosts that the cluster can scale out to.",
 		},
 		"microsoft_licensing_config": {
@@ -147,14 +150,14 @@ func clusterSchema() map[string]*schema.Schema {
 						Optional:    true,
 						Description: "The status of MSSQL licensing for this SDDC’s clusters. Possible values : enabled, ENABLED, disabled, DISABLED.",
 						ValidateFunc: validation.StringInSlice([]string{
-							LicenseConfigEnabled, LicenseConfigDisabled, CapitalLicenseConfigEnabled, CapitalLicenseConfigDisabled}, false),
+							constants.LicenseConfigEnabled, constants.LicenseConfigDisabled, constants.CapitalLicenseConfigEnabled, constants.CapitalLicenseConfigDisabled}, false),
 					},
 					"windows_licensing": {
 						Type:        schema.TypeString,
 						Optional:    true,
 						Description: "The status of Windows licensing for this SDDC's clusters. Possible values : enabled, ENABLED, disabled, DISABLED.",
 						ValidateFunc: validation.StringInSlice([]string{
-							LicenseConfigEnabled, LicenseConfigDisabled, CapitalLicenseConfigEnabled, CapitalLicenseConfigDisabled}, false),
+							constants.LicenseConfigEnabled, constants.LicenseConfigDisabled, constants.CapitalLicenseConfigEnabled, constants.CapitalLicenseConfigDisabled}, false),
 					},
 				},
 			},
@@ -175,26 +178,26 @@ func resourceClusterCreate(d *schema.ResourceData, m interface{}) error {
 		return HandleCreateError("Cluster", err)
 	}
 	// Obtain a lock to allow only a single cluster creation at a time for a specific SDDC.
-	var unlockFunction = clusterMutationKeyedMutex.lock(sddcID)
-	connectorWrapper := m.(*ConnectorWrapper)
-	orgID := m.(*ConnectorWrapper).OrgID
+	var unlockFunction = clusterMutationKeyedMutex.Lock(sddcID)
+	connectorWrapper := m.(*connector.ConnectorWrapper)
+	orgID := m.(*connector.ConnectorWrapper).OrgID
 	clusterClient := sddcs.NewClustersClient(connectorWrapper)
-	task, err := clusterClient.Create(orgID, sddcID, *clusterConfig)
+	clusterCreateTask, err := clusterClient.Create(orgID, sddcID, *clusterConfig)
 	if err != nil {
 		return HandleCreateError("Cluster", err)
 	}
 	var clusterID = ""
 	return resource.RetryContext(context.Background(), d.Timeout(schema.TimeoutCreate), func() *resource.RetryError {
-		taskErr := retryTaskUntilFinished(connectorWrapper,
+		taskErr := task.RetryTaskUntilFinished(connectorWrapper,
 			func() (model.Task, error) {
-				return getTask(connectorWrapper, task.Id)
+				return task.GetTask(connectorWrapper, clusterCreateTask.Id)
 			},
 			"error creating cluster ",
 			func(task model.Task) {
 				unlockFunction()
 				// Obtain the ID of the newly created cluster
-				if task.Params.HasField(ClusterIdFieldName) {
-					clusterID, err = task.Params.String(ClusterIdFieldName)
+				if task.Params.HasField(constants.ClusterIdFieldName) {
+					clusterID, err = task.Params.String(constants.ClusterIdFieldName)
 					d.SetId(clusterID)
 				}
 			})
@@ -213,11 +216,11 @@ func resourceClusterCreate(d *schema.ResourceData, m interface{}) error {
 }
 
 func resourceClusterRead(d *schema.ResourceData, m interface{}) error {
-	connector := (m.(*ConnectorWrapper)).Connector
+	connectorWrapper := (m.(*connector.ConnectorWrapper)).Connector
 	clusterID := d.Id()
 	sddcID := d.Get("sddc_id").(string)
-	orgID := (m.(*ConnectorWrapper)).OrgID
-	sddc, err := GetSDDC(connector, orgID, sddcID)
+	orgID := (m.(*connector.ConnectorWrapper)).OrgID
+	sddc, err := GetSddc(connectorWrapper, orgID, sddcID)
 	if err != nil {
 		return HandleReadError(d, "Cluster", clusterID, err)
 	}
@@ -260,7 +263,7 @@ func resourceClusterRead(d *schema.ResourceData, m interface{}) error {
 		}
 	}
 
-	edrsPolicyClient := autoscalercluster.NewEdrsPolicyClient(connector)
+	edrsPolicyClient := autoscalercluster.NewEdrsPolicyClient(connectorWrapper)
 	edrsPolicy, err := edrsPolicyClient.Get(orgID, sddcID, clusterID)
 	if err != nil {
 		return HandleReadError(d, "Cluster", clusterID, err)
@@ -273,21 +276,21 @@ func resourceClusterRead(d *schema.ResourceData, m interface{}) error {
 }
 
 func resourceClusterDelete(d *schema.ResourceData, m interface{}) error {
-	connectorWrapper := m.(*ConnectorWrapper)
+	connectorWrapper := m.(*connector.ConnectorWrapper)
 	clusterID := d.Id()
 
-	orgID := (m.(*ConnectorWrapper)).OrgID
+	orgID := (m.(*connector.ConnectorWrapper)).OrgID
 	sddcID := d.Get("sddc_id").(string)
-	var unlockFunction = clusterMutationKeyedMutex.lock(sddcID)
+	var unlockFunction = clusterMutationKeyedMutex.Lock(sddcID)
 	clusterClient := sddcs.NewClustersClient(connectorWrapper)
-	task, err := clusterClient.Delete(orgID, sddcID, clusterID)
+	clusterDeleteTask, err := clusterClient.Delete(orgID, sddcID, clusterID)
 	if err != nil {
 		return HandleDeleteError("Cluster", clusterID, err)
 	}
 	return resource.RetryContext(context.Background(), d.Timeout(schema.TimeoutDelete), func() *resource.RetryError {
-		taskErr := retryTaskUntilFinished(connectorWrapper,
+		taskErr := task.RetryTaskUntilFinished(connectorWrapper,
 			func() (model.Task, error) {
-				return getTask(connectorWrapper, task.Id)
+				return task.GetTask(connectorWrapper, clusterDeleteTask.Id)
 			},
 			"error deleting cluster "+clusterID,
 			func(task model.Task) {
@@ -302,10 +305,10 @@ func resourceClusterDelete(d *schema.ResourceData, m interface{}) error {
 }
 
 func resourceClusterUpdate(d *schema.ResourceData, m interface{}) error {
-	connectorWrapper := m.(*ConnectorWrapper)
+	connectorWrapper := m.(*connector.ConnectorWrapper)
 	esxsClient := sddcs.NewEsxsClient(connectorWrapper)
 	sddcID := d.Get("sddc_id").(string)
-	orgID := (m.(*ConnectorWrapper)).OrgID
+	orgID := (m.(*connector.ConnectorWrapper)).OrgID
 	clusterID := d.Id()
 
 	// Add or remove hosts from a cluster
@@ -327,15 +330,15 @@ func resourceClusterUpdate(d *schema.ResourceData, m interface{}) error {
 			ClusterId: &clusterID,
 		}
 
-		var unlockFunction = clusterMutationKeyedMutex.lock(sddcID)
-		task, err := esxsClient.Create(orgID, sddcID, esxConfig, &action)
+		var unlockFunction = clusterMutationKeyedMutex.Lock(sddcID)
+		hostUpdateTask, err := esxsClient.Create(orgID, sddcID, esxConfig, &action)
 		if err != nil {
 			return HandleUpdateError("Cluster", err)
 		}
 		err = resource.RetryContext(context.Background(), d.Timeout(schema.TimeoutUpdate), func() *resource.RetryError {
-			taskErr := retryTaskUntilFinished(connectorWrapper,
+			taskErr := task.RetryTaskUntilFinished(connectorWrapper,
 				func() (model.Task, error) {
-					return getTask(connectorWrapper, task.Id)
+					return task.GetTask(connectorWrapper, hostUpdateTask.Id)
 				},
 				"error updating hosts for cluster "+clusterID,
 				func(task model.Task) {
@@ -366,20 +369,18 @@ func resourceClusterUpdate(d *schema.ResourceData, m interface{}) error {
 			MinHosts:   &minHosts,
 			MaxHosts:   &maxHosts,
 		}
-		if policyType == StorageScaleUpPolicyType && !enableEDRS {
-			return fmt.Errorf("EDRS policy %s is the default and cannot be disabled", StorageScaleUpPolicyType)
+		if policyType == constants.StorageScaleUpPolicyType && !enableEDRS {
+			return fmt.Errorf("EDRS policy %s is the default and cannot be disabled", constants.StorageScaleUpPolicyType)
 		}
-		var unlockFunction = clusterMutationKeyedMutex.lock(sddcID)
-		task, err := edrsPolicyClient.Post(orgID, sddcID, clusterID, *edrsPolicy)
+		var unlockFunction = clusterMutationKeyedMutex.Lock(sddcID)
+		edrsPolicyUpdateTask, err := edrsPolicyClient.Post(orgID, sddcID, clusterID, *edrsPolicy)
 		if err != nil {
 			return HandleUpdateError("EDRS Policy", err)
 		}
-		// The taskClient here has the same methods, but they return the autoscalerapi.Task instead of model.Task,
-		// so the retryTaskUntilFinished method cannot be used
 		return resource.RetryContext(context.Background(), d.Timeout(schema.TimeoutUpdate), func() *resource.RetryError {
-			taskErr := retryTaskUntilFinished(connectorWrapper,
+			taskErr := task.RetryTaskUntilFinished(connectorWrapper,
 				func() (model.Task, error) {
-					return getAutoscalerTask(connectorWrapper, task.Id)
+					return task.GetAutoscalerTask(connectorWrapper, edrsPolicyUpdateTask.Id)
 				},
 				"error updating EDRS policy configuration "+clusterID,
 				func(task model.Task) {
@@ -395,21 +396,21 @@ func resourceClusterUpdate(d *schema.ResourceData, m interface{}) error {
 			return resource.NonRetryableError(err)
 		})
 	}
-	// Update microsoft licensing config
+	// Update Microsoft licensing config
 	if d.HasChange("microsoft_licensing_config") {
 		configChangeParam := expandMsftLicenseConfig(d.Get("microsoft_licensing_config").([]interface{}))
 		publishClient := msft_licensing.NewPublishClient(connectorWrapper)
-		var unlockFunction = clusterMutationKeyedMutex.lock(sddcID)
-		task, err := publishClient.Post(orgID, sddcID, clusterID, *configChangeParam)
+		var unlockFunction = clusterMutationKeyedMutex.Lock(sddcID)
+		microsoftLicensingUpdateTask, err := publishClient.Post(orgID, sddcID, clusterID, *configChangeParam)
 		if err != nil {
 			return HandleUpdateError("Microsoft Licensing Config", err)
 		}
 		return resource.RetryContext(context.Background(), d.Timeout(schema.TimeoutCreate), func() *resource.RetryError {
-			taskErr := retryTaskUntilFinished(connectorWrapper,
+			taskErr := task.RetryTaskUntilFinished(connectorWrapper,
 				func() (model.Task, error) {
-					return getTask(connectorWrapper, task.Id)
+					return task.GetTask(connectorWrapper, microsoftLicensingUpdateTask.Id)
 				},
-				"error updating microsoft licensing configuration "+clusterID,
+				"error updating Microsoft licensing configuration "+clusterID,
 				func(task model.Task) {
 					unlockFunction()
 				})
@@ -440,7 +441,7 @@ func buildClusterConfig(d *schema.ResourceData) (*model.ClusterConfig, error) {
 	var storageCapacityConverted int64
 	storageCapacity := d.Get("storage_capacity").(string)
 	if len(strings.TrimSpace(storageCapacity)) > 0 {
-		storageCapacityConverted = ConvertStorageCapacitytoInt(storageCapacity)
+		storageCapacityConverted = ConvertStorageCapacityToInt(storageCapacity)
 	}
 	msftLicensingConfig := expandMsftLicenseConfig(d.Get("microsoft_licensing_config").([]interface{}))
 	return &model.ClusterConfig{

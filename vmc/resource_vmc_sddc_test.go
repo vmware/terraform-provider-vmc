@@ -7,6 +7,8 @@ import (
 	"fmt"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/stretchr/testify/assert"
+	"github.com/vmware/terraform-provider-vmc/vmc/connector"
+	"github.com/vmware/terraform-provider-vmc/vmc/constants"
 	"os"
 	"testing"
 
@@ -74,11 +76,10 @@ func testCheckVmcSddcExists(name string, sddcResource *model.Sddc) resource.Test
 		sddcID := rs.Primary.Attributes["id"]
 		sddcName := rs.Primary.Attributes["sddc_name"]
 
-		connectorWrapper := testAccProvider.Meta().(*ConnectorWrapper)
+		connectorWrapper := testAccProvider.Meta().(*connector.ConnectorWrapper)
 		orgID := connectorWrapper.OrgID
-		connector := connectorWrapper.Connector
 
-		sddcClient := orgs.NewSddcsClient(connector)
+		sddcClient := orgs.NewSddcsClient(connectorWrapper)
 		var err error
 		*sddcResource, err = sddcClient.Get(orgID, sddcID)
 		if err != nil {
@@ -106,9 +107,8 @@ func testCheckSddcAttributes(sddcResource *model.Sddc) resource.TestCheckFunc {
 
 func testCheckVmcSddcDestroy(s *terraform.State) error {
 
-	connectorWrapper := testAccProvider.Meta().(*ConnectorWrapper)
-	connector := connectorWrapper.Connector
-	sddcClient := orgs.NewSddcsClient(connector)
+	connectorWrapper := testAccProvider.Meta().(*connector.ConnectorWrapper)
+	sddcClient := orgs.NewSddcsClient(connectorWrapper)
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "vmc_sddc" {
@@ -175,7 +175,7 @@ resource "vmc_sddc" "sddc_1" {
   }
 }
 `,
-		os.Getenv(AWSAccountNumber),
+		os.Getenv(constants.AwsAccountNumber),
 		sddcName,
 	)
 }
@@ -222,7 +222,7 @@ resource "vmc_sddc" "sddc_zerocloud" {
   }
 }
 `,
-		os.Getenv(AWSAccountNumber),
+		os.Getenv(constants.AwsAccountNumber),
 		sddcName,
 	)
 }
@@ -236,25 +236,25 @@ func TestBuildAwsSddcConfigHostInstanceType(t *testing.T) {
 
 	tests := []test{
 		{input: map[string]interface{}{
-			"host_instance_type": HostInstancetypeI3,
+			"host_instance_type": constants.HostInstancetypeI3,
 		},
 			expected: model.SddcConfig_HOST_INSTANCE_TYPE_I3_METAL,
 			err:      nil,
 		},
 		{input: map[string]interface{}{
-			"host_instance_type": HostInstancetypeI3EN,
+			"host_instance_type": constants.HostInstancetypeI3EN,
 		},
 			expected: model.SddcConfig_HOST_INSTANCE_TYPE_I3EN_METAL,
 			err:      nil,
 		},
 		{input: map[string]interface{}{
-			"host_instance_type": HostInstancetypeI4I,
+			"host_instance_type": constants.HostInstancetypeI4I,
 		},
 			expected: model.SddcConfig_HOST_INSTANCE_TYPE_I4I_METAL,
 			err:      nil,
 		},
 		{input: map[string]interface{}{
-			"host_instance_type": HostInstancetypeR5,
+			"host_instance_type": constants.HostInstancetypeR5,
 		},
 			expected: model.SddcConfig_HOST_INSTANCE_TYPE_R5_METAL,
 			err:      nil,

@@ -6,6 +6,7 @@ package vmc
 import (
 	"fmt"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/vmware/terraform-provider-vmc/vmc/constants"
 	"os"
 	"testing"
 )
@@ -21,7 +22,7 @@ func TestAccDataSourceVmcCustomerSubnetsBasic(t *testing.T) {
 					resource.TestCheckResourceAttr("data.vmc_customer_subnets.my_subnets", "ids.#", "4"),
 					// The following subnet IDs are tightly coupled to the AWS account number provided for testing.
 					// Since the provisioning of an AWS account incurs costs the hardcoded subnets IDs will have to do.
-					// If this tests fails it was probably ran with a different "AWSAccountNumber" than originally designed.
+					// If this tests fails it was probably ran with a different "AwsAccountNumber" than originally designed.
 					resource.TestCheckResourceAttr("data.vmc_customer_subnets.my_subnets", "ids.0", "subnet-01715c65359792049"),
 					resource.TestCheckResourceAttr("data.vmc_customer_subnets.my_subnets", "ids.1", "subnet-01d62fb7a6ef9ca1b"),
 					resource.TestCheckResourceAttr("data.vmc_customer_subnets.my_subnets", "ids.2", "subnet-0cd7c7fdd15b08b07"),
@@ -44,5 +45,5 @@ data "vmc_customer_subnets" "my_subnets" {
 	region = "US_WEST_2"
 }
 `,
-		os.Getenv(AWSAccountNumber))
+		os.Getenv(constants.AwsAccountNumber))
 }

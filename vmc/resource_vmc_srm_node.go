@@ -6,6 +6,9 @@ package vmc
 import (
 	"context"
 	"fmt"
+	"github.com/vmware/terraform-provider-vmc/vmc/connector"
+	"github.com/vmware/terraform-provider-vmc/vmc/constants"
+	task "github.com/vmware/terraform-provider-vmc/vmc/task"
 	"github.com/vmware/vsphere-automation-sdk-go/services/vmc/model"
 	"strings"
 	"time"
@@ -29,10 +32,10 @@ func resourceSrmNode() *schema.Resource {
 				if len(idParts) != 2 || idParts[0] == "" || idParts[1] == "" {
 					return nil, fmt.Errorf("unexpected format of ID (%q), expected id,sddc_id", d.Id())
 				}
-				if err := IsValidUUID(idParts[0]); err != nil {
+				if err := IsValidUuid(idParts[0]); err != nil {
 					return nil, fmt.Errorf("invalid format for id : %v", err)
 				}
-				if err := IsValidUUID(idParts[1]); err != nil {
+				if err := IsValidUuid(idParts[1]); err != nil {
 					return nil, fmt.Errorf("invalid format for sddc_id : %v", err)
 				}
 
@@ -68,33 +71,33 @@ func resourceSrmNode() *schema.Resource {
 }
 
 func resourceSrmNodeCreate(d *schema.ResourceData, m interface{}) error {
-	err := (m.(*ConnectorWrapper)).authenticate()
+	err := (m.(*connector.ConnectorWrapper)).Authenticate()
 	if err != nil {
 		return fmt.Errorf("authentication error from Cloud Service Provider: %s", err)
 	}
-	connectorWrapper := m.(*ConnectorWrapper)
+	connectorWrapper := m.(*connector.ConnectorWrapper)
 
 	siteRecoverySrmNodesClient := draas.NewSiteRecoverySrmNodesClient(connectorWrapper)
 
 	srmExtensionKeySuffix := d.Get("srm_node_extension_key_suffix").(string)
-	orgID := (m.(*ConnectorWrapper)).OrgID
+	orgID := (m.(*connector.ConnectorWrapper)).OrgID
 	sddcID := d.Get("sddc_id").(string)
 
 	provisionSrmConfigParam := &draasmodel.ProvisionSrmConfig{
 		SrmExtensionKeySuffix: &srmExtensionKeySuffix,
 	}
 
-	task, err := siteRecoverySrmNodesClient.Post(orgID, sddcID, provisionSrmConfigParam)
+	srmNodeCreateTask, err := siteRecoverySrmNodesClient.Post(orgID, sddcID, provisionSrmConfigParam)
 
 	if err != nil {
 		return HandleCreateError("SRM Node", err)
 	}
 
-	d.SetId(*task.ResourceId)
+	d.SetId(*srmNodeCreateTask.ResourceId)
 	return resource.RetryContext(context.Background(), d.Timeout(schema.TimeoutCreate), func() *resource.RetryError {
-		taskErr := retryTaskUntilFinished(connectorWrapper,
+		taskErr := task.RetryTaskUntilFinished(connectorWrapper,
 			func() (model.Task, error) {
-				return getDraasTask(connectorWrapper, task.Id)
+				return task.GetDraasTask(connectorWrapper, srmNodeCreateTask.Id)
 			},
 			"error creating SRM node",
 			nil)
@@ -110,11 +113,11 @@ func resourceSrmNodeCreate(d *schema.ResourceData, m interface{}) error {
 }
 
 func resourceSrmNodeRead(d *schema.ResourceData, m interface{}) error {
-	connector := (m.(*ConnectorWrapper)).Connector
-	orgID := (m.(*ConnectorWrapper)).OrgID
+	connectorWrapper := (m.(*connector.ConnectorWrapper)).Connector
+	orgID := (m.(*connector.ConnectorWrapper)).OrgID
 	sddcID := d.Get("sddc_id").(string)
 	srmNodeID := d.Id()
-	siteRecoveryClient := draas.NewSiteRecoveryClient(connector)
+	siteRecoveryClient := draas.NewSiteRecoveryClient(connectorWrapper)
 	siteRecovery, err := siteRecoveryClient.Get(orgID, sddcID)
 	if err != nil {
 		return HandleReadError(d, "SRM Node", sddcID, err)
@@ -132,8 +135,8 @@ func resourceSrmNodeRead(d *schema.ResourceData, m interface{}) error {
 			if SRMNode.VmMorefId != nil {
 				srmNodeMap["vm_moref_id"] = *SRMNode.VmMorefId
 			}
-			hostName := strings.TrimPrefix(*SRMNode.Hostname, SRMPrefix)
-			partStr := strings.Split(hostName, SDDCSuffix)
+			hostName := strings.TrimPrefix(*SRMNode.Hostname, constants.SrmPrefix)
+			partStr := strings.Split(hostName, constants.SddcSuffix)
 			d.Set("srm_node_extension_key_suffix", partStr[0])
 			break
 		}
@@ -143,20 +146,20 @@ func resourceSrmNodeRead(d *schema.ResourceData, m interface{}) error {
 }
 
 func resourceSrmNodeDelete(d *schema.ResourceData, m interface{}) error {
-	connectorWrapper := m.(*ConnectorWrapper)
+	connectorWrapper := m.(*connector.ConnectorWrapper)
 	siteRecoverySrmNodesClient := draas.NewSiteRecoverySrmNodesClient(connectorWrapper)
 
-	orgID := (m.(*ConnectorWrapper)).OrgID
+	orgID := (m.(*connector.ConnectorWrapper)).OrgID
 	sddcID := d.Get("sddc_id").(string)
 	srmNodeID := d.Id()
-	task, err := siteRecoverySrmNodesClient.Delete(orgID, sddcID, srmNodeID)
+	srmNodeDeleteTask, err := siteRecoverySrmNodesClient.Delete(orgID, sddcID, srmNodeID)
 	if err != nil {
 		return HandleDeleteError("SRM Node", sddcID, err)
 	}
 	return resource.RetryContext(context.Background(), d.Timeout(schema.TimeoutDelete), func() *resource.RetryError {
-		taskErr := retryTaskUntilFinished(connectorWrapper,
+		taskErr := task.RetryTaskUntilFinished(connectorWrapper,
 			func() (model.Task, error) {
-				return getDraasTask(connectorWrapper, task.Id)
+				return task.GetDraasTask(connectorWrapper, srmNodeDeleteTask.Id)
 			},
 			"failed to delete SRM node",
 			nil)

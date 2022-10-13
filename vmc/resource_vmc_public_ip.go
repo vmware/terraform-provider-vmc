@@ -25,10 +25,10 @@ func resourcePublicIp() *schema.Resource {
 				if len(idParts) != 2 || idParts[0] == "" || idParts[1] == "" {
 					return nil, fmt.Errorf("unexpected format of ID (%q), expected public_ip_id,nsxt_reverse_proxy_url", d.Id())
 				}
-				if err := IsValidUUID(idParts[0]); err != nil {
+				if err := IsValidUuid(idParts[0]); err != nil {
 					return nil, fmt.Errorf("invalid format for public_ip_id : %v", err)
 				}
-				if err := IsValidURL(idParts[1]); err != nil {
+				if err := IsValidUrl(idParts[1]); err != nil {
 					return nil, fmt.Errorf("invalid format for nsxt_reverse_proxy_url : %v", err)
 				}
 				d.SetId(idParts[0])
@@ -59,7 +59,7 @@ func resourcePublicIp() *schema.Resource {
 
 func resourcePublicIpCreate(d *schema.ResourceData, m interface{}) error {
 	nsxtReverseProxyUrl := d.Get("nsxt_reverse_proxy_url").(string)
-	connector, err := getNSXTReverseProxyURLConnector(nsxtReverseProxyUrl)
+	connector, err := getNsxtReverseProxyURLConnector(nsxtReverseProxyUrl)
 	if err != nil {
 		return HandleCreateError("NSXT reverse proxy URL connector", err)
 	}
@@ -87,7 +87,7 @@ func resourcePublicIpCreate(d *schema.ResourceData, m interface{}) error {
 
 func resourcePublicIpRead(d *schema.ResourceData, m interface{}) error {
 	nsxtReverseProxyUrl := d.Get("nsxt_reverse_proxy_url").(string)
-	connector, err := getNSXTReverseProxyURLConnector(nsxtReverseProxyUrl)
+	connector, err := getNsxtReverseProxyURLConnector(nsxtReverseProxyUrl)
 	if err != nil {
 		return HandleCreateError("NSXT reverse proxy URL connector", err)
 	}
@@ -124,7 +124,7 @@ func resourcePublicIpRead(d *schema.ResourceData, m interface{}) error {
 
 func resourcePublicIpUpdate(d *schema.ResourceData, m interface{}) error {
 	nsxtReverseProxyUrl := d.Get("nsxt_reverse_proxy_url").(string)
-	connector, err := getNSXTReverseProxyURLConnector(nsxtReverseProxyUrl)
+	connector, err := getNsxtReverseProxyURLConnector(nsxtReverseProxyUrl)
 	if err != nil {
 		return HandleCreateError("NSXT reverse proxy URL connector", err)
 	}
@@ -154,7 +154,7 @@ func resourcePublicIpUpdate(d *schema.ResourceData, m interface{}) error {
 
 func resourcePublicIpDelete(d *schema.ResourceData, m interface{}) error {
 	nsxtReverseProxyUrl := d.Get("nsxt_reverse_proxy_url").(string)
-	connector, err := getNSXTReverseProxyURLConnector(nsxtReverseProxyUrl)
+	connector, err := getNsxtReverseProxyURLConnector(nsxtReverseProxyUrl)
 	if err != nil {
 		return HandleCreateError("NSXT reverse proxy URL connector", err)
 	}

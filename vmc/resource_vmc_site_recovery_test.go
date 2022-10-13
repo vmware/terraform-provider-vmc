@@ -5,6 +5,7 @@ package vmc
 
 import (
 	"fmt"
+	"github.com/vmware/terraform-provider-vmc/vmc/connector"
 	"testing"
 
 	"github.com/vmware/vsphere-automation-sdk-go/services/vmc/draas"
@@ -51,11 +52,10 @@ func testCheckVmcSiteRecoveryExists(name string, siteRecovery *model.SiteRecover
 			return fmt.Errorf("not found: %s", name)
 		}
 		sddcID := rs.Primary.Attributes["sddc_id"]
-		connectorWrapper := testAccProvider.Meta().(*ConnectorWrapper)
-		connector := connectorWrapper.Connector
+		connectorWrapper := testAccProvider.Meta().(*connector.ConnectorWrapper)
 		orgID := connectorWrapper.OrgID
 
-		draasClient := draas.NewSiteRecoveryClient(connector)
+		draasClient := draas.NewSiteRecoveryClient(connectorWrapper)
 		var err error
 		*siteRecovery, err = draasClient.Get(orgID, sddcID)
 		if err != nil {
@@ -71,10 +71,8 @@ func testCheckVmcSiteRecoveryExists(name string, siteRecovery *model.SiteRecover
 }
 
 func testCheckVmcSiteRecoveryDestroy(s *terraform.State) error {
-
-	connectorWrapper := testAccProvider.Meta().(*ConnectorWrapper)
-	connector := connectorWrapper.Connector
-	draasClient := draas.NewSiteRecoveryClient(connector)
+	connectorWrapper := testAccProvider.Meta().(*connector.ConnectorWrapper)
+	draasClient := draas.NewSiteRecoveryClient(connectorWrapper)
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "vmc_site_recovery" {

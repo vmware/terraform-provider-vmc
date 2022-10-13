@@ -6,6 +6,9 @@ package vmc
 import (
 	"context"
 	"fmt"
+	"github.com/vmware/terraform-provider-vmc/vmc/connector"
+	"github.com/vmware/terraform-provider-vmc/vmc/constants"
+	task "github.com/vmware/terraform-provider-vmc/vmc/task"
 	"log"
 	"strings"
 	"time"
@@ -42,17 +45,17 @@ func resourceSddc() *schema.Resource {
 			deploymentType := d.Get("deployment_type").(string)
 			numHosts := d.Get("num_host").(int)
 
-			if deploymentType == MultiAvailabilityZone && numHosts < MinMultiAZHosts {
-				return fmt.Errorf("for MulitAZ deployment type number of hosts must be atleast %d ", MinMultiAZHosts)
+			if deploymentType == constants.MultiAvailabilityZone && numHosts < constants.MinMultiAZHosts {
+				return fmt.Errorf("for MulitAZ deployment type number of hosts must be atleast %d ", constants.MinMultiAZHosts)
 			}
 
 			newInstanceType := d.Get("host_instance_type").(string)
 			switch newInstanceType {
-			case HostInstancetypeI3, HostInstancetypeI3EN, HostInstancetypeI4I:
+			case constants.HostInstancetypeI3, constants.HostInstancetypeI3EN, constants.HostInstancetypeI4I:
 				if d.Get("storage_capacity").(string) != "" {
 					return fmt.Errorf("storage_capacity is not supported for host_instance_type %q", newInstanceType)
 				}
-			case HostInstancetypeR5:
+			case constants.HostInstancetypeR5:
 				if d.Get("storage_capacity").(string) == "" {
 					return fmt.Errorf("storage_capacity is required for host_instance_type %q "+
 						"Possible values are 15TB, 20TB, 25TB, 30TB, 35TB per host", newInstanceType)
@@ -82,9 +85,9 @@ func sddcSchema() map[string]*schema.Schema {
 		"size": {
 			Type:     schema.TypeString,
 			Optional: true,
-			Default:  MediumSDDCSize,
+			Default:  constants.MediumSddcSize,
 			ValidateFunc: validation.StringInSlice([]string{
-				MediumSDDCSize, CapitalMediumSDDCSize, LargeSDDCSize, CapitalLargeSDDCSize}, false),
+				constants.MediumSddcSize, constants.CapitalMediumSddcSize, constants.LargeSddcSize, constants.CapitalLargeSddcSize}, false),
 			Description: "The size of the vCenter and NSX appliances. 'large' or 'LARGE' SDDC size corresponds to a large vCenter appliance and large NSX appliance. 'medium' or 'MEDIUM' SDDC size corresponds to medium vCenter appliance and medium NSX appliance. Default : 'medium'.",
 		},
 		"account_link_sddc_config": {
@@ -137,9 +140,9 @@ func sddcSchema() map[string]*schema.Schema {
 			Type:     schema.TypeString,
 			Optional: true,
 			ForceNew: true,
-			Default:  AWSProviderType,
+			Default:  constants.AwsProviderType,
 			ValidateFunc: validation.StringInSlice([]string{
-				AWSProviderType, ZeroCloudProviderType}, false),
+				constants.AwsProviderType, constants.ZeroCloudProviderType}, false),
 		},
 		"skip_creating_vxlan": {
 			Type:     schema.TypeBool,
@@ -162,9 +165,9 @@ func sddcSchema() map[string]*schema.Schema {
 			Type:     schema.TypeString,
 			Optional: true,
 			ForceNew: true,
-			Default:  SingleAvailabilityZone,
+			Default:  constants.SingleAvailabilityZone,
 			ValidateFunc: validation.StringInSlice([]string{
-				SingleAvailabilityZone, MultiAvailabilityZone,
+				constants.SingleAvailabilityZone, constants.MultiAvailabilityZone,
 			}, false),
 		},
 		"region": {
@@ -187,7 +190,7 @@ func sddcSchema() map[string]*schema.Schema {
 			Optional: true,
 			ForceNew: true,
 			ValidateFunc: validation.StringInSlice(
-				[]string{HostInstancetypeI3, HostInstancetypeR5, HostInstancetypeI3EN, HostInstancetypeI4I}, false),
+				[]string{constants.HostInstancetypeI3, constants.HostInstancetypeR5, constants.HostInstancetypeI3EN, constants.HostInstancetypeI4I}, false),
 		},
 		"edrs_policy_type": {
 			Type: schema.TypeString,
@@ -195,7 +198,7 @@ func sddcSchema() map[string]*schema.Schema {
 			Optional: true,
 			Computed: true,
 			ValidateFunc: validation.StringInSlice(
-				[]string{StorageScaleUpPolicyType, CostPolicyType, PerformancePolicyType, RapidScaleUpPolicyType}, false),
+				[]string{constants.StorageScaleUpPolicyType, constants.CostPolicyType, constants.PerformancePolicyType, constants.RapidScaleUpPolicyType}, false),
 			Description: "The EDRS policy type. This can either be 'cost', 'performance', 'storage-scaleup' or 'rapid-scaleup'. Default : storage-scaleup. ",
 		},
 		"enable_edrs": {
@@ -210,7 +213,7 @@ func sddcSchema() map[string]*schema.Schema {
 			// Exact value known after create
 			Optional:     true,
 			Computed:     true,
-			ValidateFunc: validation.IntBetween(MinHosts, MaxHosts),
+			ValidateFunc: validation.IntBetween(constants.MinHosts, constants.MaxHosts),
 			Description:  "The minimum number of hosts that the cluster can scale in to.",
 		},
 		"max_hosts": {
@@ -218,7 +221,7 @@ func sddcSchema() map[string]*schema.Schema {
 			// Exact value known after create
 			Optional:     true,
 			Computed:     true,
-			ValidateFunc: validation.IntBetween(MinHosts, MaxHosts),
+			ValidateFunc: validation.IntBetween(constants.MinHosts, constants.MaxHosts),
 			Description:  "The maximum number of hosts that the cluster can scale out to.",
 		},
 		"microsoft_licensing_config": {
@@ -230,14 +233,14 @@ func sddcSchema() map[string]*schema.Schema {
 						Optional:    true,
 						Description: "The status of MSSQL licensing for this SDDC’s clusters. Possible values : enabled, ENABLED, disabled, DISABLED.",
 						ValidateFunc: validation.StringInSlice([]string{
-							LicenseConfigEnabled, LicenseConfigDisabled, CapitalLicenseConfigEnabled, CapitalLicenseConfigDisabled}, false),
+							constants.LicenseConfigEnabled, constants.LicenseConfigDisabled, constants.CapitalLicenseConfigEnabled, constants.CapitalLicenseConfigDisabled}, false),
 					},
 					"windows_licensing": {
 						Type:        schema.TypeString,
 						Optional:    true,
 						Description: "The status of Windows licensing for this SDDC's clusters. Possible values : enabled, ENABLED, disabled, DISABLED.",
 						ValidateFunc: validation.StringInSlice([]string{
-							LicenseConfigEnabled, LicenseConfigDisabled, CapitalLicenseConfigEnabled, CapitalLicenseConfigDisabled}, false),
+							constants.LicenseConfigEnabled, constants.LicenseConfigDisabled, constants.CapitalLicenseConfigEnabled, constants.CapitalLicenseConfigDisabled}, false),
 					},
 				},
 			},
@@ -247,9 +250,9 @@ func sddcSchema() map[string]*schema.Schema {
 		"intranet_mtu_uplink": {
 			Type:         schema.TypeInt,
 			Optional:     true,
-			Default:      MinIntranetMTULink,
+			Default:      constants.MinIntranetMtuLink,
 			Description:  "Uplink MTU of direct connect, SDDC-grouping and outposts traffic in edge tier-0 router port.",
-			ValidateFunc: validation.IntBetween(MinIntranetMTULink, MaxIntranetMTULink),
+			ValidateFunc: validation.IntBetween(constants.MinIntranetMtuLink, constants.MaxIntranetMtuLink),
 		},
 		"sddc_state": {
 			Type:     schema.TypeString,
@@ -365,7 +368,7 @@ func sddcSchema() map[string]*schema.Schema {
 }
 
 func resourceSddcCreate(d *schema.ResourceData, m interface{}) error {
-	connectorWrapper := m.(*ConnectorWrapper)
+	connectorWrapper := m.(*connector.ConnectorWrapper)
 	sddcClient := orgs.NewSddcsClient(connectorWrapper)
 	orgID := connectorWrapper.OrgID
 
@@ -375,16 +378,16 @@ func resourceSddcCreate(d *schema.ResourceData, m interface{}) error {
 	}
 
 	// Create a Sddc
-	task, err := sddcClient.Create(orgID, *awsSddcConfig, nil)
+	sddcCreateTask, err := sddcClient.Create(orgID, *awsSddcConfig, nil)
 	if err != nil {
 		return HandleCreateError("SDDC", err)
 	}
 
-	sddcID := task.ResourceId
+	sddcID := sddcCreateTask.ResourceId
 	d.SetId(*sddcID)
 	return resource.RetryContext(context.Background(), d.Timeout(schema.TimeoutCreate), func() *resource.RetryError {
-		taskErr := retryTaskUntilFinished(connectorWrapper, func() (model.Task, error) {
-			return getTask(connectorWrapper, task.Id)
+		taskErr := task.RetryTaskUntilFinished(connectorWrapper, func() (model.Task, error) {
+			return task.GetTask(connectorWrapper, sddcCreateTask.Id)
 		}, "error creating SDDC", nil)
 		if taskErr != nil {
 			return taskErr
@@ -398,10 +401,10 @@ func resourceSddcCreate(d *schema.ResourceData, m interface{}) error {
 }
 
 func resourceSddcRead(d *schema.ResourceData, m interface{}) error {
-	connector := (m.(*ConnectorWrapper)).Connector
+	connectorWrapper := (m.(*connector.ConnectorWrapper)).Connector
 	sddcID := d.Id()
-	orgID := (m.(*ConnectorWrapper)).OrgID
-	sddc, err := GetSDDC(connector, orgID, sddcID)
+	orgID := (m.(*connector.ConnectorWrapper)).OrgID
+	sddc, err := GetSddc(connectorWrapper, orgID, sddcID)
 	if err != nil {
 		return HandleReadError(d, "SDDC", sddcID, err)
 	}
@@ -432,7 +435,7 @@ func resourceSddcRead(d *schema.ResourceData, m interface{}) error {
 	d.Set("account_link_state", sddc.AccountLinkState)
 	d.Set("sddc_access_state", sddc.SddcAccessState)
 	d.Set("sddc_state", sddc.SddcState)
-	primaryClusterClient := sddcs.NewPrimaryclusterClient(connector)
+	primaryClusterClient := sddcs.NewPrimaryclusterClient(connectorWrapper)
 	primaryCluster, err := primaryClusterClient.Get(orgID, sddcID)
 	if err != nil {
 		return HandleReadError(d, "Primary Cluster", sddcID, err)
@@ -485,7 +488,7 @@ func resourceSddcRead(d *schema.ResourceData, m interface{}) error {
 			d.Set("nsxt_private_url", *sddc.ResourceConfig.NsxMgrLoginUrl)
 		}
 	}
-	edrsPolicyClient := autoscalercluster.NewEdrsPolicyClient(connector)
+	edrsPolicyClient := autoscalercluster.NewEdrsPolicyClient(connectorWrapper)
 	edrsPolicy, err := edrsPolicyClient.Get(orgID, sddcID, primaryCluster.ClusterId)
 	if err != nil {
 		return HandleReadError(d, "SDDC", sddcID, err)
@@ -495,14 +498,14 @@ func resourceSddcRead(d *schema.ResourceData, m interface{}) error {
 	d.Set("max_hosts", *edrsPolicy.MaxHosts)
 	d.Set("min_hosts", *edrsPolicy.MinHosts)
 
-	if *sddc.Provider != ZeroCloudProviderType {
+	if *sddc.Provider != constants.ZeroCloudProviderType {
 		// store intranet_mtu_uplink only for non zerocloud provider types
 		nsxtReverseProxyURL := d.Get("nsxt_reverse_proxy_url").(string)
-		connector, err = getNSXTReverseProxyURLConnector(nsxtReverseProxyURL)
+		nsxtReverseProxyURLConnector, err := getNsxtReverseProxyURLConnector(nsxtReverseProxyURL)
 		if err != nil {
-			return HandleCreateError("NSXT reverse proxy URL connector", err)
+			return HandleCreateError("NSXT reverse proxy URL connectorWrapper", err)
 		}
-		cloudServicesCommonClient := nsxtawsintegrationapi.NewCloudServiceCommonClient(connector)
+		cloudServicesCommonClient := nsxtawsintegrationapi.NewCloudServiceCommonClient(nsxtReverseProxyURLConnector)
 		externalConnectivityConfig, err := cloudServicesCommonClient.GetExternalConnectivityConfig()
 		if err != nil {
 			return HandleReadError(d, "External connectivity configuration", sddcID, err)
@@ -513,18 +516,18 @@ func resourceSddcRead(d *schema.ResourceData, m interface{}) error {
 }
 
 func resourceSddcDelete(d *schema.ResourceData, m interface{}) error {
-	connectorWrapper := m.(*ConnectorWrapper)
+	connectorWrapper := m.(*connector.ConnectorWrapper)
 	sddcClient := orgs.NewSddcsClient(connectorWrapper.Connector)
 	sddcID := d.Id()
-	orgID := (m.(*ConnectorWrapper)).OrgID
+	orgID := (m.(*connector.ConnectorWrapper)).OrgID
 
-	task, err := sddcClient.Delete(orgID, sddcID, nil, nil, nil)
+	sddcDeleteTask, err := sddcClient.Delete(orgID, sddcID, nil, nil, nil)
 	if err != nil {
 		return HandleDeleteError("SDDC", sddcID, err)
 	}
 	return resource.RetryContext(context.Background(), d.Timeout(schema.TimeoutDelete), func() *resource.RetryError {
-		taskErr := retryTaskUntilFinished(connectorWrapper, func() (model.Task, error) {
-			return getTask(connectorWrapper, task.Id)
+		taskErr := task.RetryTaskUntilFinished(connectorWrapper, func() (model.Task, error) {
+			return task.GetTask(connectorWrapper, sddcDeleteTask.Id)
 		}, "failed to delete SDDC", nil)
 		if taskErr != nil {
 			return taskErr
@@ -535,11 +538,11 @@ func resourceSddcDelete(d *schema.ResourceData, m interface{}) error {
 }
 
 func resourceSddcUpdate(d *schema.ResourceData, m interface{}) error {
-	connectorWrapper := m.(*ConnectorWrapper)
+	connectorWrapper := m.(*connector.ConnectorWrapper)
 	esxsClient := sddcs.NewEsxsClient(connectorWrapper)
 	sddcClient := orgs.NewSddcsClient(connectorWrapper)
 	sddcID := d.Id()
-	orgID := (m.(*ConnectorWrapper)).OrgID
+	orgID := (m.(*connector.ConnectorWrapper)).OrgID
 
 	// Convert SDDC from 1NODE to DEFAULT
 	if d.HasChange("sddc_type") {
@@ -560,14 +563,14 @@ func resourceSddcUpdate(d *schema.ResourceData, m interface{}) error {
 				return resourceSddcCreate(d, m)
 			} else if newNum == 3 { // 3node SDDC scale up
 				convertClient := sddcs.NewConvertClient(connectorWrapper)
-				task, err := convertClient.Create(orgID, sddcID, nil)
+				sddcTypeUpdateTask, err := convertClient.Create(orgID, sddcID, nil)
 
 				if err != nil {
 					return HandleUpdateError("SDDC", err)
 				}
 				err = resource.RetryContext(context.Background(), d.Timeout(schema.TimeoutUpdate), func() *resource.RetryError {
-					taskErr := retryTaskUntilFinished(connectorWrapper, func() (model.Task, error) {
-						return getTask(connectorWrapper, task.Id)
+					taskErr := task.RetryTaskUntilFinished(connectorWrapper, func() (model.Task, error) {
+						return task.GetTask(connectorWrapper, sddcTypeUpdateTask.Id)
 					}, "error scaling SDDC", nil)
 					if taskErr != nil {
 						return taskErr
@@ -604,7 +607,7 @@ func resourceSddcUpdate(d *schema.ResourceData, m interface{}) error {
 			action = "remove"
 			diffNum = oldNum - newNum
 		}
-		if d.Get("deployment_type").(string) == MultiAvailabilityZone && diffNum%2 != 0 {
+		if d.Get("deployment_type").(string) == constants.MultiAvailabilityZone && diffNum%2 != 0 {
 
 			return fmt.Errorf("for multiAZ deployment type, SDDC hosts must be added in pairs across availability zones")
 		}
@@ -613,14 +616,14 @@ func resourceSddcUpdate(d *schema.ResourceData, m interface{}) error {
 			ClusterId: &primaryClusterId,
 		}
 
-		task, err := esxsClient.Create(orgID, sddcID, esxConfig, &action)
+		hostUpdateTask, err := esxsClient.Create(orgID, sddcID, esxConfig, &action)
 
 		if err != nil {
 			return HandleUpdateError("SDDC", err)
 		}
 		err = resource.RetryContext(context.Background(), d.Timeout(schema.TimeoutUpdate), func() *resource.RetryError {
-			taskErr := retryTaskUntilFinished(connectorWrapper, func() (model.Task, error) {
-				return getTask(connectorWrapper, task.Id)
+			taskErr := task.RetryTaskUntilFinished(connectorWrapper, func() (model.Task, error) {
+				return task.GetTask(connectorWrapper, hostUpdateTask.Id)
 			}, "failed to update hosts", nil)
 			if taskErr != nil {
 				return taskErr
@@ -651,16 +654,16 @@ func resourceSddcUpdate(d *schema.ResourceData, m interface{}) error {
 	}
 
 	if d.HasChange("intranet_mtu_uplink") {
-		if d.Get("provider_type") == ZeroCloudProviderType {
-			return fmt.Errorf("Intranet MTU uplink cannot be updated for %s provider type", ZeroCloudProviderType)
+		if d.Get("provider_type") == constants.ZeroCloudProviderType {
+			return fmt.Errorf("Intranet MTU uplink cannot be updated for %s provider type", constants.ZeroCloudProviderType)
 		}
 		intranetMTUUplink := d.Get("intranet_mtu_uplink").(int)
 		nsxtReverseProxyURL := d.Get("nsxt_reverse_proxy_url").(string)
-		connector, err := getNSXTReverseProxyURLConnector(nsxtReverseProxyURL)
+		nxstReverseProxyURLConnector, err := getNsxtReverseProxyURLConnector(nsxtReverseProxyURL)
 		if err != nil {
 			return HandleCreateError("NSXT reverse proxy URL connector", err)
 		}
-		cloudServicesCommonClient := nsxtawsintegrationapi.NewCloudServiceCommonClient(connector)
+		cloudServicesCommonClient := nsxtawsintegrationapi.NewCloudServiceCommonClient(nxstReverseProxyURLConnector)
 		externalConnectivityConfig := nsxtawsintegrationmodel.ExternalConnectivityConfig{IntranetMtu: int64(intranetMTUUplink)}
 		_, err = cloudServicesCommonClient.UpdateIntranetUplinkMtu(externalConnectivityConfig)
 		if err != nil {
@@ -670,16 +673,16 @@ func resourceSddcUpdate(d *schema.ResourceData, m interface{}) error {
 
 	if d.HasChange("edrs_policy_type") || d.HasChange("enable_edrs") || d.HasChange("min_hosts") || d.HasChange("max_hosts") {
 		sddcType := d.Get("sddc_type").(string)
-		if sddcType == OneNodeSddcType {
-			return fmt.Errorf("EDRS policy cannot be updated for SDDC with type %s", OneNodeSddcType)
+		if sddcType == constants.OneNodeSddcType {
+			return fmt.Errorf("EDRS policy cannot be updated for SDDC with type %s", constants.OneNodeSddcType)
 		}
 		clusterID := d.Get("cluster_id").(string)
 		minHosts := int64(d.Get("min_hosts").(int))
 		maxHosts := int64(d.Get("max_hosts").(int))
 		policyType := d.Get("edrs_policy_type").(string)
 		enableEDRS := d.Get("enable_edrs").(bool)
-		if policyType == StorageScaleUpPolicyType && !enableEDRS {
-			return fmt.Errorf("EDRS policy %s is the default and cannot be disabled", StorageScaleUpPolicyType)
+		if policyType == constants.StorageScaleUpPolicyType && !enableEDRS {
+			return fmt.Errorf("EDRS policy %s is the default and cannot be disabled", constants.StorageScaleUpPolicyType)
 		}
 		edrsPolicy := &autoscalermodel.EdrsPolicy{
 			EnableEdrs: enableEDRS,
@@ -688,14 +691,14 @@ func resourceSddcUpdate(d *schema.ResourceData, m interface{}) error {
 			MaxHosts:   &maxHosts,
 		}
 		edrsPolicyClient := autoscalercluster.NewEdrsPolicyClient(connectorWrapper)
-		task, err := edrsPolicyClient.Post(orgID, sddcID, clusterID, *edrsPolicy)
+		edrsPolicyUpdateTask, err := edrsPolicyClient.Post(orgID, sddcID, clusterID, *edrsPolicy)
 		if err != nil {
 			return HandleUpdateError("EDRS Policy", err)
 		}
 
 		return resource.RetryContext(context.Background(), d.Timeout(schema.TimeoutUpdate), func() *resource.RetryError {
-			taskErr := retryTaskUntilFinished(connectorWrapper, func() (model.Task, error) {
-				return getTask(connectorWrapper, task.Id)
+			taskErr := task.RetryTaskUntilFinished(connectorWrapper, func() (model.Task, error) {
+				return task.GetTask(connectorWrapper, edrsPolicyUpdateTask.Id)
 			}, "failed to update EDRS policy configuration", nil)
 			if taskErr != nil {
 				return taskErr
@@ -713,7 +716,7 @@ func resourceSddcUpdate(d *schema.ResourceData, m interface{}) error {
 		return fmt.Errorf("SDDC size update operation is not supported")
 	}
 
-	// Update microsoft licensing config
+	// Update Microsoft licensing config
 	if d.HasChange("microsoft_licensing_config") {
 		configChangeParam := expandMsftLicenseConfig(d.Get("microsoft_licensing_config").([]interface{}))
 		primaryClusterClient := sddcs.NewPrimaryclusterClient(connectorWrapper)
@@ -722,14 +725,14 @@ func resourceSddcUpdate(d *schema.ResourceData, m interface{}) error {
 			return HandleReadError(d, "Primary Cluster", sddcID, err)
 		}
 		publishClient := msft_licensing.NewPublishClient(connectorWrapper)
-		task, err := publishClient.Post(orgID, sddcID, primaryCluster.ClusterId, *configChangeParam)
+		microsoftLicensingUpdateTask, err := publishClient.Post(orgID, sddcID, primaryCluster.ClusterId, *configChangeParam)
 		if err != nil {
 			return fmt.Errorf("error updating license : %s", err)
 		}
 		return resource.RetryContext(context.Background(), d.Timeout(schema.TimeoutCreate), func() *resource.RetryError {
-			taskErr := retryTaskUntilFinished(connectorWrapper, func() (model.Task, error) {
-				return getTask(connectorWrapper, task.Id)
-			}, "failed updating microsoft licensing configuration", nil)
+			taskErr := task.RetryTaskUntilFinished(connectorWrapper, func() (model.Task, error) {
+				return task.GetTask(connectorWrapper, microsoftLicensingUpdateTask.Id)
+			}, "failed updating Microsoft licensing configuration", nil)
 			if taskErr != nil {
 				return taskErr
 			}
@@ -749,7 +752,7 @@ func buildAwsSddcConfig(d *schema.ResourceData) (*model.AwsSddcConfig, error) {
 	var storageCapacityConverted int64
 	storageCapacity := d.Get("storage_capacity").(string)
 	if len(strings.TrimSpace(storageCapacity)) > 0 {
-		storageCapacityConverted = ConvertStorageCapacitytoInt(storageCapacity)
+		storageCapacityConverted = ConvertStorageCapacityToInt(storageCapacity)
 	}
 
 	sddcName := d.Get("sddc_name").(string)
@@ -779,11 +782,11 @@ func buildAwsSddcConfig(d *schema.ResourceData) (*model.AwsSddcConfig, error) {
 		c = config.(map[string]interface{})
 	}
 
-	if deploymentType == MultiAvailabilityZone && c != nil && len(c["customer_subnet_ids"].([]interface{})) != 2 {
+	if deploymentType == constants.MultiAvailabilityZone && c != nil && len(c["customer_subnet_ids"].([]interface{})) != 2 {
 		return nil, fmt.Errorf("deployment type %s requires 2 subnet IDs, one in each availability zone ", deploymentType)
 	}
 
-	if deploymentType == SingleAvailabilityZone && c != nil && len(c["customer_subnet_ids"].([]interface{})) != 1 {
+	if deploymentType == constants.SingleAvailabilityZone && c != nil && len(c["customer_subnet_ids"].([]interface{})) != 1 {
 		return nil, fmt.Errorf("deployment type %s requires 1 subnet ID ", deploymentType)
 	}
 

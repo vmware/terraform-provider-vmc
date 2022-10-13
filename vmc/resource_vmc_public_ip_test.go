@@ -5,6 +5,7 @@ package vmc
 
 import (
 	"fmt"
+	"github.com/vmware/terraform-provider-vmc/vmc/constants"
 	"os"
 	"testing"
 
@@ -50,7 +51,7 @@ func testAccCheckVmcPublicIpExists(name string, publicIpResource *model.PublicIp
 		}
 		uuid := rs.Primary.Attributes["id"]
 		displayName := rs.Primary.Attributes["display_name"]
-		connector, err := getNSXTReverseProxyURLConnector(os.Getenv(NSXTReverseProxyUrl))
+		connector, err := getNsxtReverseProxyURLConnector(os.Getenv(constants.NsxtReverseProxyUrl))
 		if err != nil {
 			return fmt.Errorf("error creating client connector : %v ", err)
 		}
@@ -69,8 +70,8 @@ func testAccCheckVmcPublicIpExists(name string, publicIpResource *model.PublicIp
 }
 
 func testCheckVmcPublicIpDestroy(s *terraform.State) error {
-	fmt.Printf("Reverse proxy : %s", os.Getenv(NSXTReverseProxyUrl))
-	connector, err := getNSXTReverseProxyURLConnector(os.Getenv(NSXTReverseProxyUrl))
+	fmt.Printf("Reverse proxy : %s", os.Getenv(constants.NsxtReverseProxyUrl))
+	connector, err := getNsxtReverseProxyURLConnector(os.Getenv(constants.NsxtReverseProxyUrl))
 	if err != nil {
 		return fmt.Errorf("error creating client connector : %v ", err)
 	}
@@ -109,7 +110,7 @@ resource "vmc_public_ip" "public_ip_1" {
 }
 `,
 		displayName,
-		os.Getenv(NSXTReverseProxyUrl),
+		os.Getenv(constants.NsxtReverseProxyUrl),
 	)
 }
 

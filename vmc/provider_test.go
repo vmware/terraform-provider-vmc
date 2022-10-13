@@ -1,9 +1,10 @@
-/* Copyright 2019 VMware, Inc.
+/* Copyright 2019-2022 VMware, Inc.
    SPDX-License-Identifier: MPL-2.0 */
 
 package vmc
 
 import (
+	"github.com/vmware/terraform-provider-vmc/vmc/constants"
 	"os"
 	"testing"
 
@@ -33,26 +34,26 @@ func TestProvider_impl(t *testing.T) {
 }
 
 func testAccPreCheck(t *testing.T) {
-	if v := os.Getenv(APIToken); v == "" {
-		t.Fatal(APIToken + " must be set for acceptance tests")
+	if v := os.Getenv(constants.ApiToken); v == "" {
+		t.Fatal(constants.ApiToken + " must be set for acceptance tests")
 	}
-	if v := os.Getenv(OrgID); v == "" {
-		t.Fatal(OrgID + " must be set for acceptance tests")
+	if v := os.Getenv(constants.OrgID); v == "" {
+		t.Fatal(constants.OrgID + " must be set for acceptance tests")
 	}
-	if v := os.Getenv(OrgDisplayName); v == "" {
-		t.Fatal(OrgDisplayName + " must be set for acceptance tests")
+	if v := os.Getenv(constants.OrgDisplayName); v == "" {
+		t.Fatal(constants.OrgDisplayName + " must be set for acceptance tests")
 	}
-	if v := os.Getenv(TestSDDCId); v == "" {
-		t.Fatal(TestSDDCId + " must be set for acceptance tests")
+	if v := os.Getenv(constants.TestSddcId); v == "" {
+		t.Fatal(constants.TestSddcId + " must be set for acceptance tests")
 	}
-	if v := os.Getenv(TestSDDCName); v == "" {
-		t.Fatal(TestSDDCName + " must be set for acceptance tests")
+	if v := os.Getenv(constants.TestSddcName); v == "" {
+		t.Fatal(constants.TestSddcName + " must be set for acceptance tests")
 	}
-	if v := os.Getenv(AWSAccountNumber); v == "" {
-		t.Fatal(AWSAccountNumber + " must be set for acceptance tests")
+	if v := os.Getenv(constants.AwsAccountNumber); v == "" {
+		t.Fatal(constants.AwsAccountNumber + " must be set for acceptance tests")
 	}
-	if v := os.Getenv(NSXTReverseProxyUrl); v == "" {
-		t.Fatal(NSXTReverseProxyUrl + " must be set for acceptance tests")
+	if v := os.Getenv(constants.NsxtReverseProxyUrl); v == "" {
+		t.Fatal(constants.NsxtReverseProxyUrl + " must be set for acceptance tests")
 	}
 }
 
@@ -60,13 +61,13 @@ func testAccPreCheck(t *testing.T) {
 // environment variables needed for lightweight E2E testing using
 // the Zerocloud SDDC cloud provider option
 func testAccPreCheckZerocloud(t *testing.T) {
-	if v := os.Getenv(APIToken); v == "" {
-		t.Fatal(APIToken + " must be set for acceptance tests")
+	if v := os.Getenv(constants.ApiToken); v == "" {
+		t.Fatal(constants.ApiToken + " must be set for acceptance tests")
 	}
-	if v := os.Getenv(OrgID); v == "" {
-		t.Fatal(OrgID + " must be set for acceptance tests")
+	if v := os.Getenv(constants.OrgID); v == "" {
+		t.Fatal(constants.OrgID + " must be set for acceptance tests")
 	}
-	if v := os.Getenv(AWSAccountNumber); v == "" {
-		t.Fatal(AWSAccountNumber + " must be set for acceptance tests")
+	if v := os.Getenv(constants.AwsAccountNumber); v == "" {
+		t.Fatal(constants.AwsAccountNumber + " must be set for acceptance tests")
 	}
 }

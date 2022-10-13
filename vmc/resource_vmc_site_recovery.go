@@ -6,6 +6,8 @@ package vmc
 import (
 	"context"
 	"fmt"
+	"github.com/vmware/terraform-provider-vmc/vmc/connector"
+	task "github.com/vmware/terraform-provider-vmc/vmc/task"
 	"strings"
 	"time"
 
@@ -77,35 +79,35 @@ func resourceSiteRecovery() *schema.Resource {
 
 func resourceSiteRecoveryCreate(d *schema.ResourceData, m interface{}) error {
 
-	err := (m.(*ConnectorWrapper)).authenticate()
+	err := (m.(*connector.ConnectorWrapper)).Authenticate()
 	if err != nil {
 		return fmt.Errorf("authentication error from Cloud Service Provider: %s", err)
 	}
-	connectorWrapper := (m.(*ConnectorWrapper))
+	connectorWrapper := (m.(*connector.ConnectorWrapper))
 
 	siteRecoveryClient := draas.NewSiteRecoveryClient(connectorWrapper)
 
 	srmExtensionKeySuffix := d.Get("srm_extension_key_suffix").(string)
-	orgID := (m.(*ConnectorWrapper)).OrgID
+	orgID := (m.(*connector.ConnectorWrapper)).OrgID
 	sddcID := d.Get("sddc_id").(string)
 
 	activateSiteRecoveryConfigParam := &draasmodel.ActivateSiteRecoveryConfig{
 		SrmExtensionKeySuffix: &srmExtensionKeySuffix,
 	}
 
-	task, err := siteRecoveryClient.Post(orgID, sddcID, activateSiteRecoveryConfigParam)
+	siteRecoveryCreateTask, err := siteRecoveryClient.Post(orgID, sddcID, activateSiteRecoveryConfigParam)
 
 	if err != nil {
 		return HandleCreateError("Site recovery", err)
 	}
 
 	// Wait until site recovery is activated
-	taskID := task.ResourceId
+	taskID := siteRecoveryCreateTask.ResourceId
 	d.SetId(*taskID)
 	return resource.RetryContext(context.Background(), d.Timeout(schema.TimeoutCreate), func() *resource.RetryError {
-		taskErr := retryTaskUntilFinished(connectorWrapper,
+		taskErr := task.RetryTaskUntilFinished(connectorWrapper,
 			func() (model.Task, error) {
-				return getDraasTask(connectorWrapper, task.Id)
+				return task.GetDraasTask(connectorWrapper, siteRecoveryCreateTask.Id)
 			},
 			"error activation site recovery ",
 			nil)
@@ -121,10 +123,10 @@ func resourceSiteRecoveryCreate(d *schema.ResourceData, m interface{}) error {
 }
 
 func resourceSiteRecoveryRead(d *schema.ResourceData, m interface{}) error {
-	connector := (m.(*ConnectorWrapper)).Connector
+	connectorWrapper := (m.(*connector.ConnectorWrapper)).Connector
 	sddcID := d.Id()
-	orgID := (m.(*ConnectorWrapper)).OrgID
-	siteRecoveryClient := draas.NewSiteRecoveryClient(connector)
+	orgID := (m.(*connector.ConnectorWrapper)).OrgID
+	siteRecoveryClient := draas.NewSiteRecoveryClient(connectorWrapper)
 	siteRecovery, err := siteRecoveryClient.Get(orgID, sddcID)
 	if err != nil {
 
@@ -184,20 +186,20 @@ func resourceSiteRecoveryRead(d *schema.ResourceData, m interface{}) error {
 }
 
 func resourceSiteRecoveryDelete(d *schema.ResourceData, m interface{}) error {
-	connectorWrapper := m.(*ConnectorWrapper)
+	connectorWrapper := m.(*connector.ConnectorWrapper)
 	siteRecoveryClient := draas.NewSiteRecoveryClient(connectorWrapper)
 
-	orgID := (m.(*ConnectorWrapper)).OrgID
+	orgID := (m.(*connector.ConnectorWrapper)).OrgID
 	sddcID := d.Get("sddc_id").(string)
 
-	task, err := siteRecoveryClient.Delete(orgID, sddcID, nil, nil)
+	siteRecoveryDeleteTask, err := siteRecoveryClient.Delete(orgID, sddcID, nil, nil)
 	if err != nil {
 		return HandleDeleteError("Site recovery", sddcID, err)
 	}
 	return resource.RetryContext(context.Background(), d.Timeout(schema.TimeoutDelete), func() *resource.RetryError {
-		taskErr := retryTaskUntilFinished(connectorWrapper,
+		taskErr := task.RetryTaskUntilFinished(connectorWrapper,
 			func() (model.Task, error) {
-				return getDraasTask(connectorWrapper, task.Id)
+				return task.GetDraasTask(connectorWrapper, siteRecoveryDeleteTask.Id)
 			},
 			"error deactivating site recovery for SDDC ",
 			nil)

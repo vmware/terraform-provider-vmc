@@ -5,6 +5,7 @@ package vmc
 
 import (
 	"fmt"
+	"github.com/vmware/terraform-provider-vmc/vmc/constants"
 	"os"
 	"testing"
 
@@ -32,6 +33,6 @@ data "vmc_connected_accounts" "my_accounts" {
 	account_number = %q
 }
 `,
-		os.Getenv(AWSAccountNumber),
+		os.Getenv(constants.AwsAccountNumber),
 	)
 }
