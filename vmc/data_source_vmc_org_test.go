@@ -4,6 +4,7 @@
 package vmc
 
 import (
+	"github.com/vmware/terraform-provider-vmc/vmc/constants"
 	"os"
 	"testing"
 
@@ -18,7 +19,7 @@ func TestAccDataSourceVmcOrgBasic(t *testing.T) {
 			{
 				Config: testAccDataSourceVmcOrgConfig(),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("data.vmc_org.my_org", "display_name", os.Getenv(OrgDisplayName)),
+					resource.TestCheckResourceAttr("data.vmc_org.my_org", "display_name", os.Getenv(constants.OrgDisplayName)),
 				),
 			},
 		},

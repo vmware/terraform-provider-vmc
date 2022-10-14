@@ -5,6 +5,7 @@ package vmc
 
 import (
 	"fmt"
+	"github.com/vmware/terraform-provider-vmc/vmc/connector"
 	"log"
 	"strings"
 
@@ -80,8 +81,7 @@ func dataSourceVmcCustomerSubnets() *schema.Resource {
 }
 
 func dataSourceVmcCustomerSubnetsRead(d *schema.ResourceData, m interface{}) error {
-
-	orgID := m.(*ConnectorWrapper).OrgID
+	orgID := m.(*connector.ConnectorWrapper).OrgID
 	accountID := d.Get("connected_account_id").(string)
 	sddcID := d.Get("sddc_id").(string)
 	region := d.Get("region").(string)
@@ -90,8 +90,8 @@ func dataSourceVmcCustomerSubnetsRead(d *schema.ResourceData, m interface{}) err
 	forceRefresh := d.Get("force_refresh").(bool)
 	instanceType := d.Get("instance_type").(string)
 
-	connector := (m.(*ConnectorWrapper)).Connector
-	compatibleSubnetsClient := account_link.NewCompatibleSubnetsClient(connector)
+	connectorWrapper := (m.(*connector.ConnectorWrapper)).Connector
+	compatibleSubnetsClient := account_link.NewCompatibleSubnetsClient(connectorWrapper)
 	compatibleSubnets, err := compatibleSubnetsClient.Get(orgID, accountID, &region, &sddcID, &forceRefresh, &instanceType, &sddcType, &numHosts)
 	ids := []string{}
 	for _, value := range compatibleSubnets.VpcMap {

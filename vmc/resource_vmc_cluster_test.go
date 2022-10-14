@@ -7,6 +7,8 @@ import (
 	"fmt"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/stretchr/testify/assert"
+	"github.com/vmware/terraform-provider-vmc/vmc/connector"
+	"github.com/vmware/terraform-provider-vmc/vmc/constants"
 	"os"
 	"strings"
 	"testing"
@@ -49,7 +51,7 @@ func TestAccResourceVmcClusterZerocloud(t *testing.T) {
 	var sddcResource model.Sddc
 	clusterRef := "cluster_zerocloud"
 	resourceName := "vmc_cluster." + clusterRef
-	sddcName := "terraform_test_sddc_" + acctest.RandStringFromCharSet(10, acctest.CharSetAlphaNum)
+	sddcName := "terraform_cluster_test_" + acctest.RandStringFromCharSet(10, acctest.CharSetAlphaNum)
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheckZerocloud(t) },
 		Providers:    testAccProviders,
@@ -83,11 +85,10 @@ func testAccCheckVmcClusterExists(clusterRef string, sddcResource *model.Sddc) r
 		}
 		sddcID := rs.Primary.Attributes["sddc_id"]
 
-		connectorWrapper := testAccProvider.Meta().(*ConnectorWrapper)
+		connectorWrapper := testAccProvider.Meta().(*connector.ConnectorWrapper)
 		orgID := connectorWrapper.OrgID
-		connector := connectorWrapper.Connector
 
-		sddcClient := orgs.NewSddcsClient(connector)
+		sddcClient := orgs.NewSddcsClient(connectorWrapper)
 		var err error
 
 		*sddcResource, err = sddcClient.Get(orgID, sddcID)
@@ -114,9 +115,8 @@ func testAccCheckVmcClusterExists(clusterRef string, sddcResource *model.Sddc) r
 }
 
 func testCheckVmcClusterDestroy(s *terraform.State) error {
-	connectorWrapper := testAccProvider.Meta().(*ConnectorWrapper)
-	connector := connectorWrapper.Connector
-	sddcClient := orgs.NewSddcsClient(connector)
+	connectorWrapper := testAccProvider.Meta().(*connector.ConnectorWrapper)
+	sddcClient := orgs.NewSddcsClient(connectorWrapper)
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "vmc_cluster" {
@@ -192,7 +192,7 @@ resource "vmc_cluster" "cluster_1" {
     }
 }
 `,
-		os.Getenv(AWSAccountNumber),
+		os.Getenv(constants.AwsAccountNumber),
 		sddcName,
 	)
 }
@@ -235,14 +235,24 @@ resource "vmc_sddc" "sddc_zerocloud_cluster" {
 resource "vmc_cluster" %q {
 	sddc_id = vmc_sddc.sddc_zerocloud_cluster.id
 	host_instance_type = "I3_METAL"
-	num_hosts = 4
+	num_hosts = 2
+	microsoft_licensing_config {
+        mssql_licensing = "DISABLED"
+        windows_licensing = "ENABLED"
+    }
+}
+
+resource "vmc_cluster" "cluster_2" {
+	sddc_id = vmc_sddc.sddc_zerocloud_cluster.id
+	host_instance_type = "I3_METAL"
+	num_hosts = 2
 	microsoft_licensing_config {
         mssql_licensing = "DISABLED"
         windows_licensing = "ENABLED"
     }
 }
 `,
-		os.Getenv(AWSAccountNumber),
+		os.Getenv(constants.AwsAccountNumber),
 		sddcName,
 		clusterRef,
 	)
@@ -266,16 +276,16 @@ func TestBuildClusterConfig(t *testing.T) {
 	}
 
 	tests := []test{
-		{instanceType: HostInstancetypeI3,
+		{instanceType: constants.HostInstancetypeI3,
 			expectedHostInstanceType: model.SddcConfig_HOST_INSTANCE_TYPE_I3_METAL,
 			expectedErr:              nil},
-		{instanceType: HostInstancetypeI3EN,
+		{instanceType: constants.HostInstancetypeI3EN,
 			expectedHostInstanceType: model.SddcConfig_HOST_INSTANCE_TYPE_I3EN_METAL,
 			expectedErr:              nil},
-		{instanceType: HostInstancetypeI4I,
+		{instanceType: constants.HostInstancetypeI4I,
 			expectedHostInstanceType: model.SddcConfig_HOST_INSTANCE_TYPE_I4I_METAL,
 			expectedErr:              nil},
-		{instanceType: HostInstancetypeR5,
+		{instanceType: constants.HostInstancetypeR5,
 			expectedHostInstanceType: model.SddcConfig_HOST_INSTANCE_TYPE_R5_METAL,
 			expectedErr:              nil},
 		{instanceType: "RandomString",
@@ -286,7 +296,7 @@ func TestBuildClusterConfig(t *testing.T) {
 
 	for _, testCase := range tests {
 		config := map[string]interface{}{
-			"num_hosts":          MinHosts,
+			"num_hosts":          constants.MinHosts,
 			"host_instance_type": testCase.instanceType,
 		}
 		var testResourceSchema = schema.TestResourceDataRaw(t, clusterSchema(), config)

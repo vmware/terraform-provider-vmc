@@ -5,6 +5,7 @@ package vmc
 
 import (
 	"fmt"
+	"github.com/vmware/terraform-provider-vmc/vmc/constants"
 	"os"
 	"testing"
 
@@ -19,7 +20,7 @@ func TestAccDataSourceVmcSddcBasic(t *testing.T) {
 			{
 				Config: testAccDataSourceVmcSddcConfig(),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("data.vmc_sddc.sddc_imported", "sddc_name", os.Getenv(TestSDDCName)),
+					resource.TestCheckResourceAttr("data.vmc_sddc.sddc_imported", "sddc_name", os.Getenv(constants.TestSddcName)),
 					// TODO: consider adding another env variable for the primary cluster host count
 					resource.TestCheckResourceAttr("data.vmc_sddc.sddc_imported", "num_host", "2"),
 				),
@@ -34,6 +35,6 @@ data "vmc_sddc" "sddc_imported" {
 	sddc_id = %q
 }
 `,
-		os.Getenv(TestSDDCId),
+		os.Getenv(constants.TestSddcId),
 	)
 }

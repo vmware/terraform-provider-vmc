@@ -5,6 +5,8 @@ package vmc
 
 import (
 	"fmt"
+	"github.com/vmware/terraform-provider-vmc/vmc/connector"
+	"github.com/vmware/terraform-provider-vmc/vmc/constants"
 	"net/http"
 	"net/url"
 	"os"
@@ -24,13 +26,13 @@ var storageCapacityMap = map[string]int64{
 	"35TB": 35007,
 }
 
-func GetSDDC(connector client.Connector, orgID string, sddcID string) (model.Sddc, error) {
+func GetSddc(connector client.Connector, orgID string, sddcID string) (model.Sddc, error) {
 	sddcClient := orgs.NewSddcsClient(connector)
 	sddc, err := sddcClient.Get(orgID, sddcID)
 	return sddc, err
 }
 
-func ConvertStorageCapacitytoInt(s string) int64 {
+func ConvertStorageCapacityToInt(s string) int64 {
 	storageCapacity := storageCapacityMap[s]
 	return storageCapacity
 }
@@ -40,15 +42,15 @@ func ConvertStorageCapacitytoInt(s string) int64 {
 // to maintain consistency
 func ConvertDeployType(s string) string {
 	if s == "SINGLE_AZ" {
-		return SingleAvailabilityZone
+		return constants.SingleAvailabilityZone
 	} else if s == "MULTI_AZ" {
-		return MultiAvailabilityZone
+		return constants.MultiAvailabilityZone
 	} else {
 		return ""
 	}
 }
 
-func IsValidUUID(u string) error {
+func IsValidUuid(u string) error {
 	_, err := uuid.FromString(u)
 	if err != nil {
 		return err
@@ -56,7 +58,7 @@ func IsValidUUID(u string) error {
 	return nil
 }
 
-func IsValidURL(s string) error {
+func IsValidUrl(s string) error {
 	_, err := url.ParseRequestURI(s)
 	if err != nil {
 		return err
@@ -75,19 +77,19 @@ func expandMsftLicenseConfig(config []interface{}) *model.MsftLicensingConfig {
 	return &licenseConfig
 }
 
-func getNSXTReverseProxyURLConnector(nsxtReverseProxyUrl string) (client.Connector, error) {
-	apiToken := os.Getenv(APIToken)
+func getNsxtReverseProxyURLConnector(nsxtReverseProxyUrl string) (client.Connector, error) {
+	apiToken := os.Getenv(constants.ApiToken)
 	if len(nsxtReverseProxyUrl) == 0 {
 		return nil, fmt.Errorf("NSX reverse proxy url is required for public IP resource creation")
 	}
-	nsxtReverseProxyUrl = strings.Replace(nsxtReverseProxyUrl, SksNSXTManager, "", -1)
+	nsxtReverseProxyUrl = strings.Replace(nsxtReverseProxyUrl, constants.SksNsxtManager, "", -1)
 	httpClient := http.Client{}
-	cspUrl := os.Getenv(CSPUrl)
-	connector, err := NewClientConnectorByRefreshToken(apiToken, nsxtReverseProxyUrl, cspUrl, httpClient)
+	cspUrl := os.Getenv(constants.CspUrl)
+	apiConnector, err := connector.NewClientConnectorByRefreshToken(apiToken, nsxtReverseProxyUrl, cspUrl, httpClient)
 	if err != nil {
 		return nil, HandleCreateError("NSXT reverse proxy URL connector", err)
 	}
-	return connector, nil
+	return apiConnector, nil
 }
 
 // getHostCountCluster tries to find the amount of hosts on a Cluster in
@@ -108,13 +110,13 @@ func getHostCountCluster(sddc *model.Sddc, clusterId string) int {
 // the possible string values defined in the VMC SDK
 func toHostInstanceType(userPassedHostInstanceType string) (string, error) {
 	switch userPassedHostInstanceType {
-	case HostInstancetypeI3:
+	case constants.HostInstancetypeI3:
 		return model.SddcConfig_HOST_INSTANCE_TYPE_I3_METAL, nil
-	case HostInstancetypeI3EN:
+	case constants.HostInstancetypeI3EN:
 		return model.SddcConfig_HOST_INSTANCE_TYPE_I3EN_METAL, nil
-	case HostInstancetypeI4I:
+	case constants.HostInstancetypeI4I:
 		return model.SddcConfig_HOST_INSTANCE_TYPE_I4I_METAL, nil
-	case HostInstancetypeR5:
+	case constants.HostInstancetypeR5:
 		return model.SddcConfig_HOST_INSTANCE_TYPE_R5_METAL, nil
 	default:
 		return "", fmt.Errorf("unknown host instance type: %s", userPassedHostInstanceType)

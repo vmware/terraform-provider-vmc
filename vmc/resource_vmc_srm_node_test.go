@@ -5,6 +5,7 @@ package vmc
 
 import (
 	"fmt"
+	"github.com/vmware/terraform-provider-vmc/vmc/connector"
 	"github.com/vmware/vsphere-automation-sdk-go/services/vmc/draas/model"
 	"testing"
 
@@ -48,11 +49,10 @@ func testCheckVmcSrmNodeExists(name string) resource.TestCheckFunc {
 			return fmt.Errorf("not found: %s", name)
 		}
 		sddcID := rs.Primary.Attributes["sddc_id"]
-		connectorWrapper := testAccProvider.Meta().(*ConnectorWrapper)
-		connector := connectorWrapper.Connector
+		connectorWrapper := testAccProvider.Meta().(*connector.ConnectorWrapper)
 		orgID := connectorWrapper.OrgID
 
-		draasClient := draas.NewSiteRecoveryClient(connector)
+		draasClient := draas.NewSiteRecoveryClient(connectorWrapper)
 		var err error
 		siteRecovery, err := draasClient.Get(orgID, sddcID)
 		if err != nil {
@@ -68,9 +68,8 @@ func testCheckVmcSrmNodeExists(name string) resource.TestCheckFunc {
 }
 
 func testCheckVmcSrmNodeDestroy(s *terraform.State) error {
-	connectorWrapper := testAccProvider.Meta().(*ConnectorWrapper)
-	connector := connectorWrapper.Connector
-	draasClient := draas.NewSiteRecoveryClient(connector)
+	connectorWrapper := testAccProvider.Meta().(*connector.ConnectorWrapper)
+	draasClient := draas.NewSiteRecoveryClient(connectorWrapper)
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "vmc_srm_node" {
@@ -99,7 +98,7 @@ func testCheckVmcSrmNodeDestroy(s *terraform.State) error {
 func testAccVmcSrmNodeConfigBasic(srmExtensionKeySuffix string) string {
 	return fmt.Sprintf(`
 resource "vmc_sddc" "srm_node_test_sddc" {
-	sddc_name           = "srm_node_test_sddc"
+	sddc_name           = "terraform_srm_node_test"
 	num_host            = 2
 	provider_type       = "ZEROCLOUD"
 	host_instance_type  = "I3_METAL"

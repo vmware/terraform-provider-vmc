@@ -1,10 +1,11 @@
-/* Copyright 2019 VMware, Inc.
+/* Copyright 2019-2022 VMware, Inc.
    SPDX-License-Identifier: MPL-2.0 */
 
 package vmc
 
 import (
 	"fmt"
+	"github.com/vmware/terraform-provider-vmc/vmc/connector"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/vmware/vsphere-automation-sdk-go/services/vmc/orgs/account_link"
@@ -36,12 +37,12 @@ func dataSourceVmcConnectedAccounts() *schema.Resource {
 }
 
 func dataSourceVmcConnectedAccountsRead(d *schema.ResourceData, m interface{}) error {
-	orgID := (m.(*ConnectorWrapper)).OrgID
+	orgID := (m.(*connector.ConnectorWrapper)).OrgID
 	providerType := d.Get("provider_type").(string)
 	accountNumber := d.Get("account_number").(string)
 
-	connector := (m.(*ConnectorWrapper)).Connector
-	defaultConnectedAccountsClient := account_link.NewConnectedAccountsClient(connector)
+	connectorWrapper := (m.(*connector.ConnectorWrapper)).Connector
+	defaultConnectedAccountsClient := account_link.NewConnectedAccountsClient(connectorWrapper)
 	accounts, err := defaultConnectedAccountsClient.Get(orgID, &providerType)
 
 	if accountNumber == "" {

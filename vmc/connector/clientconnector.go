@@ -1,13 +1,14 @@
-/* Copyright 2019 VMware, Inc.
+/* Copyright 2019-2022 VMware, Inc.
    SPDX-License-Identifier: MPL-2.0 */
 
-// Package vmc provides helper methods that provides client.Connector, required to call VMC APIs.
-package vmc
+// Package connector provides helper methods that provides client.Connector, required to call VMC APIs.
+package connector
 
 import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"github.com/vmware/terraform-provider-vmc/vmc/constants"
 	"io"
 	"net/http"
 	"reflect"
@@ -18,20 +19,42 @@ import (
 	"github.com/vmware/vsphere-automation-sdk-go/runtime/security"
 )
 
+type Authenticator interface {
+	Authenticate() error
+}
+
+type ConnectorWrapper struct {
+	client.Connector
+	RefreshToken string
+	OrgID        string
+	VmcURL       string
+	CspURL       string
+}
+
+func (c *ConnectorWrapper) Authenticate() error {
+	var err error
+	httpClient := http.Client{}
+	c.Connector, err = NewClientConnectorByRefreshToken(c.RefreshToken, c.VmcURL, c.CspURL, httpClient)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
 // NewClientConnectorByRefreshToken returns client connector to any VMC service by using OAuth authentication using Refresh Token.
 func NewClientConnectorByRefreshToken(refreshToken, serviceUrl, cspURL string,
 	httpClient http.Client) (client.Connector, error) {
 
 	if len(serviceUrl) <= 0 {
-		serviceUrl = DefaultVMCUrl
+		serviceUrl = constants.DefaultVmcUrl
 	}
 
 	if len(cspURL) <= 0 {
-		cspURL = DefaultCSPUrl +
-			CSPRefreshUrlSuffix
+		cspURL = constants.DefaultCspUrl +
+			constants.CspRefreshUrlSuffix
 	} else {
 		cspURL = cspURL +
-			CSPRefreshUrlSuffix
+			constants.CspRefreshUrlSuffix
 	}
 
 	securityCtx, err := SecurityContextByRefreshToken(refreshToken, cspURL)
