@@ -1,3 +1,17 @@
+## 1.11.0 (Oct 17, 2022)
+
+FEATURES:
+
+* `num_hosts` property on SDDC now shows and controls the number of hosts in the primary cluster (created by default with an SDDC). Previously there was no way to scale up/down the number of hosts in the primary cluster
+* Cluster operations like Create/Update/Destroy on more than one cluster can now be initiated simultaneously, without the need for depends_on=[] 
+* Error reporting improvements
+
+BUG FIXES:
+
+* EDRS settings are not truly "Optional" [\#151](https://github.com/vmware/terraform-provider-vmc/pull/151)
+* Lack of multi-cluster SDDC support in "resourceSddcUpdate" function [\#155](https://github.com/vmware/terraform-provider-vmc/pull/155)
+* vmc_cluster resource tries to create new clusters simultaneously and fails [\#160](https://github.com/vmware/terraform-provider-vmc/pull/160)
+
 ## 1.10.1 (Sep 20, 2022)
 
 BUG FIXES:
