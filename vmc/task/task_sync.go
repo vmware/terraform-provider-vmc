@@ -86,7 +86,12 @@ func RetryTaskUntilFinished(authenticator connector.Authenticator,
 	if serviceUnavailableRetries > 0 {
 		serviceUnavailableRetries = 0
 	}
-	if *task.Status == model.Task_STATUS_FAILED {
+	if *task.Status == "" {
+		if finishCallback != nil {
+			finishCallback(task)
+		}
+		return resource.NonRetryableError(fmt.Errorf("task status was empty. Some API error occurred"))
+	} else if *task.Status == model.Task_STATUS_FAILED {
 		if finishCallback != nil {
 			finishCallback(task)
 		}

@@ -22,6 +22,31 @@ func GetTask(connectorWrapper *connector.ConnectorWrapper, taskId string) (model
 	return tasksClient.Get(connectorWrapper.OrgID, taskId)
 }
 
+// GetV2Task returns an adapted model.Task with specified ID
+func GetV2Task(connectorWrapper *connector.ConnectorWrapper, taskId string) (model.Task, error) {
+	tasksV2Client := NewTaskV2ClientImpl(connectorWrapper.VmcURL, connectorWrapper.CspURL,
+		connectorWrapper.RefreshToken, connectorWrapper.OrgID)
+	err := tasksV2Client.Authenticate()
+	if err != nil {
+		return model.Task{}, err
+	}
+	taskV2, err := tasksV2Client.GetTask(taskId)
+	if err != nil {
+		return model.Task{}, err
+	}
+	taskStatus := taskV2.TaskState.Name
+	// convert v2 "finished" status to v1 "finished" status
+	if taskStatus == "COMPLETED" {
+		taskStatus = model.Task_STATUS_FINISHED
+	}
+	return model.Task{
+		Id:           taskV2.Id,
+		TaskType:     &taskV2.TaskType,
+		Status:       &taskStatus,
+		ErrorMessage: &taskV2.ErrorMessage,
+	}, nil
+}
+
 // GetAutoscalerTask polls autoscalerapi for task with specified ID and converts it to model.Task
 func GetAutoscalerTask(connectorWrapper *connector.ConnectorWrapper, taskId string) (model.Task, error) {
 	tasksClient := autoscalerapi.NewAutoscalerClient(connectorWrapper)

@@ -37,8 +37,8 @@ func testAccPreCheck(t *testing.T) {
 	if v := os.Getenv(constants.ApiToken); v == "" {
 		t.Fatal(constants.ApiToken + " must be set for acceptance tests")
 	}
-	if v := os.Getenv(constants.OrgID); v == "" {
-		t.Fatal(constants.OrgID + " must be set for acceptance tests")
+	if v := os.Getenv(constants.OrgId); v == "" {
+		t.Fatal(constants.OrgId + " must be set for acceptance tests")
 	}
 	if v := os.Getenv(constants.OrgDisplayName); v == "" {
 		t.Fatal(constants.OrgDisplayName + " must be set for acceptance tests")
@@ -61,11 +61,17 @@ func testAccPreCheck(t *testing.T) {
 // environment variables needed for lightweight E2E testing using
 // the Zerocloud SDDC cloud provider option
 func testAccPreCheckZerocloud(t *testing.T) {
+	if v := os.Getenv(constants.VmcUrl); v == "" {
+		t.Fatal(constants.VmcUrl + " must be set for Zerocloud acceptance tests")
+	}
+	if v := os.Getenv(constants.CspUrl); v == "" {
+		t.Fatal(constants.CspUrl + " must be set for Zerocloud acceptance tests")
+	}
 	if v := os.Getenv(constants.ApiToken); v == "" {
 		t.Fatal(constants.ApiToken + " must be set for acceptance tests")
 	}
-	if v := os.Getenv(constants.OrgID); v == "" {
-		t.Fatal(constants.OrgID + " must be set for acceptance tests")
+	if v := os.Getenv(constants.OrgId); v == "" {
+		t.Fatal(constants.OrgId + " must be set for acceptance tests")
 	}
 	if v := os.Getenv(constants.AwsAccountNumber); v == "" {
 		t.Fatal(constants.AwsAccountNumber + " must be set for acceptance tests")

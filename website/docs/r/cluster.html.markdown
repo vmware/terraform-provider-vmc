@@ -47,6 +47,8 @@ You can select a different policy if it provides better support for your workloa
 
 When the EDRS policy type is disabled i.e: enable_edrs is set to false for 'performance', 'cost' or 'rapid-scaleup' policy type, the EDRS policy type changes to the default storage-scaleup.
 
+NOTE: The EDRS policy properties can be modified only after a Cluster has been created first.
+
 ## Example
 
 ```hcl

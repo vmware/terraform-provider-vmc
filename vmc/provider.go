@@ -25,7 +25,7 @@ func Provider() *schema.Provider {
 			"org_id": {
 				Type:        schema.TypeString,
 				Required:    true,
-				DefaultFunc: schema.EnvDefaultFunc(constants.OrgID, nil),
+				DefaultFunc: schema.EnvDefaultFunc(constants.OrgId, nil),
 			},
 			"vmc_url": {
 				Type:        schema.TypeString,
@@ -45,6 +45,7 @@ func Provider() *schema.Provider {
 			"vmc_site_recovery": resourceSiteRecovery(),
 			"vmc_srm_node":      resourceSrmNode(),
 			"vmc_cluster":       resourceCluster(),
+			"vmc_sddc_group":    resourceSddcGroup(),
 		},
 
 		DataSourcesMap: map[string]*schema.Resource{

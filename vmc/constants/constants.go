@@ -68,7 +68,7 @@ const (
 	VmcUrl         string = "VMC_URL"
 	CspUrl         string = "CSP_URL"
 	ApiToken       string = "API_TOKEN"
-	OrgID          string = "ORG_ID"
+	OrgId          string = "ORG_ID"
 	OrgDisplayName string = "ORG_DISPLAY_NAME"
 	// TestSddcId ID of an existing SDDC used for sddc data source, site recovery and srm node tests
 	TestSddcId string = "TEST_SDDC_ID"
