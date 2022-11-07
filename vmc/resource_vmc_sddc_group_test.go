@@ -9,7 +9,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 	"github.com/vmware/terraform-provider-vmc/vmc/connector"
-	"github.com/vmware/terraform-provider-vmc/vmc/sddc_group"
+	"github.com/vmware/terraform-provider-vmc/vmc/sddcgroup"
 	"testing"
 )
 
@@ -54,8 +54,8 @@ func testSddcGroupExists(s *terraform.State) error {
 }
 
 func sddcGroupExists(s *terraform.State) bool {
-	connectorWrapper := testAccProvider.Meta().(*connector.ConnectorWrapper)
-	sddcGroupClient := sddc_group.NewSddcGroupClient(connectorWrapper.VmcURL,
+	connectorWrapper := testAccProvider.Meta().(*connector.Wrapper)
+	sddcGroupClient := sddcgroup.NewSddcGroupClient(connectorWrapper.VmcURL,
 		connectorWrapper.CspURL, connectorWrapper.RefreshToken, connectorWrapper.OrgID)
 	err := sddcGroupClient.Authenticate()
 	if err != nil {
@@ -65,8 +65,8 @@ func sddcGroupExists(s *terraform.State) bool {
 		if rs.Type != "vmc_sddc_group" {
 			continue
 		}
-		sddcGroupId := rs.Primary.ID
-		sddcGroup, err := sddcGroupClient.GetSddcGroup(sddcGroupId)
+		sddcGroupID := rs.Primary.ID
+		sddcGroup, _, err := sddcGroupClient.GetSddcGroup(sddcGroupID)
 		if sddcGroup.Deleted == false && err == nil {
 			return true
 		}

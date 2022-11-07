@@ -23,7 +23,7 @@ type Authenticator interface {
 	Authenticate() error
 }
 
-type ConnectorWrapper struct {
+type Wrapper struct {
 	client.Connector
 	RefreshToken string
 	OrgID        string
@@ -31,7 +31,7 @@ type ConnectorWrapper struct {
 	CspURL       string
 }
 
-func (c *ConnectorWrapper) Authenticate() error {
+func (c *Wrapper) Authenticate() error {
 	var err error
 	httpClient := http.Client{}
 	c.Connector, err = NewClientConnectorByRefreshToken(c.RefreshToken, c.VmcURL, c.CspURL, httpClient)
@@ -42,19 +42,19 @@ func (c *ConnectorWrapper) Authenticate() error {
 }
 
 // NewClientConnectorByRefreshToken returns client connector to any VMC service by using OAuth authentication using Refresh Token.
-func NewClientConnectorByRefreshToken(refreshToken, serviceUrl, cspURL string,
+func NewClientConnectorByRefreshToken(refreshToken, serviceURL, cspURL string,
 	httpClient http.Client) (client.Connector, error) {
 
-	if len(serviceUrl) <= 0 {
-		serviceUrl = constants.DefaultVmcUrl
+	if len(serviceURL) <= 0 {
+		serviceURL = constants.DefaultVmcURL
 	}
 
 	if len(cspURL) <= 0 {
-		cspURL = constants.DefaultCspUrl +
-			constants.CspRefreshUrlSuffix
+		cspURL = constants.DefaultCspURL +
+			constants.CspRefreshURLSuffix
 	} else {
 		cspURL = cspURL +
-			constants.CspRefreshUrlSuffix
+			constants.CspRefreshURLSuffix
 	}
 
 	securityCtx, err := SecurityContextByRefreshToken(refreshToken, cspURL)
@@ -62,7 +62,7 @@ func NewClientConnectorByRefreshToken(refreshToken, serviceUrl, cspURL string,
 		return nil, err
 	}
 
-	connector := client.NewRestConnector(serviceUrl, httpClient)
+	connector := client.NewRestConnector(serviceURL, httpClient)
 	connector.SetSecurityContext(securityCtx)
 
 	return connector, nil

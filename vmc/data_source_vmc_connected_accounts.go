@@ -37,11 +37,11 @@ func dataSourceVmcConnectedAccounts() *schema.Resource {
 }
 
 func dataSourceVmcConnectedAccountsRead(d *schema.ResourceData, m interface{}) error {
-	orgID := (m.(*connector.ConnectorWrapper)).OrgID
+	orgID := (m.(*connector.Wrapper)).OrgID
 	providerType := d.Get("provider_type").(string)
 	accountNumber := d.Get("account_number").(string)
 
-	connectorWrapper := (m.(*connector.ConnectorWrapper)).Connector
+	connectorWrapper := (m.(*connector.Wrapper)).Connector
 	defaultConnectedAccountsClient := account_link.NewConnectedAccountsClient(connectorWrapper)
 	accounts, err := defaultConnectedAccountsClient.Get(orgID, &providerType)
 

@@ -34,8 +34,8 @@ func dataSourceVmcOrg() *schema.Resource {
 }
 
 func dataSourceVmcOrgRead(d *schema.ResourceData, m interface{}) error {
-	orgID := (m.(*connector.ConnectorWrapper)).OrgID
-	connectorWrapper := (m.(*connector.ConnectorWrapper)).Connector
+	orgID := (m.(*connector.Wrapper)).OrgID
+	connectorWrapper := (m.(*connector.Wrapper)).Connector
 	orgClient := vmc.NewOrgsClient(connectorWrapper)
 	org, err := orgClient.Get(orgID)
 	if err != nil {

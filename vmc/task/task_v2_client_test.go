@@ -13,36 +13,36 @@ import (
 )
 
 const testAccessToken = "testAccessToken"
-const testVmcUrl = "https://test.vmc.vmware.com"
+const testVmcURL = "https://test.vmc.vmware.com"
 
-type HttpClientStub struct {
-	expectedUrl   string
-	responseJson  string
+type HTTPClientStub struct {
+	expectedURL   string
+	responseJSON  string
 	responseCode  int
 	responseError error
 	t             *testing.T
 }
 
-func (stub HttpClientStub) Do(req *http.Request) (*http.Response, error) {
-	assert.Equal(stub.t, stub.expectedUrl, req.URL.String())
+func (stub HTTPClientStub) Do(req *http.Request) (*http.Response, error) {
+	assert.Equal(stub.t, stub.expectedURL, req.URL.String())
 	assert.Equal(stub.t, http.MethodGet, req.Method)
 	assert.Equal(stub.t, req.Header.Get(authnHeader), testAccessToken)
 	response := http.Response{
 		StatusCode: stub.responseCode,
-		Body:       io.NopCloser(strings.NewReader(stub.responseJson)),
+		Body:       io.NopCloser(strings.NewReader(stub.responseJSON)),
 	}
 	return &response, stub.responseError
 }
 
 func TestGetTask(t *testing.T) {
-	testOrgId := "testOrgId"
-	expectedUrl := "https://test.vmc.vmware.com/api/operation/testOrgId/core/operations/lele"
+	testOrgID := "testOrgId"
+	expectedURL := "https://test.vmc.vmware.com/api/operation/testOrgId/core/operations/lele"
 	type inputStruct struct {
-		httpClientStub HttpClient
-		taskId         string
+		httpClientStub HTTPClient
+		taskID         string
 	}
 	type outputStruct struct {
-		task  TaskV2
+		task  V2Task
 		error error
 	}
 	type test struct {
@@ -52,34 +52,34 @@ func TestGetTask(t *testing.T) {
 	tests := []test{
 		{
 			inputStruct{
-				httpClientStub: HttpClientStub{
-					expectedUrl:   expectedUrl,
+				httpClientStub: HTTPClientStub{
+					expectedURL:   expectedURL,
 					responseCode:  http.StatusInternalServerError,
 					responseError: fmt.Errorf("VMC service down"),
-					responseJson:  "",
+					responseJSON:  "",
 					t:             t,
 				},
-				taskId: "lele",
+				taskID: "lele",
 			},
 			outputStruct{
-				task:  TaskV2{},
+				task:  V2Task{},
 				error: fmt.Errorf("VMC service down"),
 			},
 		},
 		{
 			inputStruct{
-				httpClientStub: HttpClientStub{
-					expectedUrl:   expectedUrl,
+				httpClientStub: HTTPClientStub{
+					expectedURL:   expectedURL,
 					responseCode:  http.StatusOK,
 					responseError: nil,
-					responseJson:  "{\"error_message\":\"SddcGroup creation failed\", \"state\":{\"name\":\"FAILED\"}}",
+					responseJSON:  "{\"error_message\":\"SddcGroup creation failed\", \"state\":{\"name\":\"FAILED\"}}",
 					t:             t,
 				},
-				taskId: "lele",
+				taskID: "lele",
 			},
 			outputStruct{
-				task: TaskV2{
-					TaskState: TaskV2State{
+				task: V2Task{
+					TaskState: V2State{
 						Name: "FAILED",
 					},
 					ErrorMessage: "SddcGroup creation failed",
@@ -89,24 +89,24 @@ func TestGetTask(t *testing.T) {
 		},
 		{
 			inputStruct{
-				httpClientStub: HttpClientStub{
-					expectedUrl:   expectedUrl,
+				httpClientStub: HTTPClientStub{
+					expectedURL:   expectedURL,
 					responseCode:  http.StatusNotFound,
 					responseError: nil,
-					responseJson:  "",
+					responseJSON:  "",
 					t:             t,
 				},
-				taskId: "lele",
+				taskID: "lele",
 			},
 			outputStruct{
-				task:  TaskV2{},
+				task:  V2Task{},
 				error: fmt.Errorf("Task with ID: lele not found "),
 			},
 		},
 	}
 	for _, testCase := range tests {
-		sddcGroupClient := newTestTaskV2ClientImpl(testVmcUrl, testOrgId, testAccessToken, testCase.input.httpClientStub)
-		task, err := sddcGroupClient.GetTask(testCase.input.taskId)
+		sddcGroupClient := newTestV2ClientImpl(testVmcURL, testOrgID, testAccessToken, testCase.input.httpClientStub)
+		task, err := sddcGroupClient.GetTask(testCase.input.taskID)
 		assert.Equal(t, testCase.output.task, task)
 		assert.Equal(t, testCase.output.error, err)
 	}

@@ -10,9 +10,10 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 	"github.com/vmware/terraform-provider-vmc/vmc/connector"
-	"github.com/vmware/terraform-provider-vmc/vmc/sddc_group"
+	"github.com/vmware/terraform-provider-vmc/vmc/sddcgroup"
 	"github.com/vmware/terraform-provider-vmc/vmc/task"
 	"github.com/vmware/vsphere-automation-sdk-go/services/vmc/model"
+	"strings"
 	"time"
 )
 
@@ -64,32 +65,131 @@ func sddcGroupSchema() map[string]*schema.Schema {
 			Type:     schema.TypeBool,
 			Computed: true,
 		},
+		"creator": {
+			Type:     schema.TypeString,
+			Computed: true,
+		},
+		"timestamp": {
+			Type:     schema.TypeString,
+			Computed: true,
+		},
+		"tgw_id": {
+			Type:     schema.TypeString,
+			Computed: true,
+			Optional: true,
+		},
+		"tgw_region": {
+			Type:     schema.TypeString,
+			Computed: true,
+			Optional: true,
+		},
+		"vpc_aws_account": {
+			Type:     schema.TypeString,
+			Computed: true,
+			Optional: true,
+		},
+		"vpc_ram_share_id": {
+			Type:     schema.TypeString,
+			Computed: true,
+			Optional: true,
+		},
+		"vpc_attachment_status": {
+			Type:     schema.TypeString,
+			Computed: true,
+			Optional: true,
+		},
+		"vpc_attachments": {
+			Type: schema.TypeList,
+			Elem: &schema.Resource{
+				Schema: map[string]*schema.Schema{
+					"vpc_id": {
+						Type:     schema.TypeString,
+						Computed: true,
+					},
+					"state": {
+						Type:     schema.TypeString,
+						Computed: true,
+					},
+					"attach_id": {
+						Type:     schema.TypeString,
+						Computed: true,
+					},
+					"configured_prefixes": {
+						Type:     schema.TypeString,
+						Computed: true,
+						Optional: true,
+					},
+				},
+			},
+			Computed: true,
+			Optional: true,
+		},
+		"dxgw_id": {
+			Type:     schema.TypeString,
+			Computed: true,
+			Optional: true,
+		},
+		"dxgw_owner": {
+			Type:     schema.TypeString,
+			Computed: true,
+			Optional: true,
+		},
+		"dxgw_status": {
+			Type:     schema.TypeString,
+			Computed: true,
+			Optional: true,
+		},
+		"dxgw_allowed_prefixes": {
+			Type:     schema.TypeString,
+			Computed: true,
+			Optional: true,
+		},
+		"external_tgw_id": {
+			Type:     schema.TypeString,
+			Computed: true,
+			Optional: true,
+		},
+		"external_tgw_owner": {
+			Type:     schema.TypeString,
+			Computed: true,
+			Optional: true,
+		},
+		"external_tgw_region": {
+			Type:     schema.TypeString,
+			Computed: true,
+			Optional: true,
+		},
+		"external_tgw_configured_prefixes": {
+			Type:     schema.TypeString,
+			Computed: true,
+			Optional: true,
+		},
 	}
 }
 
 func resourceSddcGroupCreate(ctx context.Context, data *schema.ResourceData, i interface{}) diag.Diagnostics {
-	connectorWrapper := i.(*connector.ConnectorWrapper)
-	sddcGroupsClient := sddc_group.NewSddcGroupClient(connectorWrapper.VmcURL, connectorWrapper.CspURL,
+	connectorWrapper := i.(*connector.Wrapper)
+	sddcGroupsClient := sddcgroup.NewSddcGroupClient(connectorWrapper.VmcURL, connectorWrapper.CspURL,
 		connectorWrapper.RefreshToken, connectorWrapper.OrgID)
 	err := sddcGroupsClient.Authenticate()
 	if err != nil {
 		return diag.FromErr(err)
 	}
-	sddcMemberIds := getCurrentSddcMemberIds(data)
-	err = sddcGroupsClient.ValidateCreateSddcGroup(sddcMemberIds)
+	sddcMemberIDs := getCurrentSddcMemberIDs(data)
+	err = sddcGroupsClient.ValidateCreateSddcGroup(sddcMemberIDs)
 	if err != nil {
 		return diag.FromErr(err)
 	}
 	sddcGroupName := data.Get("name").(string)
 	sddcGroupDescription := data.Get("description").(string)
-	sddcGroupId, taskId, err := sddcGroupsClient.CreateSddcGroup(sddcGroupName, sddcGroupDescription, sddcMemberIds)
+	sddcGroupID, taskID, err := sddcGroupsClient.CreateSddcGroup(sddcGroupName, sddcGroupDescription, sddcMemberIDs)
 	if err != nil {
 		return diag.FromErr(err)
 	}
-	data.SetId(sddcGroupId)
+	data.SetId(sddcGroupID)
 	err = resource.RetryContext(context.Background(), data.Timeout(schema.TimeoutCreate), func() *resource.RetryError {
 		taskErr := task.RetryTaskUntilFinished(connectorWrapper, func() (model.Task, error) {
-			return task.GetV2Task(connectorWrapper, taskId)
+			return task.GetV2Task(connectorWrapper, taskID)
 		}, "error creating SDDC group", nil)
 		if taskErr != nil {
 			return taskErr
@@ -107,27 +207,62 @@ func resourceSddcGroupCreate(ctx context.Context, data *schema.ResourceData, i i
 }
 
 func resourceSddcGroupRead(_ context.Context, data *schema.ResourceData, i interface{}) diag.Diagnostics {
-	connectorWrapper := i.(*connector.ConnectorWrapper)
-	sddcGroupsClient := sddc_group.NewSddcGroupClient(connectorWrapper.VmcURL, connectorWrapper.CspURL,
+	connectorWrapper := i.(*connector.Wrapper)
+	sddcGroupsClient := sddcgroup.NewSddcGroupClient(connectorWrapper.VmcURL, connectorWrapper.CspURL,
 		connectorWrapper.RefreshToken, connectorWrapper.OrgID)
 	err := sddcGroupsClient.Authenticate()
 	if err != nil {
 		return diag.FromErr(err)
 	}
-	sddcGroupId := data.Id()
-	sddcGroup, err := sddcGroupsClient.GetSddcGroup(sddcGroupId)
+	sddcGroupID := data.Id()
+	sddcGroup, networkConnectivityConfig, err := sddcGroupsClient.GetSddcGroup(sddcGroupID)
 	if err != nil {
 		return diag.FromErr(err)
 	}
 	_ = data.Set("name", sddcGroup.Name)
 	_ = data.Set("description", sddcGroup.Description)
-	_ = data.Set("org_id", sddcGroup.OrgId)
+	_ = data.Set("org_id", sddcGroup.OrgID)
 	_ = data.Set("deleted", sddcGroup.Deleted)
-	var sddcMemberIds []string
+	_ = data.Set("creator", sddcGroup.Creator.UserName)
+	_ = data.Set("timestamp", sddcGroup.Creator.Timestamp)
+	var sddcMemberIDs []string
 	for _, groupMember := range sddcGroup.Membership.Included {
-		sddcMemberIds = append(sddcMemberIds, groupMember.Id)
+		sddcMemberIDs = append(sddcMemberIDs, groupMember.ID)
 	}
-	_ = data.Set("sddc_member_ids", sddcMemberIds)
+	_ = data.Set("sddc_member_ids", sddcMemberIDs)
+	if networkConnectivityConfig.Traits.TransitGateway != nil {
+		_ = data.Set("tgw_id", networkConnectivityConfig.Traits.TransitGateway.L3Connectors[0].ID)
+		_ = data.Set("tgw_region", networkConnectivityConfig.Traits.TransitGateway.L3Connectors[0].Region)
+	}
+	if networkConnectivityConfig.Traits.AwsInfo != nil {
+		_ = data.Set("vpc_aws_account", networkConnectivityConfig.Traits.AwsInfo.Accounts[0].AccountNumber)
+		_ = data.Set("vpc_ram_share_id", networkConnectivityConfig.Traits.AwsInfo.Accounts[0].RAMShareID)
+		_ = data.Set("vpc_attachment_status", networkConnectivityConfig.Traits.AwsInfo.Accounts[0].Status)
+		var vpcAttachments []map[string]string
+		for _, vpcAttachment := range networkConnectivityConfig.Traits.AwsInfo.Accounts[0].AccountAttachments {
+			vpcAttachments = append(vpcAttachments, map[string]string{
+				"vpc_id":              vpcAttachment.VpcID,
+				"state":               vpcAttachment.State,
+				"attach_id":           vpcAttachment.AttachmentID,
+				"configured_prefixes": strings.Join(vpcAttachment.StaticRoutes, " "),
+			})
+		}
+		_ = data.Set("vpc_attachments", vpcAttachments)
+	}
+	if networkConnectivityConfig.Traits.DxGateway != nil {
+		_ = data.Set("dxgw_id", networkConnectivityConfig.Traits.DxGateway.DirectConnectGatewayAssociations[0].DxgwID)
+		_ = data.Set("dxgw_owner", networkConnectivityConfig.Traits.DxGateway.DirectConnectGatewayAssociations[0].DxgwOwner)
+		_ = data.Set("dxgw_status", networkConnectivityConfig.Traits.DxGateway.DirectConnectGatewayAssociations[0].Status)
+		_ = data.Set("dxgw_allowed_prefixes", strings.Join(networkConnectivityConfig.Traits.DxGateway.
+			DirectConnectGatewayAssociations[0].PeeringRegions[0].AllowedPrefixes, " "))
+	}
+	if networkConnectivityConfig.Traits.ExternalTgw != nil {
+		_ = data.Set("external_tgw_id", networkConnectivityConfig.Traits.ExternalTgw.CustomerTransitGatewayAssociations[0].TgwID)
+		_ = data.Set("external_tgw_owner", networkConnectivityConfig.Traits.ExternalTgw.CustomerTransitGatewayAssociations[0].TgwOwner)
+		_ = data.Set("external_tgw_region", networkConnectivityConfig.Traits.ExternalTgw.CustomerTransitGatewayAssociations[0].TgwRegion)
+		_ = data.Set("external_tgw_configured_prefixes", strings.Join(networkConnectivityConfig.Traits.ExternalTgw.
+			CustomerTransitGatewayAssociations[0].PeeringRegions[0].ConfiguredPrefixes, " "))
+	}
 	return nil
 }
 
@@ -148,27 +283,27 @@ func resourceSddcGroupUpdate(ctx context.Context, data *schema.ResourceData, i i
 }
 
 func resourceSddcGroupDelete(_ context.Context, data *schema.ResourceData, i interface{}) diag.Diagnostics {
-	connectorWrapper := i.(*connector.ConnectorWrapper)
-	sddcGroupsClient := sddc_group.NewSddcGroupClient(connectorWrapper.VmcURL, connectorWrapper.CspURL,
+	connectorWrapper := i.(*connector.Wrapper)
+	sddcGroupsClient := sddcgroup.NewSddcGroupClient(connectorWrapper.VmcURL, connectorWrapper.CspURL,
 		connectorWrapper.RefreshToken, connectorWrapper.OrgID)
 	err := sddcGroupsClient.Authenticate()
 	if err != nil {
 		return diag.FromErr(err)
 	}
-	sddcMemberIds := getCurrentSddcMemberIds(data)
+	sddcMemberIds := getCurrentSddcMemberIDs(data)
 	// Removal of all sddc members from the group is required prior to deletion
 	diags := updateSddcGroupMembers(data, i, new([]string), sddcMemberIds)
 	if diags != nil {
 		return diags
 	}
 
-	deleteSddcTaskId, err := sddcGroupsClient.DeleteSddcGroup(data.Id())
+	deleteSddcTaskID, err := sddcGroupsClient.DeleteSddcGroup(data.Id())
 	if err != nil {
 		return diag.FromErr(err)
 	}
 	err = resource.RetryContext(context.Background(), data.Timeout(schema.TimeoutCreate), func() *resource.RetryError {
 		taskErr := task.RetryTaskUntilFinished(connectorWrapper, func() (model.Task, error) {
-			return task.GetV2Task(connectorWrapper, deleteSddcTaskId)
+			return task.GetV2Task(connectorWrapper, deleteSddcTaskID)
 		}, "error deleting SDDC group", nil)
 		if taskErr != nil {
 			return taskErr
@@ -184,21 +319,21 @@ func resourceSddcGroupDelete(_ context.Context, data *schema.ResourceData, i int
 
 func updateSddcGroupMembers(data *schema.ResourceData,
 	i interface{}, addedIds *[]string, removedIds *[]string) diag.Diagnostics {
-	connectorWrapper := i.(*connector.ConnectorWrapper)
-	sddcGroupsClient := sddc_group.NewSddcGroupClient(connectorWrapper.VmcURL, connectorWrapper.CspURL,
+	connectorWrapper := i.(*connector.Wrapper)
+	sddcGroupsClient := sddcgroup.NewSddcGroupClient(connectorWrapper.VmcURL, connectorWrapper.CspURL,
 		connectorWrapper.RefreshToken, connectorWrapper.OrgID)
 	err := sddcGroupsClient.Authenticate()
 	if err != nil {
 		return diag.FromErr(err)
 	}
 
-	updateMembersTaskId, err := sddcGroupsClient.UpdateSddcGroupMembers(data.Id(), addedIds, removedIds)
+	updateMembersTaskID, err := sddcGroupsClient.UpdateSddcGroupMembers(data.Id(), addedIds, removedIds)
 	if err != nil {
 		return diag.FromErr(err)
 	}
 	err = resource.RetryContext(context.Background(), data.Timeout(schema.TimeoutCreate), func() *resource.RetryError {
 		taskErr := task.RetryTaskUntilFinished(connectorWrapper, func() (model.Task, error) {
-			return task.GetV2Task(connectorWrapper, updateMembersTaskId)
+			return task.GetV2Task(connectorWrapper, updateMembersTaskID)
 		}, "error updating SDDC group members", nil)
 		if taskErr != nil {
 			return taskErr
@@ -211,30 +346,30 @@ func updateSddcGroupMembers(data *schema.ResourceData,
 	return nil
 }
 
-func getCurrentSddcMemberIds(data *schema.ResourceData) *[]string {
+func getCurrentSddcMemberIDs(data *schema.ResourceData) *[]string {
 	sddcMemberIdsSet := data.Get("sddc_member_ids").(*schema.Set)
-	var sddcMemberIds []string
-	for _, sddcMemberId := range sddcMemberIdsSet.List() {
-		sddcMemberIds = append(sddcMemberIds, sddcMemberId.(string))
+	var sddcMemberIDs []string
+	for _, sddcMemberID := range sddcMemberIdsSet.List() {
+		sddcMemberIDs = append(sddcMemberIDs, sddcMemberID.(string))
 	}
-	return &sddcMemberIds
+	return &sddcMemberIDs
 }
 
-func getAddedIds(oldIds *schema.Set, newIds *schema.Set) *[]string {
+func getAddedIds(oldIDs *schema.Set, newIDs *schema.Set) *[]string {
 	var addedIds []string
-	for _, newId := range newIds.List() {
-		if !oldIds.Contains(newId) {
-			addedIds = append(addedIds, newId.(string))
+	for _, newID := range newIDs.List() {
+		if !oldIDs.Contains(newID) {
+			addedIds = append(addedIds, newID.(string))
 		}
 	}
 	return &addedIds
 }
 
-func getRemovedIds(oldIds *schema.Set, newIds *schema.Set) *[]string {
+func getRemovedIds(oldIDs *schema.Set, newIDs *schema.Set) *[]string {
 	var removedIds []string
-	for _, oldId := range oldIds.List() {
-		if !newIds.Contains(oldId) {
-			removedIds = append(removedIds, oldId.(string))
+	for _, oldID := range oldIDs.List() {
+		if !newIDs.Contains(oldID) {
+			removedIds = append(removedIds, oldID.(string))
 		}
 	}
 	return &removedIds

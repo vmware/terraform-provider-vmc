@@ -20,28 +20,28 @@ func Provider() *schema.Provider {
 			"refresh_token": {
 				Type:        schema.TypeString,
 				Required:    true,
-				DefaultFunc: schema.EnvDefaultFunc(constants.ApiToken, nil),
+				DefaultFunc: schema.EnvDefaultFunc(constants.APIToken, nil),
 			},
 			"org_id": {
 				Type:        schema.TypeString,
 				Required:    true,
-				DefaultFunc: schema.EnvDefaultFunc(constants.OrgId, nil),
+				DefaultFunc: schema.EnvDefaultFunc(constants.OrgID, nil),
 			},
 			"vmc_url": {
 				Type:        schema.TypeString,
 				Optional:    true,
-				DefaultFunc: schema.EnvDefaultFunc(constants.VmcUrl, constants.DefaultVmcUrl),
+				DefaultFunc: schema.EnvDefaultFunc(constants.VmcURL, constants.DefaultVmcURL),
 			},
 			"csp_url": {
 				Type:        schema.TypeString,
 				Optional:    true,
-				DefaultFunc: schema.EnvDefaultFunc(constants.CspUrl, constants.DefaultCspUrl),
+				DefaultFunc: schema.EnvDefaultFunc(constants.CspURL, constants.DefaultCspURL),
 			},
 		},
 
 		ResourcesMap: map[string]*schema.Resource{
 			"vmc_sddc":          resourceSddc(),
-			"vmc_public_ip":     resourcePublicIp(),
+			"vmc_public_ip":     resourcePublicIP(),
 			"vmc_site_recovery": resourceSiteRecovery(),
 			"vmc_srm_node":      resourceSrmNode(),
 			"vmc_cluster":       resourceCluster(),
@@ -65,10 +65,10 @@ func providerConfigure(d *schema.ResourceData) (interface{}, error) {
 		return nil, fmt.Errorf("refresh token cannot be empty")
 	}
 	// set refresh token to env variable so that it can be used by other connectors
-	os.Setenv(constants.ApiToken, refreshToken)
+	_ = os.Setenv(constants.APIToken, refreshToken)
 	vmcURL := d.Get("vmc_url").(string)
 	cspURL := d.Get("csp_url").(string)
-	os.Setenv(constants.CspUrl, cspURL)
+	_ = os.Setenv(constants.CspURL, cspURL)
 	orgID := d.Get("org_id").(string)
 	httpClient := http.Client{}
 	apiConnector, err := connector.NewClientConnectorByRefreshToken(refreshToken, vmcURL, cspURL, httpClient)
@@ -76,7 +76,7 @@ func providerConfigure(d *schema.ResourceData) (interface{}, error) {
 		return nil, HandleCreateError("Client connector", err)
 	}
 
-	return &connector.ConnectorWrapper{
+	return &connector.Wrapper{
 			Connector:    apiConnector,
 			RefreshToken: refreshToken,
 			OrgID:        orgID,

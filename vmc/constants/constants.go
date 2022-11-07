@@ -4,17 +4,17 @@
 package constants
 
 const (
-	// DefaultVmcUrl defines the default VMC server url.
-	DefaultVmcUrl string = "https://vmc.vmware.com"
+	// DefaultVmcURL defines the default VMC server url.
+	DefaultVmcURL string = "https://vmc.vmware.com"
 
-	// DefaultCspUrl defines the default URL for CSP.
-	DefaultCspUrl string = "https://console.cloud.vmware.com"
+	// DefaultCspURL defines the default URL for CSP.
+	DefaultCspURL string = "https://console.cloud.vmware.com"
 
-	// CspRefreshUrlSuffix defines the CSP Refresh API endpoint.
-	CspRefreshUrlSuffix string = "/csp/gateway/am/api/auth/api-tokens/authorize"
+	// CspRefreshURLSuffix defines the CSP Refresh API endpoint.
+	CspRefreshURLSuffix string = "/csp/gateway/am/api/auth/api-tokens/authorize"
 
 	// sksNSXTManager to be stripped from nsxt reverse proxy url for public IP resource
-	SksNsxtManager string = "/sks-nsxt-manager"
+	SksNSXTManager string = "/sks-nsxt-manager"
 
 	// ESX Host instance types supported for SDDC creation.
 	HostInstancetypeI3   string = "I3_METAL"
@@ -33,7 +33,7 @@ const (
 	LargeSddcSize         = "large"
 	CapitalLargeSddcSize  = "LARGE"
 
-	ClusterIdFieldName = "clusterId"
+	ClusterIDFieldName = "clusterId"
 	SrmPrefix          = "srm-"
 	SddcSuffix         = ".sddc-"
 
@@ -65,15 +65,15 @@ const (
 	MaxHosts = 16
 
 	// Env variables used in acceptance tests
-	VmcUrl         string = "VMC_URL"
-	CspUrl         string = "CSP_URL"
-	ApiToken       string = "API_TOKEN"
-	OrgId          string = "ORG_ID"
+	VmcURL         string = "VMC_URL"
+	CspURL         string = "CSP_URL"
+	APIToken       string = "API_TOKEN"
+	OrgID          string = "ORG_ID"
 	OrgDisplayName string = "ORG_DISPLAY_NAME"
-	// TestSddcId ID of an existing SDDC used for sddc data source, site recovery and srm node tests
-	TestSddcId string = "TEST_SDDC_ID"
+	// TestSddcID ID of an existing SDDC used for sddc data source, site recovery and srm node tests
+	TestSddcID string = "TEST_SDDC_ID"
 	// TestSddcName Name of an existing SDDC used for sddc data source tests
 	TestSddcName        string = "TEST_SDDC_NAME"
 	AwsAccountNumber    string = "AWS_ACCOUNT_NUMBER"
-	NsxtReverseProxyUrl string = "NSXT_REVERSE_PROXY_URL"
+	NsxtReverseProxyURL string = "NSXT_REVERSE_PROXY_URL"
 )
