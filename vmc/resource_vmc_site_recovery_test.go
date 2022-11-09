@@ -36,7 +36,7 @@ func TestAccResourceVmcSiteRecoveryZerocloud(t *testing.T) {
 			},
 			{
 				ResourceName:            resourceName,
-				ImportStateIdFunc:       testAccVmcSiteRecoveryResourceImportStateIdFunc(resourceName),
+				ImportStateIdFunc:       testAccVmcSiteRecoveryResourceImportStateIDFunc(resourceName),
 				ImportStateVerifyIgnore: []string{"sddc_id", "srm_extension_key_suffix"},
 				ImportState:             true,
 				ImportStateVerify:       true,
@@ -52,7 +52,7 @@ func testCheckVmcSiteRecoveryExists(name string, siteRecovery *model.SiteRecover
 			return fmt.Errorf("not found: %s", name)
 		}
 		sddcID := rs.Primary.Attributes["sddc_id"]
-		connectorWrapper := testAccProvider.Meta().(*connector.ConnectorWrapper)
+		connectorWrapper := testAccProvider.Meta().(*connector.Wrapper)
 		orgID := connectorWrapper.OrgID
 
 		draasClient := draas.NewSiteRecoveryClient(connectorWrapper)
@@ -71,7 +71,7 @@ func testCheckVmcSiteRecoveryExists(name string, siteRecovery *model.SiteRecover
 }
 
 func testCheckVmcSiteRecoveryDestroy(s *terraform.State) error {
-	connectorWrapper := testAccProvider.Meta().(*connector.ConnectorWrapper)
+	connectorWrapper := testAccProvider.Meta().(*connector.Wrapper)
 	draasClient := draas.NewSiteRecoveryClient(connectorWrapper)
 
 	for _, rs := range s.RootModule().Resources {
@@ -117,7 +117,7 @@ resource "vmc_sddc" "srm_test_sddc" {
 	)
 }
 
-func testAccVmcSiteRecoveryResourceImportStateIdFunc(resourceName string) resource.ImportStateIdFunc {
+func testAccVmcSiteRecoveryResourceImportStateIDFunc(resourceName string) resource.ImportStateIdFunc {
 	return func(s *terraform.State) (string, error) {
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {

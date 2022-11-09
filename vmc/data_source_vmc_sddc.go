@@ -152,10 +152,10 @@ func dataSourceVmcSddc() *schema.Resource {
 }
 
 func dataSourceVmcSddcRead(d *schema.ResourceData, m interface{}) error {
-	connectorWrapper := (m.(*connector.ConnectorWrapper)).Connector
+	connectorWrapper := (m.(*connector.Wrapper)).Connector
 	sddcClient := orgs.NewSddcsClient(connectorWrapper)
 	sddcID := d.Get("sddc_id").(string)
-	orgID := (m.(*connector.ConnectorWrapper)).OrgID
+	orgID := (m.(*connector.Wrapper)).OrgID
 	sddc, err := sddcClient.Get(orgID, sddcID)
 	if err != nil {
 		if err.Error() == errors.NewNotFound().Error() {

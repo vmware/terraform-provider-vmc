@@ -14,28 +14,26 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 	"github.com/vmware/vsphere-automation-sdk-go/lib/vapi/std/errors"
 	"github.com/vmware/vsphere-automation-sdk-go/services/nsxt-vmc-aws-integration/api"
-	"github.com/vmware/vsphere-automation-sdk-go/services/nsxt-vmc-aws-integration/model"
 )
 
 func TestAccResourceVmcPublicIp_basic(t *testing.T) {
-	var publicIpResource model.PublicIp
 	displayName := acctest.RandStringFromCharSet(10, acctest.CharSetAlphaNum)
 	resourceName := "vmc_public_ip.public_ip_1"
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
-		CheckDestroy: testCheckVmcPublicIpDestroy,
+		CheckDestroy: testCheckVmcPublicIPDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccVmcPublicIpConfigBasic(displayName),
+				Config: testAccVmcPublicIPConfigBasic(displayName),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckVmcPublicIpExists("vmc_public_ip.public_ip_1", &publicIpResource),
+					testAccCheckVmcPublicIPExists("vmc_public_ip.public_ip_1"),
 					resource.TestCheckResourceAttrSet("vmc_public_ip.public_ip_1", "display_name"),
 				),
 			},
 			{
 				ResourceName:      resourceName,
-				ImportStateIdFunc: testAccVmcPublicIPResourceImportStateIdFunc(resourceName),
+				ImportStateIdFunc: testAccVmcPublicIPResourceImportStateIDFunc(resourceName),
 				ImportState:       true,
 				ImportStateVerify: true,
 			},
@@ -43,7 +41,7 @@ func TestAccResourceVmcPublicIp_basic(t *testing.T) {
 	})
 }
 
-func testAccCheckVmcPublicIpExists(name string, publicIpResource *model.PublicIp) resource.TestCheckFunc {
+func testAccCheckVmcPublicIPExists(name string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		rs, ok := s.RootModule().Resources[name]
 		if !ok {
@@ -51,27 +49,27 @@ func testAccCheckVmcPublicIpExists(name string, publicIpResource *model.PublicIp
 		}
 		uuid := rs.Primary.Attributes["id"]
 		displayName := rs.Primary.Attributes["display_name"]
-		connector, err := getNsxtReverseProxyURLConnector(os.Getenv(constants.NsxtReverseProxyUrl))
+		connector, err := getNsxtReverseProxyURLConnector(os.Getenv(constants.NsxtReverseProxyURL))
 		if err != nil {
 			return fmt.Errorf("error creating client connector : %v ", err)
 		}
 
 		nsxVmcAwsClient := api.NewCloudServiceVMCOnAWSPublicIPClient(connector)
-		publicIp, err := nsxVmcAwsClient.GetPublicIp(uuid)
+		publicIP, err := nsxVmcAwsClient.GetPublicIp(uuid)
 		if err != nil {
 			return fmt.Errorf("error getting public IP with ID %s : %v", uuid, err)
 		}
 
-		if *publicIp.Id != uuid {
+		if *publicIP.Id != uuid {
 			return fmt.Errorf("error public IP %q does not exist", displayName)
 		}
 		return nil
 	}
 }
 
-func testCheckVmcPublicIpDestroy(s *terraform.State) error {
-	fmt.Printf("Reverse proxy : %s", os.Getenv(constants.NsxtReverseProxyUrl))
-	connector, err := getNsxtReverseProxyURLConnector(os.Getenv(constants.NsxtReverseProxyUrl))
+func testCheckVmcPublicIPDestroy(s *terraform.State) error {
+	fmt.Printf("Reverse proxy : %s", os.Getenv(constants.NsxtReverseProxyURL))
+	connector, err := getNsxtReverseProxyURLConnector(os.Getenv(constants.NsxtReverseProxyURL))
 	if err != nil {
 		return fmt.Errorf("error creating client connector : %v ", err)
 	}
@@ -84,11 +82,11 @@ func testCheckVmcPublicIpDestroy(s *terraform.State) error {
 
 		uuid := rs.Primary.Attributes["id"]
 		fmt.Printf("UUID : %s ", uuid)
-		publicIp, err := nsxVmcAwsClient.GetPublicIp(uuid)
-		fmt.Printf("publicIP : %v", publicIp.Id)
+		publicIP, err := nsxVmcAwsClient.GetPublicIp(uuid)
+		fmt.Printf("publicIP : %v", publicIP.Id)
 		if err == nil {
-			if *publicIp.Id == uuid {
-				return fmt.Errorf("public IP %s with ID %s still exits", *publicIp.DisplayName, uuid)
+			if *publicIP.Id == uuid {
+				return fmt.Errorf("public IP %s with ID %s still exits", *publicIP.DisplayName, uuid)
 			}
 			return nil
 		}
@@ -101,7 +99,7 @@ func testCheckVmcPublicIpDestroy(s *terraform.State) error {
 	return nil
 }
 
-func testAccVmcPublicIpConfigBasic(displayName string) string {
+func testAccVmcPublicIPConfigBasic(displayName string) string {
 	return fmt.Sprintf(`
 resource "vmc_public_ip" "public_ip_1" {
 	display_name = %q
@@ -110,11 +108,11 @@ resource "vmc_public_ip" "public_ip_1" {
 }
 `,
 		displayName,
-		os.Getenv(constants.NsxtReverseProxyUrl),
+		os.Getenv(constants.NsxtReverseProxyURL),
 	)
 }
 
-func testAccVmcPublicIPResourceImportStateIdFunc(resourceName string) resource.ImportStateIdFunc {
+func testAccVmcPublicIPResourceImportStateIDFunc(resourceName string) resource.ImportStateIdFunc {
 	return func(s *terraform.State) (string, error) {
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {

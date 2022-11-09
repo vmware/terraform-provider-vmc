@@ -32,10 +32,10 @@ func resourceSrmNode() *schema.Resource {
 				if len(idParts) != 2 || idParts[0] == "" || idParts[1] == "" {
 					return nil, fmt.Errorf("unexpected format of ID (%q), expected id,sddc_id", d.Id())
 				}
-				if err := IsValidUuid(idParts[0]); err != nil {
+				if err := IsValidUUID(idParts[0]); err != nil {
 					return nil, fmt.Errorf("invalid format for id : %v", err)
 				}
-				if err := IsValidUuid(idParts[1]); err != nil {
+				if err := IsValidUUID(idParts[1]); err != nil {
 					return nil, fmt.Errorf("invalid format for sddc_id : %v", err)
 				}
 
@@ -71,16 +71,16 @@ func resourceSrmNode() *schema.Resource {
 }
 
 func resourceSrmNodeCreate(d *schema.ResourceData, m interface{}) error {
-	err := (m.(*connector.ConnectorWrapper)).Authenticate()
+	err := (m.(*connector.Wrapper)).Authenticate()
 	if err != nil {
 		return fmt.Errorf("authentication error from Cloud Service Provider: %s", err)
 	}
-	connectorWrapper := m.(*connector.ConnectorWrapper)
+	connectorWrapper := m.(*connector.Wrapper)
 
 	siteRecoverySrmNodesClient := draas.NewSiteRecoverySrmNodesClient(connectorWrapper)
 
 	srmExtensionKeySuffix := d.Get("srm_node_extension_key_suffix").(string)
-	orgID := (m.(*connector.ConnectorWrapper)).OrgID
+	orgID := (m.(*connector.Wrapper)).OrgID
 	sddcID := d.Get("sddc_id").(string)
 
 	provisionSrmConfigParam := &draasmodel.ProvisionSrmConfig{
@@ -113,8 +113,8 @@ func resourceSrmNodeCreate(d *schema.ResourceData, m interface{}) error {
 }
 
 func resourceSrmNodeRead(d *schema.ResourceData, m interface{}) error {
-	connectorWrapper := (m.(*connector.ConnectorWrapper)).Connector
-	orgID := (m.(*connector.ConnectorWrapper)).OrgID
+	connectorWrapper := (m.(*connector.Wrapper)).Connector
+	orgID := (m.(*connector.Wrapper)).OrgID
 	sddcID := d.Get("sddc_id").(string)
 	srmNodeID := d.Id()
 	siteRecoveryClient := draas.NewSiteRecoveryClient(connectorWrapper)
@@ -146,10 +146,10 @@ func resourceSrmNodeRead(d *schema.ResourceData, m interface{}) error {
 }
 
 func resourceSrmNodeDelete(d *schema.ResourceData, m interface{}) error {
-	connectorWrapper := m.(*connector.ConnectorWrapper)
+	connectorWrapper := m.(*connector.Wrapper)
 	siteRecoverySrmNodesClient := draas.NewSiteRecoverySrmNodesClient(connectorWrapper)
 
-	orgID := (m.(*connector.ConnectorWrapper)).OrgID
+	orgID := (m.(*connector.Wrapper)).OrgID
 	sddcID := d.Get("sddc_id").(string)
 	srmNodeID := d.Id()
 	srmNodeDeleteTask, err := siteRecoverySrmNodesClient.Delete(orgID, sddcID, srmNodeID)

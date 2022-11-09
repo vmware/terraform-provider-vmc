@@ -39,7 +39,7 @@ func TestAccResourceVmcClusterBasic(t *testing.T) {
 			},
 			{
 				ResourceName:      resourceName,
-				ImportStateIdFunc: testAccVmcClusterResourceImportStateIdFunc(resourceName),
+				ImportStateIdFunc: testAccVmcClusterResourceImportStateIDFunc(resourceName),
 				ImportState:       true,
 				ImportStateVerify: true,
 			},
@@ -66,7 +66,7 @@ func TestAccResourceVmcClusterZerocloud(t *testing.T) {
 			},
 			{
 				ResourceName:      resourceName,
-				ImportStateIdFunc: testAccVmcClusterResourceImportStateIdFunc(resourceName),
+				ImportStateIdFunc: testAccVmcClusterResourceImportStateIDFunc(resourceName),
 				ImportState:       true,
 				ImportStateVerify: true,
 				// "microsoft_licensing_config" and "host_instance_type" are set in the
@@ -85,7 +85,7 @@ func testAccCheckVmcClusterExists(clusterRef string, sddcResource *model.Sddc) r
 		}
 		sddcID := rs.Primary.Attributes["sddc_id"]
 
-		connectorWrapper := testAccProvider.Meta().(*connector.ConnectorWrapper)
+		connectorWrapper := testAccProvider.Meta().(*connector.Wrapper)
 		orgID := connectorWrapper.OrgID
 
 		sddcClient := orgs.NewSddcsClient(connectorWrapper)
@@ -115,7 +115,7 @@ func testAccCheckVmcClusterExists(clusterRef string, sddcResource *model.Sddc) r
 }
 
 func testCheckVmcClusterDestroy(s *terraform.State) error {
-	connectorWrapper := testAccProvider.Meta().(*connector.ConnectorWrapper)
+	connectorWrapper := testAccProvider.Meta().(*connector.Wrapper)
 	sddcClient := orgs.NewSddcsClient(connectorWrapper)
 
 	for _, rs := range s.RootModule().Resources {
@@ -124,13 +124,13 @@ func testCheckVmcClusterDestroy(s *terraform.State) error {
 		}
 
 		sddcID := rs.Primary.Attributes["sddc_id"]
-		clusterId := rs.Primary.Attributes["id"]
+		clusterID := rs.Primary.Attributes["id"]
 		orgID := connectorWrapper.OrgID
 		sddcResource, err := sddcClient.Get(orgID, sddcID)
 
 		for i := 0; i < len(sddcResource.ResourceConfig.Clusters); i++ {
 			currentResourceConfig := sddcResource.ResourceConfig.Clusters[i]
-			if currentResourceConfig.ClusterId == clusterId {
+			if currentResourceConfig.ClusterId == clusterID {
 				return fmt.Errorf("cluster still exists : %v", err)
 			}
 		}
@@ -258,7 +258,7 @@ resource "vmc_cluster" "cluster_2" {
 	)
 }
 
-func testAccVmcClusterResourceImportStateIdFunc(resourceName string) resource.ImportStateIdFunc {
+func testAccVmcClusterResourceImportStateIDFunc(resourceName string) resource.ImportStateIdFunc {
 	return func(s *terraform.State) (string, error) {
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {

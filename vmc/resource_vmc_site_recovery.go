@@ -79,16 +79,16 @@ func resourceSiteRecovery() *schema.Resource {
 
 func resourceSiteRecoveryCreate(d *schema.ResourceData, m interface{}) error {
 
-	err := (m.(*connector.ConnectorWrapper)).Authenticate()
+	err := (m.(*connector.Wrapper)).Authenticate()
 	if err != nil {
 		return fmt.Errorf("authentication error from Cloud Service Provider: %s", err)
 	}
-	connectorWrapper := (m.(*connector.ConnectorWrapper))
+	connectorWrapper := (m.(*connector.Wrapper))
 
 	siteRecoveryClient := draas.NewSiteRecoveryClient(connectorWrapper)
 
 	srmExtensionKeySuffix := d.Get("srm_extension_key_suffix").(string)
-	orgID := (m.(*connector.ConnectorWrapper)).OrgID
+	orgID := (m.(*connector.Wrapper)).OrgID
 	sddcID := d.Get("sddc_id").(string)
 
 	activateSiteRecoveryConfigParam := &draasmodel.ActivateSiteRecoveryConfig{
@@ -123,9 +123,9 @@ func resourceSiteRecoveryCreate(d *schema.ResourceData, m interface{}) error {
 }
 
 func resourceSiteRecoveryRead(d *schema.ResourceData, m interface{}) error {
-	connectorWrapper := (m.(*connector.ConnectorWrapper)).Connector
+	connectorWrapper := (m.(*connector.Wrapper)).Connector
 	sddcID := d.Id()
-	orgID := (m.(*connector.ConnectorWrapper)).OrgID
+	orgID := (m.(*connector.Wrapper)).OrgID
 	siteRecoveryClient := draas.NewSiteRecoveryClient(connectorWrapper)
 	siteRecovery, err := siteRecoveryClient.Get(orgID, sddcID)
 	if err != nil {
@@ -186,10 +186,10 @@ func resourceSiteRecoveryRead(d *schema.ResourceData, m interface{}) error {
 }
 
 func resourceSiteRecoveryDelete(d *schema.ResourceData, m interface{}) error {
-	connectorWrapper := m.(*connector.ConnectorWrapper)
+	connectorWrapper := m.(*connector.Wrapper)
 	siteRecoveryClient := draas.NewSiteRecoveryClient(connectorWrapper)
 
-	orgID := (m.(*connector.ConnectorWrapper)).OrgID
+	orgID := (m.(*connector.Wrapper)).OrgID
 	sddcID := d.Get("sddc_id").(string)
 
 	siteRecoveryDeleteTask, err := siteRecoveryClient.Delete(orgID, sddcID, nil, nil)

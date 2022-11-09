@@ -6,7 +6,7 @@ package task
 import (
 	"github.com/vmware/terraform-provider-vmc/vmc/connector"
 	autoscalerapi "github.com/vmware/vsphere-automation-sdk-go/services/vmc/autoscaler/api"
-	draas "github.com/vmware/vsphere-automation-sdk-go/services/vmc/draas"
+	"github.com/vmware/vsphere-automation-sdk-go/services/vmc/draas"
 	"github.com/vmware/vsphere-automation-sdk-go/services/vmc/model"
 	"github.com/vmware/vsphere-automation-sdk-go/services/vmc/orgs"
 )
@@ -17,15 +17,40 @@ import (
 // This concern has been raised with the owners of the VMC SDKs.
 
 // GetTask returns a model.Task with specified ID
-func GetTask(connectorWrapper *connector.ConnectorWrapper, taskId string) (model.Task, error) {
+func GetTask(connectorWrapper *connector.Wrapper, taskID string) (model.Task, error) {
 	tasksClient := orgs.NewTasksClient(connectorWrapper)
-	return tasksClient.Get(connectorWrapper.OrgID, taskId)
+	return tasksClient.Get(connectorWrapper.OrgID, taskID)
+}
+
+// GetV2Task returns an adapted model.Task with specified ID
+func GetV2Task(connectorWrapper *connector.Wrapper, taskID string) (model.Task, error) {
+	tasksV2Client := NewV2ClientImpl(connectorWrapper.VmcURL, connectorWrapper.CspURL,
+		connectorWrapper.RefreshToken, connectorWrapper.OrgID)
+	err := tasksV2Client.Authenticate()
+	if err != nil {
+		return model.Task{}, err
+	}
+	taskV2, err := tasksV2Client.GetTask(taskID)
+	if err != nil {
+		return model.Task{}, err
+	}
+	taskStatus := taskV2.TaskState.Name
+	// convert v2 "finished" status to v1 "finished" status
+	if taskStatus == "COMPLETED" {
+		taskStatus = model.Task_STATUS_FINISHED
+	}
+	return model.Task{
+		Id:           taskV2.ID,
+		TaskType:     &taskV2.TaskType,
+		Status:       &taskStatus,
+		ErrorMessage: &taskV2.ErrorMessage,
+	}, nil
 }
 
 // GetAutoscalerTask polls autoscalerapi for task with specified ID and converts it to model.Task
-func GetAutoscalerTask(connectorWrapper *connector.ConnectorWrapper, taskId string) (model.Task, error) {
+func GetAutoscalerTask(connectorWrapper *connector.Wrapper, taskID string) (model.Task, error) {
 	tasksClient := autoscalerapi.NewAutoscalerClient(connectorWrapper)
-	autoscalerTask, err := tasksClient.Get(connectorWrapper.OrgID, taskId)
+	autoscalerTask, err := tasksClient.Get(connectorWrapper.OrgID, taskID)
 	// Commented out fields do not exist in the autoscalerapi task
 	return model.Task{
 		Updated:               autoscalerTask.Updated,
@@ -60,9 +85,9 @@ func GetAutoscalerTask(connectorWrapper *connector.ConnectorWrapper, taskId stri
 }
 
 // GetDraasTask polls draas API for task with specified ID and converts it to model.Task
-func GetDraasTask(connectorWrapper *connector.ConnectorWrapper, taskId string) (model.Task, error) {
+func GetDraasTask(connectorWrapper *connector.Wrapper, taskID string) (model.Task, error) {
 	tasksClient := draas.NewTaskClient(connectorWrapper)
-	draasTask, err := tasksClient.Get(connectorWrapper.OrgID, taskId)
+	draasTask, err := tasksClient.Get(connectorWrapper.OrgID, taskID)
 	// Commented out fields do not exist in draas API Task
 	return model.Task{
 		Updated:               draasTask.Updated,
@@ -83,7 +108,7 @@ func GetDraasTask(connectorWrapper *connector.ConnectorWrapper, taskId string) (
 		StartTime: draasTask.StartTime,
 		//TaskProgressPhases
 		ErrorMessage: draasTask.ErrorMessage,
-		//OrgId:
+		//OrgID:
 		//EndResourceEntityVersion
 		//ServiceErrors
 		//OrgType

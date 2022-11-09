@@ -164,6 +164,22 @@ func TestRetryTaskUntilFinished(t *testing.T) {
 			},
 			want: resource.RetryableError(fmt.Errorf("expected task type: notMyType to be finished STARTED")),
 		},
+		// Task status invalid
+		{
+			input: inputStruct{
+				connectorWrapper: AuthenticatorStub{},
+				taskSupplier: func() (model.Task, error) {
+					status := ""
+					return model.Task{Status: &status}, nil
+				},
+				errorMessage: "Cluster creation failed",
+				finishCallback: func(task model.Task) {
+					assert.Equal(t, "", *task.Status)
+					finishCallbackHasBeenCalled = true
+				},
+			},
+			want: resource.NonRetryableError(fmt.Errorf("task status was empty. Some API error occurred")),
+		},
 		// Task status finished
 		{
 			input: inputStruct{

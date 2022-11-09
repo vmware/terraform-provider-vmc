@@ -35,6 +35,6 @@ data "vmc_sddc" "sddc_imported" {
 	sddc_id = %q
 }
 `,
-		os.Getenv(constants.TestSddcId),
+		os.Getenv(constants.TestSddcID),
 	)
 }
