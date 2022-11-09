@@ -68,12 +68,11 @@ func RetryTaskUntilFinished(authenticator connector.Authenticator,
 				return resource.RetryableError(fmt.Errorf(
 					"VMC backend is experiencing difficulties, retry %d from %d to polling the SDDC Create Task",
 					serviceUnavailableRetries, maxServiceUnavailableRetries))
-			} else {
-				if finishCallback != nil {
-					finishCallback(task)
-				}
-				return resource.NonRetryableError(fmt.Errorf("max ServiceUnavailable retries (20) reached to create SDDC"))
 			}
+			if finishCallback != nil {
+				finishCallback(task)
+			}
+			return resource.NonRetryableError(fmt.Errorf("max ServiceUnavailable retries (20) reached to create SDDC"))
 		}
 		if finishCallback != nil {
 			finishCallback(task)
@@ -86,7 +85,12 @@ func RetryTaskUntilFinished(authenticator connector.Authenticator,
 	if serviceUnavailableRetries > 0 {
 		serviceUnavailableRetries = 0
 	}
-	if *task.Status == model.Task_STATUS_FAILED {
+	if *task.Status == "" {
+		if finishCallback != nil {
+			finishCallback(task)
+		}
+		return resource.NonRetryableError(fmt.Errorf("task status was empty. Some API error occurred"))
+	} else if *task.Status == model.Task_STATUS_FAILED {
 		if finishCallback != nil {
 			finishCallback(task)
 		}

@@ -33,7 +33,7 @@ func TestAccResourceVmcSrmNodeZerocloud(t *testing.T) {
 			},
 			{
 				ResourceName:            resourceName,
-				ImportStateIdFunc:       testAccVmcSrmResourceImportStateIdFunc(resourceName),
+				ImportStateIdFunc:       testAccVmcSrmResourceImportStateIDFunc(resourceName),
 				ImportStateVerifyIgnore: []string{"srm_node_extension_key_suffix"},
 				ImportState:             true,
 				ImportStateVerify:       true,
@@ -49,7 +49,7 @@ func testCheckVmcSrmNodeExists(name string) resource.TestCheckFunc {
 			return fmt.Errorf("not found: %s", name)
 		}
 		sddcID := rs.Primary.Attributes["sddc_id"]
-		connectorWrapper := testAccProvider.Meta().(*connector.ConnectorWrapper)
+		connectorWrapper := testAccProvider.Meta().(*connector.Wrapper)
 		orgID := connectorWrapper.OrgID
 
 		draasClient := draas.NewSiteRecoveryClient(connectorWrapper)
@@ -68,7 +68,7 @@ func testCheckVmcSrmNodeExists(name string) resource.TestCheckFunc {
 }
 
 func testCheckVmcSrmNodeDestroy(s *terraform.State) error {
-	connectorWrapper := testAccProvider.Meta().(*connector.ConnectorWrapper)
+	connectorWrapper := testAccProvider.Meta().(*connector.Wrapper)
 	draasClient := draas.NewSiteRecoveryClient(connectorWrapper)
 
 	for _, rs := range s.RootModule().Resources {
@@ -119,7 +119,7 @@ resource "vmc_srm_node" "srm_node_1"{
 	)
 }
 
-func testAccVmcSrmResourceImportStateIdFunc(resourceName string) resource.ImportStateIdFunc {
+func testAccVmcSrmResourceImportStateIDFunc(resourceName string) resource.ImportStateIdFunc {
 	return func(s *terraform.State) (string, error) {
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {

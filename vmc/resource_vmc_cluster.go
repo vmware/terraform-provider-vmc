@@ -38,10 +38,10 @@ func resourceCluster() *schema.Resource {
 				if len(idParts) != 2 || idParts[0] == "" || idParts[1] == "" {
 					return nil, fmt.Errorf("unexpected format of ID (%q), expected id,sddc_id", d.Id())
 				}
-				if err := IsValidUuid(idParts[0]); err != nil {
+				if err := IsValidUUID(idParts[0]); err != nil {
 					return nil, fmt.Errorf("invalid format for id : %v", err)
 				}
-				if err := IsValidUuid(idParts[1]); err != nil {
+				if err := IsValidUUID(idParts[1]); err != nil {
 					return nil, fmt.Errorf("invalid format for sddc_id : %v", err)
 				}
 
@@ -179,8 +179,8 @@ func resourceClusterCreate(d *schema.ResourceData, m interface{}) error {
 	}
 	// Obtain a lock to allow only a single cluster creation at a time for a specific SDDC.
 	var unlockFunction = clusterMutationKeyedMutex.Lock(sddcID)
-	connectorWrapper := m.(*connector.ConnectorWrapper)
-	orgID := m.(*connector.ConnectorWrapper).OrgID
+	connectorWrapper := m.(*connector.Wrapper)
+	orgID := m.(*connector.Wrapper).OrgID
 	clusterClient := sddcs.NewClustersClient(connectorWrapper)
 	clusterCreateTask, err := clusterClient.Create(orgID, sddcID, *clusterConfig)
 	if err != nil {
@@ -196,8 +196,8 @@ func resourceClusterCreate(d *schema.ResourceData, m interface{}) error {
 			func(task model.Task) {
 				unlockFunction()
 				// Obtain the ID of the newly created cluster
-				if task.Params.HasField(constants.ClusterIdFieldName) {
-					clusterID, err = task.Params.String(constants.ClusterIdFieldName)
+				if task.Params.HasField(constants.ClusterIDFieldName) {
+					clusterID, err = task.Params.String(constants.ClusterIDFieldName)
 					d.SetId(clusterID)
 				}
 			})
@@ -216,10 +216,10 @@ func resourceClusterCreate(d *schema.ResourceData, m interface{}) error {
 }
 
 func resourceClusterRead(d *schema.ResourceData, m interface{}) error {
-	connectorWrapper := (m.(*connector.ConnectorWrapper)).Connector
+	connectorWrapper := (m.(*connector.Wrapper)).Connector
 	clusterID := d.Id()
 	sddcID := d.Get("sddc_id").(string)
-	orgID := (m.(*connector.ConnectorWrapper)).OrgID
+	orgID := (m.(*connector.Wrapper)).OrgID
 	sddc, err := GetSddc(connectorWrapper, orgID, sddcID)
 	if err != nil {
 		return HandleReadError(d, "Cluster", clusterID, err)
@@ -276,10 +276,10 @@ func resourceClusterRead(d *schema.ResourceData, m interface{}) error {
 }
 
 func resourceClusterDelete(d *schema.ResourceData, m interface{}) error {
-	connectorWrapper := m.(*connector.ConnectorWrapper)
+	connectorWrapper := m.(*connector.Wrapper)
 	clusterID := d.Id()
 
-	orgID := (m.(*connector.ConnectorWrapper)).OrgID
+	orgID := (m.(*connector.Wrapper)).OrgID
 	sddcID := d.Get("sddc_id").(string)
 	var unlockFunction = clusterMutationKeyedMutex.Lock(sddcID)
 	clusterClient := sddcs.NewClustersClient(connectorWrapper)
@@ -305,10 +305,10 @@ func resourceClusterDelete(d *schema.ResourceData, m interface{}) error {
 }
 
 func resourceClusterUpdate(d *schema.ResourceData, m interface{}) error {
-	connectorWrapper := m.(*connector.ConnectorWrapper)
+	connectorWrapper := m.(*connector.Wrapper)
 	esxsClient := sddcs.NewEsxsClient(connectorWrapper)
 	sddcID := d.Get("sddc_id").(string)
-	orgID := (m.(*connector.ConnectorWrapper)).OrgID
+	orgID := (m.(*connector.Wrapper)).OrgID
 	clusterID := d.Id()
 
 	// Add or remove hosts from a cluster

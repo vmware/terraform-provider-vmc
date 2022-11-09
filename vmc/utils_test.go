@@ -39,50 +39,50 @@ func TestToHostInstanceType(t *testing.T) {
 func TestGetHostCountOnCluster(t *testing.T) {
 	type inputStruct struct {
 		sddc      *model.Sddc
-		clusterId string
+		clusterID string
 	}
 	type test struct {
 		input inputStruct
 		want  int
 	}
-	var cluster1Id = "Cluster-1"
-	var cluster2Id = "Cluster-2"
+	var cluster1ID = "Cluster-1"
+	var cluster2ID = "Cluster-2"
 	tests := []test{
-		{input: inputStruct{nil, cluster1Id}, want: 0},
-		{input: inputStruct{&model.Sddc{}, cluster1Id}, want: 0},
+		{input: inputStruct{nil, cluster1ID}, want: 0},
+		{input: inputStruct{&model.Sddc{}, cluster1ID}, want: 0},
 		{input: inputStruct{&model.Sddc{
 			ResourceConfig: &model.AwsSddcResourceConfig{},
-		}, cluster1Id}, want: 0},
+		}, cluster1ID}, want: 0},
 		{input: inputStruct{&model.Sddc{
 			ResourceConfig: &model.AwsSddcResourceConfig{
 				Clusters: []model.Cluster{
 					{
-						ClusterId: cluster1Id,
+						ClusterId: cluster1ID,
 						EsxHostList: []model.AwsEsxHost{
 							{EsxId: new(string)},
 							{EsxId: new(string)},
 						},
 					},
 					{
-						ClusterId: cluster2Id,
+						ClusterId: cluster2ID,
 						EsxHostList: []model.AwsEsxHost{
 							{EsxId: new(string)},
 						},
 					},
 				},
 			},
-		}, cluster1Id}, want: 2},
+		}, cluster1ID}, want: 2},
 		{input: inputStruct{&model.Sddc{
 			ResourceConfig: &model.AwsSddcResourceConfig{
 				Clusters: []model.Cluster{
 					{
-						ClusterId: cluster1Id,
+						ClusterId: cluster1ID,
 						EsxHostList: []model.AwsEsxHost{
 							{EsxId: new(string)},
 						},
 					},
 					{
-						ClusterId: cluster2Id,
+						ClusterId: cluster2ID,
 						EsxHostList: []model.AwsEsxHost{
 							{EsxId: new(string)},
 							{EsxId: new(string)},
@@ -90,10 +90,10 @@ func TestGetHostCountOnCluster(t *testing.T) {
 					},
 				},
 			},
-		}, cluster1Id}, want: 1},
+		}, cluster1ID}, want: 1},
 	}
 	for _, testCase := range tests {
-		got := getHostCountCluster(testCase.input.sddc, testCase.input.clusterId)
+		got := getHostCountCluster(testCase.input.sddc, testCase.input.clusterID)
 		assert.Equal(t, got, testCase.want)
 	}
 }

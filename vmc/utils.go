@@ -50,7 +50,7 @@ func ConvertDeployType(s string) string {
 	}
 }
 
-func IsValidUuid(u string) error {
+func IsValidUUID(u string) error {
 	_, err := uuid.FromString(u)
 	if err != nil {
 		return err
@@ -58,7 +58,7 @@ func IsValidUuid(u string) error {
 	return nil
 }
 
-func IsValidUrl(s string) error {
+func IsValidURL(s string) error {
 	_, err := url.ParseRequestURI(s)
 	if err != nil {
 		return err
@@ -77,15 +77,15 @@ func expandMsftLicenseConfig(config []interface{}) *model.MsftLicensingConfig {
 	return &licenseConfig
 }
 
-func getNsxtReverseProxyURLConnector(nsxtReverseProxyUrl string) (client.Connector, error) {
-	apiToken := os.Getenv(constants.ApiToken)
-	if len(nsxtReverseProxyUrl) == 0 {
+func getNsxtReverseProxyURLConnector(nsxtReverseProxyURL string) (client.Connector, error) {
+	APIToken := os.Getenv(constants.APIToken)
+	if len(nsxtReverseProxyURL) == 0 {
 		return nil, fmt.Errorf("NSX reverse proxy url is required for public IP resource creation")
 	}
-	nsxtReverseProxyUrl = strings.Replace(nsxtReverseProxyUrl, constants.SksNsxtManager, "", -1)
+	nsxtReverseProxyURL = strings.Replace(nsxtReverseProxyURL, constants.SksNSXTManager, "", -1)
 	httpClient := http.Client{}
-	cspUrl := os.Getenv(constants.CspUrl)
-	apiConnector, err := connector.NewClientConnectorByRefreshToken(apiToken, nsxtReverseProxyUrl, cspUrl, httpClient)
+	cspURL := os.Getenv(constants.CspURL)
+	apiConnector, err := connector.NewClientConnectorByRefreshToken(APIToken, nsxtReverseProxyURL, cspURL, httpClient)
 	if err != nil {
 		return nil, HandleCreateError("NSXT reverse proxy URL connector", err)
 	}
@@ -95,10 +95,10 @@ func getNsxtReverseProxyURLConnector(nsxtReverseProxyUrl string) (client.Connect
 // getHostCountCluster tries to find the amount of hosts on a Cluster in
 // the ResourceConfig of the provided SDDC. If there is no ResourceConfig/Cluster 0 is returned.
 // A Cluster is distinguished by its id
-func getHostCountCluster(sddc *model.Sddc, clusterId string) int {
+func getHostCountCluster(sddc *model.Sddc, clusterID string) int {
 	if sddc != nil && sddc.ResourceConfig != nil && sddc.ResourceConfig.Clusters != nil {
 		for _, cluster := range sddc.ResourceConfig.Clusters {
-			if cluster.ClusterId == clusterId {
+			if cluster.ClusterId == clusterID {
 				return len(cluster.EsxHostList)
 			}
 		}

@@ -76,7 +76,7 @@ func testCheckVmcSddcExists(name string, sddcResource *model.Sddc) resource.Test
 		sddcID := rs.Primary.Attributes["id"]
 		sddcName := rs.Primary.Attributes["sddc_name"]
 
-		connectorWrapper := testAccProvider.Meta().(*connector.ConnectorWrapper)
+		connectorWrapper := testAccProvider.Meta().(*connector.Wrapper)
 		orgID := connectorWrapper.OrgID
 
 		sddcClient := orgs.NewSddcsClient(connectorWrapper)
@@ -107,7 +107,7 @@ func testCheckSddcAttributes(sddcResource *model.Sddc) resource.TestCheckFunc {
 
 func testCheckVmcSddcDestroy(s *terraform.State) error {
 
-	connectorWrapper := testAccProvider.Meta().(*connector.ConnectorWrapper)
+	connectorWrapper := testAccProvider.Meta().(*connector.Wrapper)
 	sddcClient := orgs.NewSddcsClient(connectorWrapper)
 
 	for _, rs := range s.RootModule().Resources {

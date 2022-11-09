@@ -368,7 +368,7 @@ func sddcSchema() map[string]*schema.Schema {
 }
 
 func resourceSddcCreate(d *schema.ResourceData, m interface{}) error {
-	connectorWrapper := m.(*connector.ConnectorWrapper)
+	connectorWrapper := m.(*connector.Wrapper)
 	sddcClient := orgs.NewSddcsClient(connectorWrapper)
 	orgID := connectorWrapper.OrgID
 
@@ -401,9 +401,9 @@ func resourceSddcCreate(d *schema.ResourceData, m interface{}) error {
 }
 
 func resourceSddcRead(d *schema.ResourceData, m interface{}) error {
-	connectorWrapper := (m.(*connector.ConnectorWrapper)).Connector
+	connectorWrapper := (m.(*connector.Wrapper)).Connector
 	sddcID := d.Id()
-	orgID := (m.(*connector.ConnectorWrapper)).OrgID
+	orgID := (m.(*connector.Wrapper)).OrgID
 	sddc, err := GetSddc(connectorWrapper, orgID, sddcID)
 	if err != nil {
 		return HandleReadError(d, "SDDC", sddcID, err)
@@ -516,10 +516,10 @@ func resourceSddcRead(d *schema.ResourceData, m interface{}) error {
 }
 
 func resourceSddcDelete(d *schema.ResourceData, m interface{}) error {
-	connectorWrapper := m.(*connector.ConnectorWrapper)
+	connectorWrapper := m.(*connector.Wrapper)
 	sddcClient := orgs.NewSddcsClient(connectorWrapper.Connector)
 	sddcID := d.Id()
-	orgID := (m.(*connector.ConnectorWrapper)).OrgID
+	orgID := (m.(*connector.Wrapper)).OrgID
 
 	sddcDeleteTask, err := sddcClient.Delete(orgID, sddcID, nil, nil, nil)
 	if err != nil {
@@ -538,11 +538,11 @@ func resourceSddcDelete(d *schema.ResourceData, m interface{}) error {
 }
 
 func resourceSddcUpdate(d *schema.ResourceData, m interface{}) error {
-	connectorWrapper := m.(*connector.ConnectorWrapper)
+	connectorWrapper := m.(*connector.Wrapper)
 	esxsClient := sddcs.NewEsxsClient(connectorWrapper)
 	sddcClient := orgs.NewSddcsClient(connectorWrapper)
 	sddcID := d.Id()
-	orgID := (m.(*connector.ConnectorWrapper)).OrgID
+	orgID := (m.(*connector.Wrapper)).OrgID
 
 	// Convert SDDC from 1NODE to DEFAULT
 	if d.HasChange("sddc_type") {
@@ -592,12 +592,12 @@ func resourceSddcUpdate(d *schema.ResourceData, m interface{}) error {
 
 	// Add,remove hosts
 	if d.HasChange("num_host") {
-		primaryClusterId := d.Get("cluster_id").(string)
+		primaryClusterID := d.Get("cluster_id").(string)
 		oldTmp, newTmp := d.GetChange("num_host")
 		oldNum := oldTmp.(int)
 		newNum := newTmp.(int)
 
-		if len(primaryClusterId) == 0 {
+		if len(primaryClusterID) == 0 {
 			return fmt.Errorf("cannot find primary cluster on SDDC %s", sddcID)
 		}
 		action := "add"
@@ -613,7 +613,7 @@ func resourceSddcUpdate(d *schema.ResourceData, m interface{}) error {
 		}
 		esxConfig := model.EsxConfig{
 			NumHosts:  int64(diffNum),
-			ClusterId: &primaryClusterId,
+			ClusterId: &primaryClusterID,
 		}
 
 		hostUpdateTask, err := esxsClient.Create(orgID, sddcID, esxConfig, &action)

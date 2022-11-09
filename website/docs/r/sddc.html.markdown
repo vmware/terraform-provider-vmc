@@ -71,6 +71,8 @@ You can select a different policy if it provides better support for your workloa
 
 When the EDRS policy type is disabled i.e: enable_edrs is set to false for 'performance', 'cost' or 'rapid-scaleup', the EDRS policy type changes to the default storage-scaleup.
 
+NOTE: The EDRS policy properties can be modified only after an SDDC has been deployed first. 
+
 ## Example
 
 ```hcl
@@ -173,7 +175,7 @@ The following arguments are supported:
 * `storage_capacity` - (Optional) The storage capacity value to be requested for the SDDC primary cluster. 
    This variable is only for R5_METAL. Possible values are 15TB, 20TB, 25TB, 30TB, 35TB per host.
 
-* `num_host` - (Required) The number of hosts.
+* `num_host` - (Required) The number of hosts in the primary Cluster of the SDDC.
 
 * `size` - (Optional) The size of the vCenter and NSX appliances. 'large' or 'LARGE' SDDC size corresponds to a large vCenter appliance and large NSX appliance. 'medium' or 'MEDIUM' SDDC size corresponds to medium vCenter appliance and medium NSX appliance. Default : 'medium'.
                      			

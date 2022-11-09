@@ -1,3 +1,9 @@
+## 1.12.0 (Oct XX, 2022)
+
+FEATURES:
+
+* Added support for SDDC Groups
+
 ## 1.11.0 (Oct 17, 2022)
 
 FEATURES:

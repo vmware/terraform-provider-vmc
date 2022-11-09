@@ -13,8 +13,8 @@ description: |-
 Provides a resource to activate and deactivate site recovery for SDDC.
 
 ~> **Note:** Site recovery resource implicitly depends on SDDC resource creation. SDDC must be provisioned before a site recovery can be activated. 
-A 10 minute delay must be added to SDDC resource before site recovery can be activated.
-This delay is added using using the local-exec provisioner. For details on how to provision SDDC refer to [vmc_sddc](https://www.terraform.io/docs/providers/vmc/r/sddc.html).
+A 10-minute delay must be added to SDDC resource before site recovery can be activated.
+This delay is added using the local-exec provisioner. For details on how to provision SDDC refer to [vmc_sddc](https://www.terraform.io/docs/providers/vmc/r/sddc.html).
 
 ## Example Usage
 
