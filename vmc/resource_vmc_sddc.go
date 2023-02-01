@@ -42,13 +42,6 @@ func resourceSddc() *schema.Resource {
 		},
 		Schema: sddcSchema(),
 		CustomizeDiff: func(c context.Context, d *schema.ResourceDiff, meta interface{}) error {
-			deploymentType := d.Get("deployment_type").(string)
-			numHosts := d.Get("num_host").(int)
-
-			if deploymentType == constants.MultiAvailabilityZone && numHosts < constants.MinMultiAZHosts {
-				return fmt.Errorf("for MulitAZ deployment type number of hosts must be atleast %d ", constants.MinMultiAZHosts)
-			}
-
 			newInstanceType := d.Get("host_instance_type").(string)
 			switch newInstanceType {
 			case constants.HostInstancetypeI3, constants.HostInstancetypeI3EN, constants.HostInstancetypeI4I:
