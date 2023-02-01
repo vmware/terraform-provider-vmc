@@ -401,10 +401,10 @@ func resourceSddcCreate(d *schema.ResourceData, m interface{}) error {
 }
 
 func resourceSddcRead(d *schema.ResourceData, m interface{}) error {
-	connectorWrapper := (m.(*connector.Wrapper)).Connector
+	connectorWrapper := m.(*connector.Wrapper)
 	sddcID := d.Id()
 	orgID := (m.(*connector.Wrapper)).OrgID
-	sddc, err := GetSddc(connectorWrapper, orgID, sddcID)
+	sddc, err := GetSddc(connectorWrapper.Connector, orgID, sddcID)
 	if err != nil {
 		return HandleReadError(d, "SDDC", sddcID, err)
 	}
@@ -435,7 +435,7 @@ func resourceSddcRead(d *schema.ResourceData, m interface{}) error {
 	d.Set("account_link_state", sddc.AccountLinkState)
 	d.Set("sddc_access_state", sddc.SddcAccessState)
 	d.Set("sddc_state", sddc.SddcState)
-	primaryClusterClient := sddcs.NewPrimaryclusterClient(connectorWrapper)
+	primaryClusterClient := sddcs.NewPrimaryclusterClient(connectorWrapper.Connector)
 	primaryCluster, err := primaryClusterClient.Get(orgID, sddcID)
 	if err != nil {
 		return HandleReadError(d, "Primary Cluster", sddcID, err)
@@ -488,7 +488,7 @@ func resourceSddcRead(d *schema.ResourceData, m interface{}) error {
 			d.Set("nsxt_private_url", *sddc.ResourceConfig.NsxMgrLoginUrl)
 		}
 	}
-	edrsPolicyClient := autoscalercluster.NewEdrsPolicyClient(connectorWrapper)
+	edrsPolicyClient := autoscalercluster.NewEdrsPolicyClient(connectorWrapper.Connector)
 	edrsPolicy, err := edrsPolicyClient.Get(orgID, sddcID, primaryCluster.ClusterId)
 	if err != nil {
 		return HandleReadError(d, "SDDC", sddcID, err)
@@ -501,7 +501,7 @@ func resourceSddcRead(d *schema.ResourceData, m interface{}) error {
 	if *sddc.Provider != constants.ZeroCloudProviderType {
 		// store intranet_mtu_uplink only for non zerocloud provider types
 		nsxtReverseProxyURL := d.Get("nsxt_reverse_proxy_url").(string)
-		nsxtReverseProxyURLConnector, err := getNsxtReverseProxyURLConnector(nsxtReverseProxyURL)
+		nsxtReverseProxyURLConnector, err := getNsxtReverseProxyURLConnector(nsxtReverseProxyURL, connectorWrapper)
 		if err != nil {
 			return HandleCreateError("NSXT reverse proxy URL connectorWrapper", err)
 		}
@@ -659,7 +659,7 @@ func resourceSddcUpdate(d *schema.ResourceData, m interface{}) error {
 		}
 		intranetMTUUplink := d.Get("intranet_mtu_uplink").(int)
 		nsxtReverseProxyURL := d.Get("nsxt_reverse_proxy_url").(string)
-		nxstReverseProxyURLConnector, err := getNsxtReverseProxyURLConnector(nsxtReverseProxyURL)
+		nxstReverseProxyURLConnector, err := getNsxtReverseProxyURLConnector(nsxtReverseProxyURL, connectorWrapper)
 		if err != nil {
 			return HandleCreateError("NSXT reverse proxy URL connector", err)
 		}

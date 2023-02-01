@@ -30,7 +30,8 @@ jobs:
       - run: make testacc TESTARGS="-run='TestAccResourceVmcSddcZerocloud|TestAccResourceVmcClusterZerocloud|TestAccResourceVmcSiteRecoveryZerocloud|TestAccResourceVmcSrmNodeZerocloud|TestAccDataSourceVmcCustomerSubnetsBasic|TestAccDataSourceVmcConnectedAccountsBasic|TestAccDataSourceVmcOrgBasic|TestAccDataSourceVmcSddcBasic|TestAccResourceSddcGroupZerocloud' -parallel 4"
         env:
           TF_ACC: '1'
-          API_TOKEN: ${{ secrets.API_TOKEN }}
+          CLIENT_ID: ${{ secrets.CLIENT_ID }}
+          CLIENT_SECRET: ${{ secrets.CLIENT_SECRET }}
           AWS_ACCOUNT_NUMBER: ${{ secrets.AWS_ACCOUNT_NUMBER }}
           CSP_URL: ${{ secrets.CSP_URL }}
           ORG_DISPLAY_NAME: ${{ secrets.ORG_DISPLAY_NAME }}

@@ -5,6 +5,7 @@ package vmc
 
 import (
 	"fmt"
+	"github.com/vmware/terraform-provider-vmc/vmc/connector"
 	"github.com/vmware/terraform-provider-vmc/vmc/constants"
 	"os"
 	"testing"
@@ -49,12 +50,13 @@ func testAccCheckVmcPublicIPExists(name string) resource.TestCheckFunc {
 		}
 		uuid := rs.Primary.Attributes["id"]
 		displayName := rs.Primary.Attributes["display_name"]
-		connector, err := getNsxtReverseProxyURLConnector(os.Getenv(constants.NsxtReverseProxyURL))
+		connectorWrapper := testAccProvider.Meta().(*connector.Wrapper)
+		nsxConnector, err := getNsxtReverseProxyURLConnector(os.Getenv(constants.NsxtReverseProxyURL), connectorWrapper)
 		if err != nil {
-			return fmt.Errorf("error creating client connector : %v ", err)
+			return fmt.Errorf("error creating client nsxConnector : %v ", err)
 		}
 
-		nsxVmcAwsClient := api.NewCloudServiceVMCOnAWSPublicIPClient(connector)
+		nsxVmcAwsClient := api.NewCloudServiceVMCOnAWSPublicIPClient(nsxConnector)
 		publicIP, err := nsxVmcAwsClient.GetPublicIp(uuid)
 		if err != nil {
 			return fmt.Errorf("error getting public IP with ID %s : %v", uuid, err)
@@ -69,11 +71,12 @@ func testAccCheckVmcPublicIPExists(name string) resource.TestCheckFunc {
 
 func testCheckVmcPublicIPDestroy(s *terraform.State) error {
 	fmt.Printf("Reverse proxy : %s", os.Getenv(constants.NsxtReverseProxyURL))
-	connector, err := getNsxtReverseProxyURLConnector(os.Getenv(constants.NsxtReverseProxyURL))
+	connectorWrapper := testAccProvider.Meta().(*connector.Wrapper)
+	nsxConnector, err := getNsxtReverseProxyURLConnector(os.Getenv(constants.NsxtReverseProxyURL), connectorWrapper)
 	if err != nil {
-		return fmt.Errorf("error creating client connector : %v ", err)
+		return fmt.Errorf("error creating client nsxConnector : %v ", err)
 	}
-	nsxVmcAwsClient := api.NewCloudServiceVMCOnAWSPublicIPClient(connector)
+	nsxVmcAwsClient := api.NewCloudServiceVMCOnAWSPublicIPClient(nsxConnector)
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "vmc_public_ip" {

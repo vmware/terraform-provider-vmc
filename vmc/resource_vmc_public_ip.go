@@ -5,6 +5,7 @@ package vmc
 
 import (
 	"fmt"
+	"github.com/vmware/terraform-provider-vmc/vmc/connector"
 	"strings"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
@@ -59,7 +60,8 @@ func resourcePublicIP() *schema.Resource {
 
 func resourcePublicIPCreate(d *schema.ResourceData, m interface{}) error {
 	nsxtReverseProxyURL := d.Get("nsxt_reverse_proxy_url").(string)
-	connector, err := getNsxtReverseProxyURLConnector(nsxtReverseProxyURL)
+	connectorWrapper := m.(*connector.Wrapper)
+	connector, err := getNsxtReverseProxyURLConnector(nsxtReverseProxyURL, connectorWrapper)
 	if err != nil {
 		return HandleCreateError("NSXT reverse proxy URL connector", err)
 	}
@@ -87,7 +89,8 @@ func resourcePublicIPCreate(d *schema.ResourceData, m interface{}) error {
 
 func resourcePublicIPRead(d *schema.ResourceData, m interface{}) error {
 	nsxtReverseProxyURL := d.Get("nsxt_reverse_proxy_url").(string)
-	connector, err := getNsxtReverseProxyURLConnector(nsxtReverseProxyURL)
+	connectorWrapper := m.(*connector.Wrapper)
+	connector, err := getNsxtReverseProxyURLConnector(nsxtReverseProxyURL, connectorWrapper)
 	if err != nil {
 		return HandleCreateError("NSXT reverse proxy URL connector", err)
 	}
@@ -124,7 +127,8 @@ func resourcePublicIPRead(d *schema.ResourceData, m interface{}) error {
 
 func resourcePublicIPUpdate(d *schema.ResourceData, m interface{}) error {
 	nsxtReverseProxyURL := d.Get("nsxt_reverse_proxy_url").(string)
-	connector, err := getNsxtReverseProxyURLConnector(nsxtReverseProxyURL)
+	connectorWrapper := m.(*connector.Wrapper)
+	connector, err := getNsxtReverseProxyURLConnector(nsxtReverseProxyURL, connectorWrapper)
 	if err != nil {
 		return HandleCreateError("NSXT reverse proxy URL connector", err)
 	}
@@ -154,7 +158,8 @@ func resourcePublicIPUpdate(d *schema.ResourceData, m interface{}) error {
 
 func resourcePublicIPDelete(d *schema.ResourceData, m interface{}) error {
 	nsxtReverseProxyURL := d.Get("nsxt_reverse_proxy_url").(string)
-	connector, err := getNsxtReverseProxyURLConnector(nsxtReverseProxyURL)
+	connectorWrapper := m.(*connector.Wrapper)
+	connector, err := getNsxtReverseProxyURLConnector(nsxtReverseProxyURL, connectorWrapper)
 	if err != nil {
 		return HandleCreateError("NSXT reverse proxy URL connector", err)
 	}

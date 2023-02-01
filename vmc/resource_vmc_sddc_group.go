@@ -169,8 +169,7 @@ func sddcGroupSchema() map[string]*schema.Schema {
 
 func resourceSddcGroupCreate(ctx context.Context, data *schema.ResourceData, i interface{}) diag.Diagnostics {
 	connectorWrapper := i.(*connector.Wrapper)
-	sddcGroupsClient := sddcgroup.NewSddcGroupClient(connectorWrapper.VmcURL, connectorWrapper.CspURL,
-		connectorWrapper.RefreshToken, connectorWrapper.OrgID)
+	sddcGroupsClient := sddcgroup.NewSddcGroupClient(*connectorWrapper)
 	err := sddcGroupsClient.Authenticate()
 	if err != nil {
 		return diag.FromErr(err)
@@ -208,8 +207,7 @@ func resourceSddcGroupCreate(ctx context.Context, data *schema.ResourceData, i i
 
 func resourceSddcGroupRead(_ context.Context, data *schema.ResourceData, i interface{}) diag.Diagnostics {
 	connectorWrapper := i.(*connector.Wrapper)
-	sddcGroupsClient := sddcgroup.NewSddcGroupClient(connectorWrapper.VmcURL, connectorWrapper.CspURL,
-		connectorWrapper.RefreshToken, connectorWrapper.OrgID)
+	sddcGroupsClient := sddcgroup.NewSddcGroupClient(*connectorWrapper)
 	err := sddcGroupsClient.Authenticate()
 	if err != nil {
 		return diag.FromErr(err)
@@ -284,8 +282,7 @@ func resourceSddcGroupUpdate(ctx context.Context, data *schema.ResourceData, i i
 
 func resourceSddcGroupDelete(_ context.Context, data *schema.ResourceData, i interface{}) diag.Diagnostics {
 	connectorWrapper := i.(*connector.Wrapper)
-	sddcGroupsClient := sddcgroup.NewSddcGroupClient(connectorWrapper.VmcURL, connectorWrapper.CspURL,
-		connectorWrapper.RefreshToken, connectorWrapper.OrgID)
+	sddcGroupsClient := sddcgroup.NewSddcGroupClient(*connectorWrapper)
 	err := sddcGroupsClient.Authenticate()
 	if err != nil {
 		return diag.FromErr(err)
@@ -320,8 +317,7 @@ func resourceSddcGroupDelete(_ context.Context, data *schema.ResourceData, i int
 func updateSddcGroupMembers(data *schema.ResourceData,
 	i interface{}, addedIds *[]string, removedIds *[]string) diag.Diagnostics {
 	connectorWrapper := i.(*connector.Wrapper)
-	sddcGroupsClient := sddcgroup.NewSddcGroupClient(connectorWrapper.VmcURL, connectorWrapper.CspURL,
-		connectorWrapper.RefreshToken, connectorWrapper.OrgID)
+	sddcGroupsClient := sddcgroup.NewSddcGroupClient(*connectorWrapper)
 	err := sddcGroupsClient.Authenticate()
 	if err != nil {
 		return diag.FromErr(err)
