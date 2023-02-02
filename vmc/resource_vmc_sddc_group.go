@@ -5,6 +5,7 @@ package vmc
 
 import (
 	"context"
+	"fmt"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
@@ -219,6 +220,9 @@ func resourceSddcGroupRead(_ context.Context, data *schema.ResourceData, i inter
 	if err != nil {
 		return diag.FromErr(err)
 	}
+	if sddcGroup == nil {
+		return diag.FromErr(fmt.Errorf("sddcGroup %s is nil after trying to fetch it", sddcGroupID))
+	}
 	_ = data.Set("name", sddcGroup.Name)
 	_ = data.Set("description", sddcGroup.Description)
 	_ = data.Set("org_id", sddcGroup.OrgID)
@@ -230,6 +234,10 @@ func resourceSddcGroupRead(_ context.Context, data *schema.ResourceData, i inter
 		sddcMemberIDs = append(sddcMemberIDs, groupMember.ID)
 	}
 	_ = data.Set("sddc_member_ids", sddcMemberIDs)
+	if networkConnectivityConfig == nil || networkConnectivityConfig.Traits == nil {
+		// below data cannot be read, so skip
+		return nil
+	}
 	if networkConnectivityConfig.Traits.TransitGateway != nil &&
 		len(networkConnectivityConfig.Traits.TransitGateway.L3Connectors) > 0 {
 		_ = data.Set("tgw_id", networkConnectivityConfig.Traits.TransitGateway.L3Connectors[0].ID)
