@@ -1,3 +1,10 @@
+## 1.12.1 (Feb 3, 2023)
+
+BUG FIXES:
+
+* Destroying sddc_group times out and then fails on subsequent attempts [\#172](https://github.com/vmware/terraform-provider-vmc/pull/172)
+* Remove restrictions on 6 hosts minimum in MultiAZ SDDCs  [\#171](https://github.com/vmware/terraform-provider-vmc/pull/171)
+
 ## 1.12.0 (Nov 9, 2022)
 
 FEATURES:
