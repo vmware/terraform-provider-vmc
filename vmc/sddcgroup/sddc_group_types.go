@@ -80,7 +80,7 @@ type NetworkConnectivityConfig struct {
 	GroupID                        string                         `json:"group_id"`
 	Name                           string                         `json:"name"`
 	NetworkConnectivityConfigState NetworkConnectivityConfigState `json:"state"`
-	Traits                         Traits                         `json:"traits,omitempty"`
+	Traits                         *Traits                        `json:"traits,omitempty"`
 }
 
 type ValidationPayload struct {
