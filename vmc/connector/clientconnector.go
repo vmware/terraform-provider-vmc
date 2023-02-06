@@ -5,6 +5,7 @@
 package connector
 
 import (
+	"encoding/base64"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -26,23 +27,46 @@ type Authenticator interface {
 type Wrapper struct {
 	client.Connector
 	RefreshToken string
+	ClientID     string
+	ClientSecret string
 	OrgID        string
 	VmcURL       string
 	CspURL       string
 }
 
+func CopyWrapper(original Wrapper) *Wrapper {
+	return &Wrapper{
+		RefreshToken: original.RefreshToken,
+		ClientID:     original.ClientID,
+		ClientSecret: original.ClientSecret,
+		OrgID:        original.OrgID,
+		VmcURL:       original.VmcURL,
+		CspURL:       original.CspURL,
+	}
+}
+
 func (c *Wrapper) Authenticate() error {
 	var err error
 	httpClient := http.Client{}
-	c.Connector, err = NewClientConnectorByRefreshToken(c.RefreshToken, c.VmcURL, c.CspURL, httpClient)
-	if err != nil {
-		return err
+	if len(c.RefreshToken) > 0 {
+		c.Connector, err = newClientConnectorByRefreshToken(c.RefreshToken, c.VmcURL, c.CspURL, httpClient)
+		if err != nil {
+			return err
+		}
+		return nil
 	}
-	return nil
+	if len(c.ClientID) > 0 && len(c.ClientSecret) > 0 {
+		c.Connector, err = newClientConnectorByClientID(c.ClientID, c.ClientSecret, c.VmcURL, c.CspURL, httpClient)
+		if err != nil {
+			return err
+		}
+		return nil
+	}
+	return fmt.Errorf("no refreshToken or ClientID/ClientSecret provided")
 }
 
-// NewClientConnectorByRefreshToken returns client connector to any VMC service by using OAuth authentication using Refresh Token.
-func NewClientConnectorByRefreshToken(refreshToken, serviceURL, cspURL string,
+// newClientConnectorByRefreshToken returns client connector to any VMC service by using OAuth authentication using Refresh Token.
+func newClientConnectorByRefreshToken(refreshToken, serviceURL, cspURL string,
 	httpClient http.Client) (client.Connector, error) {
 
 	if len(serviceURL) <= 0 {
@@ -57,7 +81,7 @@ func NewClientConnectorByRefreshToken(refreshToken, serviceURL, cspURL string,
 			constants.CspRefreshURLSuffix
 	}
 
-	securityCtx, err := SecurityContextByRefreshToken(refreshToken, cspURL)
+	securityCtx, err := securityContextByRefreshToken(refreshToken, cspURL)
 	if err != nil {
 		return nil, err
 	}
@@ -69,7 +93,7 @@ func NewClientConnectorByRefreshToken(refreshToken, serviceURL, cspURL string,
 }
 
 // SecurityContextByRefreshToken returns Security Context with access token that is received from Cloud Service Provider using Refresh Token by OAuth authentication scheme.
-func SecurityContextByRefreshToken(refreshToken string, cspURL string) (core.SecurityContext, error) {
+func securityContextByRefreshToken(refreshToken string, cspURL string) (core.SecurityContext, error) {
 	payload := strings.NewReader("refresh_token=" + refreshToken)
 
 	req, _ := http.NewRequest("POST", cspURL, payload)
@@ -82,15 +106,74 @@ func SecurityContextByRefreshToken(refreshToken string, cspURL string) (core.Sec
 		return nil, err
 	}
 
-	if res.StatusCode != 200 {
-		b, _ := io.ReadAll(res.Body)
-		return nil, fmt.Errorf("response from Cloud Service Provider contains status code %d : %s", res.StatusCode, string(b))
+	securityCtx, err := parseAuthnResponse(res)
+	if err != nil {
+		return nil, err
+	}
+	return securityCtx, nil
+}
+
+// newClientConnectorByClientID returns client connector to any VMC service by using OAuth authentication using clientId and secret.
+func newClientConnectorByClientID(clientID, clientSecret, serviceURL, cspURL string,
+	httpClient http.Client) (client.Connector, error) {
+
+	if len(serviceURL) <= 0 {
+		serviceURL = constants.DefaultVmcURL
 	}
 
-	defer res.Body.Close()
+	if len(cspURL) <= 0 {
+		cspURL = constants.DefaultCspURL +
+			constants.CspOauthURLSuffix
+	} else {
+		cspURL = cspURL +
+			constants.CspOauthURLSuffix
+	}
+
+	securityCtx, err := securityContextByClientID(clientID, clientSecret, cspURL)
+	if err != nil {
+		return nil, err
+	}
+
+	connector := client.NewRestConnector(serviceURL, httpClient)
+	connector.SetSecurityContext(securityCtx)
+
+	return connector, nil
+}
+
+func securityContextByClientID(clientID string, clientSecret string, cspURL string) (core.SecurityContext, error) {
+	clientCredentials := clientID + ":" + clientSecret
+	encodedClientCredentials := base64.StdEncoding.EncodeToString([]byte(clientCredentials))
+
+	payload := strings.NewReader("grant_type=client_credentials")
+
+	req, _ := http.NewRequest("POST", cspURL, payload)
+
+	req.Header.Add("content-type", "application/x-www-form-urlencoded")
+	req.Header.Add("authorization", "Basic "+encodedClientCredentials)
+
+	res, err := http.DefaultClient.Do(req)
+
+	if err != nil {
+		return nil, err
+	}
+
+	securityCtx, err := parseAuthnResponse(res)
+	if err != nil {
+		return nil, err
+	}
+	return securityCtx, nil
+}
+
+func parseAuthnResponse(response *http.Response) (*security.OauthSecurityContext, error) {
+	if response.StatusCode != 200 {
+		b, _ := io.ReadAll(response.Body)
+		return nil, fmt.Errorf("response from Cloud Service Provider contains status code %d : %s", response.StatusCode, string(b))
+	}
+
+	defer response.Body.Close()
 
 	var jsondata map[string]interface{}
-	err = json.NewDecoder(res.Body).Decode(&jsondata)
+	err := json.NewDecoder(response.Body).Decode(&jsondata)
 	if err != nil {
 		return nil, fmt.Errorf("error decoding response : %v", err)
 	}
@@ -104,7 +187,7 @@ func SecurityContextByRefreshToken(refreshToken string, cspURL string) (core.Sec
 			return nil, errors.New(errMsg)
 		}
 	} else {
-		return nil, errors.New("Cloud Service Provider authentication response does not contain access token")
+		return nil, errors.New("cloud Service Provider authentication response does not contain access token")
 	}
 
 	securityCtx := security.NewOauthSecurityContext(accessToken)

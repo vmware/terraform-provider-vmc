@@ -212,9 +212,14 @@ func dataSourceVmcSddcRead(d *schema.ResourceData, m interface{}) error {
 		d.Set("nsxt_ui", *sddc.ResourceConfig.Nsxt)
 		if sddc.ResourceConfig.NsxCloudAdmin != nil {
 			d.Set("nsxt_cloudadmin", *sddc.ResourceConfig.NsxCloudAdmin)
-			d.Set("nsxt_cloudadmin_password", *sddc.ResourceConfig.NsxCloudAdminPassword)
+			// Evade nil pointer dereference when user's access_token doesn't have NSX roles
+			if sddc.ResourceConfig.NsxCloudAdminPassword != nil {
+				_ = d.Set("nsxt_cloudadmin_password", *sddc.ResourceConfig.NsxCloudAdminPassword)
+			}
+			if sddc.ResourceConfig.NsxCloudAuditPassword != nil {
+				_ = d.Set("nsxt_cloudaudit_password", *sddc.ResourceConfig.NsxCloudAuditPassword)
+			}
 			d.Set("nsxt_cloudaudit", *sddc.ResourceConfig.NsxCloudAudit)
-			d.Set("nsxt_cloudaudit_password", *sddc.ResourceConfig.NsxCloudAuditPassword)
 			d.Set("nsxt_private_ip", *sddc.ResourceConfig.NsxMgrManagementIp)
 			d.Set("nsxt_private_url", *sddc.ResourceConfig.NsxMgrLoginUrl)
 		}

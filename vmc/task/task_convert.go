@@ -24,8 +24,7 @@ func GetTask(connectorWrapper *connector.Wrapper, taskID string) (model.Task, er
 
 // GetV2Task returns an adapted model.Task with specified ID
 func GetV2Task(connectorWrapper *connector.Wrapper, taskID string) (model.Task, error) {
-	tasksV2Client := NewV2ClientImpl(connectorWrapper.VmcURL, connectorWrapper.CspURL,
-		connectorWrapper.RefreshToken, connectorWrapper.OrgID)
+	tasksV2Client := NewV2ClientImpl(*connectorWrapper)
 	err := tasksV2Client.Authenticate()
 	if err != nil {
 		return model.Task{}, err

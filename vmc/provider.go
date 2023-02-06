@@ -5,12 +5,9 @@ package vmc
 
 import (
 	"fmt"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/vmware/terraform-provider-vmc/vmc/connector"
 	"github.com/vmware/terraform-provider-vmc/vmc/constants"
-	"net/http"
-	"os"
-
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
 // Provider for VMware VMC Console APIs. Returns terraform.ResourceProvider
@@ -18,9 +15,24 @@ func Provider() *schema.Provider {
 	return &schema.Provider{
 		Schema: map[string]*schema.Schema{
 			"refresh_token": {
-				Type:        schema.TypeString,
-				Required:    true,
-				DefaultFunc: schema.EnvDefaultFunc(constants.APIToken, nil),
+				Type:          schema.TypeString,
+				Optional:      true,
+				DefaultFunc:   schema.EnvDefaultFunc(constants.APIToken, nil),
+				ConflictsWith: []string{"client_id", "client_secret"},
+			},
+			"client_id": {
+				Type:          schema.TypeString,
+				Optional:      true,
+				DefaultFunc:   schema.EnvDefaultFunc(constants.ClientID, nil),
+				ConflictsWith: []string{"refresh_token"},
+				RequiredWith:  []string{"client_secret"},
+			},
+			"client_secret": {
+				Type:          schema.TypeString,
+				Optional:      true,
+				DefaultFunc:   schema.EnvDefaultFunc(constants.ClientSecret, nil),
+				ConflictsWith: []string{"refresh_token"},
+				RequiredWith:  []string{"client_id"},
 			},
 			"org_id": {
 				Type:        schema.TypeString,
@@ -61,26 +73,26 @@ func Provider() *schema.Provider {
 
 func providerConfigure(d *schema.ResourceData) (interface{}, error) {
 	refreshToken := d.Get("refresh_token").(string)
-	if len(refreshToken) <= 0 {
-		return nil, fmt.Errorf("refresh token cannot be empty")
+	clientID := d.Get("client_id").(string)
+	clientSecret := d.Get("client_secret").(string)
+	if len(refreshToken) == 0 && len(clientID) == 0 && len(clientSecret) == 0 {
+		return nil, fmt.Errorf("must provide value for refresh_token or client_id and client_secret")
 	}
-	// set refresh token to env variable so that it can be used by other connectors
-	_ = os.Setenv(constants.APIToken, refreshToken)
 	vmcURL := d.Get("vmc_url").(string)
 	cspURL := d.Get("csp_url").(string)
-	_ = os.Setenv(constants.CspURL, cspURL)
 	orgID := d.Get("org_id").(string)
-	httpClient := http.Client{}
-	apiConnector, err := connector.NewClientConnectorByRefreshToken(refreshToken, vmcURL, cspURL, httpClient)
+	connectorWrapper := connector.Wrapper{
+		RefreshToken: refreshToken,
+		ClientID:     clientID,
+		ClientSecret: clientSecret,
+		OrgID:        orgID,
+		VmcURL:       vmcURL,
+		CspURL:       cspURL,
+	}
+	err := connectorWrapper.Authenticate()
 	if err != nil {
 		return nil, HandleCreateError("Client connector", err)
 	}
 
-	return &connector.Wrapper{
-			Connector:    apiConnector,
-			RefreshToken: refreshToken,
-			OrgID:        orgID,
-			VmcURL:       vmcURL,
-			CspURL:       cspURL},
-		nil
+	return &connectorWrapper, err
 }

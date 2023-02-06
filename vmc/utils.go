@@ -7,9 +7,7 @@ import (
 	"fmt"
 	"github.com/vmware/terraform-provider-vmc/vmc/connector"
 	"github.com/vmware/terraform-provider-vmc/vmc/constants"
-	"net/http"
 	"net/url"
-	"os"
 	"strings"
 
 	uuid "github.com/satori/go.uuid"
@@ -77,19 +75,23 @@ func expandMsftLicenseConfig(config []interface{}) *model.MsftLicensingConfig {
 	return &licenseConfig
 }
 
-func getNsxtReverseProxyURLConnector(nsxtReverseProxyURL string) (client.Connector, error) {
-	APIToken := os.Getenv(constants.APIToken)
+func getNsxtReverseProxyURLConnector(nsxtReverseProxyURL string, wrapper *connector.Wrapper) (client.Connector, error) {
 	if len(nsxtReverseProxyURL) == 0 {
 		return nil, fmt.Errorf("NSX reverse proxy url is required for public IP resource creation")
 	}
-	nsxtReverseProxyURL = strings.Replace(nsxtReverseProxyURL, constants.SksNSXTManager, "", -1)
-	httpClient := http.Client{}
-	cspURL := os.Getenv(constants.CspURL)
-	apiConnector, err := connector.NewClientConnectorByRefreshToken(APIToken, nsxtReverseProxyURL, cspURL, httpClient)
-	if err != nil {
-		return nil, HandleCreateError("NSXT reverse proxy URL connector", err)
+	if wrapper == nil {
+		return nil, fmt.Errorf("nil connector.Wrapper provided")
 	}
-	return apiConnector, nil
+	nsxtReverseProxyURL = strings.Replace(nsxtReverseProxyURL, constants.SksNSXTManager, "", -1)
+	copyWrapper := connector.CopyWrapper(*wrapper)
+	// The wrapper uses the VmcURL as service URL, so setting it to the NSX URL will
+	// force authentication against the NSX instance
+	copyWrapper.VmcURL = nsxtReverseProxyURL
+	err := copyWrapper.Authenticate()
+	if err != nil {
+		return nil, err
+	}
+	return copyWrapper.Connector, nil
 }
 
 // getHostCountCluster tries to find the amount of hosts on a Cluster in
