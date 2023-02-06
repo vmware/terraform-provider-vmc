@@ -5,6 +5,7 @@ package vmc
 
 import (
 	"context"
+	"fmt"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
@@ -28,9 +29,9 @@ func resourceSddcGroup() *schema.Resource {
 			StateContext: schema.ImportStatePassthroughContext,
 		},
 		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(60 * time.Minute),
-			Delete: schema.DefaultTimeout(30 * time.Minute),
-			Update: schema.DefaultTimeout(30 * time.Minute),
+			Create: schema.DefaultTimeout(90 * time.Minute),
+			Delete: schema.DefaultTimeout(60 * time.Minute),
+			Update: schema.DefaultTimeout(60 * time.Minute),
 		},
 	}
 }
@@ -217,6 +218,9 @@ func resourceSddcGroupRead(_ context.Context, data *schema.ResourceData, i inter
 	if err != nil {
 		return diag.FromErr(err)
 	}
+	if sddcGroup == nil {
+		return diag.FromErr(fmt.Errorf("sddcGroup %s is nil after trying to fetch it", sddcGroupID))
+	}
 	_ = data.Set("name", sddcGroup.Name)
 	_ = data.Set("description", sddcGroup.Description)
 	_ = data.Set("org_id", sddcGroup.OrgID)
@@ -228,11 +232,17 @@ func resourceSddcGroupRead(_ context.Context, data *schema.ResourceData, i inter
 		sddcMemberIDs = append(sddcMemberIDs, groupMember.ID)
 	}
 	_ = data.Set("sddc_member_ids", sddcMemberIDs)
-	if networkConnectivityConfig.Traits.TransitGateway != nil {
+	if networkConnectivityConfig == nil || networkConnectivityConfig.Traits == nil {
+		// below data cannot be read, so skip
+		return nil
+	}
+	if networkConnectivityConfig.Traits.TransitGateway != nil &&
+		len(networkConnectivityConfig.Traits.TransitGateway.L3Connectors) > 0 {
 		_ = data.Set("tgw_id", networkConnectivityConfig.Traits.TransitGateway.L3Connectors[0].ID)
 		_ = data.Set("tgw_region", networkConnectivityConfig.Traits.TransitGateway.L3Connectors[0].Region)
 	}
-	if networkConnectivityConfig.Traits.AwsInfo != nil {
+	if networkConnectivityConfig.Traits.AwsInfo != nil &&
+		len(networkConnectivityConfig.Traits.AwsInfo.Accounts) > 0 {
 		_ = data.Set("vpc_aws_account", networkConnectivityConfig.Traits.AwsInfo.Accounts[0].AccountNumber)
 		_ = data.Set("vpc_ram_share_id", networkConnectivityConfig.Traits.AwsInfo.Accounts[0].RAMShareID)
 		_ = data.Set("vpc_attachment_status", networkConnectivityConfig.Traits.AwsInfo.Accounts[0].Status)
@@ -247,14 +257,16 @@ func resourceSddcGroupRead(_ context.Context, data *schema.ResourceData, i inter
 		}
 		_ = data.Set("vpc_attachments", vpcAttachments)
 	}
-	if networkConnectivityConfig.Traits.DxGateway != nil {
+	if networkConnectivityConfig.Traits.DxGateway != nil &&
+		len(networkConnectivityConfig.Traits.DxGateway.DirectConnectGatewayAssociations) > 0 {
 		_ = data.Set("dxgw_id", networkConnectivityConfig.Traits.DxGateway.DirectConnectGatewayAssociations[0].DxgwID)
 		_ = data.Set("dxgw_owner", networkConnectivityConfig.Traits.DxGateway.DirectConnectGatewayAssociations[0].DxgwOwner)
 		_ = data.Set("dxgw_status", networkConnectivityConfig.Traits.DxGateway.DirectConnectGatewayAssociations[0].Status)
 		_ = data.Set("dxgw_allowed_prefixes", strings.Join(networkConnectivityConfig.Traits.DxGateway.
 			DirectConnectGatewayAssociations[0].PeeringRegions[0].AllowedPrefixes, " "))
 	}
-	if networkConnectivityConfig.Traits.ExternalTgw != nil {
+	if networkConnectivityConfig.Traits.ExternalTgw != nil &&
+		len(networkConnectivityConfig.Traits.ExternalTgw.CustomerTransitGatewayAssociations) > 0 {
 		_ = data.Set("external_tgw_id", networkConnectivityConfig.Traits.ExternalTgw.CustomerTransitGatewayAssociations[0].TgwID)
 		_ = data.Set("external_tgw_owner", networkConnectivityConfig.Traits.ExternalTgw.CustomerTransitGatewayAssociations[0].TgwOwner)
 		_ = data.Set("external_tgw_region", networkConnectivityConfig.Traits.ExternalTgw.CustomerTransitGatewayAssociations[0].TgwRegion)

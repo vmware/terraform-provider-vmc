@@ -325,7 +325,7 @@ func TestGetSddcGroup(t *testing.T) {
 					NetworkConnectivityConfigState: NetworkConnectivityConfigState{
 						Name: "CONNECTED",
 					},
-					Traits: Traits{
+					Traits: &Traits{
 						TransitGateway: &AwsNetworkConnectivityTrait{
 							L3Connectors: []L3Connector{
 								{
