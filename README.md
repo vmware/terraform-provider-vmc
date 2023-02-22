@@ -115,9 +115,12 @@ provider.
 Set required environment variables based as per your infrastructure settings
 
 ```sh
-$ # API token provided from CSP with at least "Organization Member" role and service role
-$ # on "VMware Cloud on AWS" service that is allowed to deploy SDDCs.
-$ export API_TOKEN=xxx
+$ # clientId and client secret of the test OAuth2.0 app attached to the test organisation with at least 
+$ # "Organization Member" role and service role  on "VMware Cloud on AWS" service that is allowed to deploy SDDCs.
+$ # Note: it is recommended to use OAuth2.0 app with the least possible roles (the above mentioned) for testing
+$ # purposes.
+$ export CLIENT_ID=xxx
+$ export CLIENT_SECRET=xxx
 $ # Id of a VMC Org in which test SDDC are (to be) placed 
 $ export ORG_ID=xxxx
 $ # Id of an existing SDDC used for SDDC data source (import) test
@@ -148,11 +151,11 @@ Additionally, limited set of acceptance tests can be ran with the ZEROCLOUD clou
 while providing decent API coverage:
 
 ```sh
-$ make testacc TESTARGS="-run=TestAccResourceVmcSddc_Zerocloud"
+$ make testacc TESTARGS="-run=TestAccResourceVmcSddcZerocloud"
 ```
 
 # License
 
-Copyright 2019-2022 VMware, Inc.
+Copyright 2019-2023 VMware, Inc.
 
 The Terraform provider for VMware Cloud on AWS is available under [MPL2.0 license](https://github.com/vmware/terraform-provider-vmc/blob/master/LICENSE).

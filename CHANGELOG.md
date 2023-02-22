@@ -1,3 +1,11 @@
+## 1.13 (Feb 23, 2023)
+
+FEATURES:
+
+* Added support for OAuth2.0 app authentication [\#173](https://github.com/vmware/terraform-provider-vmc/pull/173)
+
+Fixes for security vulnerabilities.
+
 ## 1.12.1 (Feb 3, 2023)
 
 BUG FIXES:
