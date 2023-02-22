@@ -55,8 +55,7 @@ func testSddcGroupExists(s *terraform.State) error {
 
 func sddcGroupExists(s *terraform.State) bool {
 	connectorWrapper := testAccProvider.Meta().(*connector.Wrapper)
-	sddcGroupClient := sddcgroup.NewSddcGroupClient(connectorWrapper.VmcURL,
-		connectorWrapper.CspURL, connectorWrapper.RefreshToken, connectorWrapper.OrgID)
+	sddcGroupClient := sddcgroup.NewSddcGroupClient(*connectorWrapper)
 	err := sddcGroupClient.Authenticate()
 	if err != nil {
 		return false

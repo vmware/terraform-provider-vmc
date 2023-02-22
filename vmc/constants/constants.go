@@ -10,8 +10,11 @@ const (
 	// DefaultCspURL defines the default URL for CSP.
 	DefaultCspURL string = "https://console.cloud.vmware.com"
 
-	// CspRefreshURLSuffix defines the CSP Refresh API endpoint.
+	// CspRefreshURLSuffix defines the CSP Refresh Token API endpoint.
 	CspRefreshURLSuffix string = "/csp/gateway/am/api/auth/api-tokens/authorize"
+
+	// CspTokenURLSuffix defines the CSP Oauth API endpoint.
+	CspTokenURLSuffix string = "/csp/gateway/am/api/auth/token"
 
 	// sksNSXTManager to be stripped from nsxt reverse proxy url for public IP resource
 	SksNSXTManager string = "/sks-nsxt-manager"
@@ -67,6 +70,8 @@ const (
 	VmcURL         string = "VMC_URL"
 	CspURL         string = "CSP_URL"
 	APIToken       string = "API_TOKEN"
+	ClientID       string = "CLIENT_ID"
+	ClientSecret   string = "CLIENT_SECRET"
 	OrgID          string = "ORG_ID"
 	OrgDisplayName string = "ORG_DISPLAY_NAME"
 	// TestSddcID ID of an existing SDDC used for sddc data source, site recovery and srm node tests

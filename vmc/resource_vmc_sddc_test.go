@@ -194,8 +194,8 @@ data "vmc_customer_subnets" "my_subnets" {
 
 resource "vmc_sddc" "sddc_zerocloud" {
 	sddc_name = %q
-	vpc_cidr      = "10.2.0.0/16"
-	num_host      = 3
+	vpc_cidr      = "10.40.0.0/16"
+	num_host      = 2
 	provider_type = "ZEROCLOUD"
 	host_instance_type = "I3_METAL"
 	region = "US_WEST_2"

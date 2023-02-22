@@ -67,8 +67,11 @@ func testAccPreCheckZerocloud(t *testing.T) {
 	if v := os.Getenv(constants.CspURL); v == "" {
 		t.Fatal(constants.CspURL + " must be set for Zerocloud acceptance tests")
 	}
-	if v := os.Getenv(constants.APIToken); v == "" {
-		t.Fatal(constants.APIToken + " must be set for acceptance tests")
+	if v := os.Getenv(constants.ClientID); v == "" {
+		t.Fatal(constants.ClientID + " must be set for acceptance tests")
+	}
+	if v := os.Getenv(constants.ClientSecret); v == "" {
+		t.Fatal(constants.ClientSecret + " must be set for acceptance tests")
 	}
 	if v := os.Getenv(constants.OrgID); v == "" {
 		t.Fatal(constants.OrgID + " must be set for acceptance tests")

@@ -8,7 +8,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/vmware/terraform-provider-vmc/vmc/connector"
-	"github.com/vmware/terraform-provider-vmc/vmc/constants"
+	"github.com/vmware/vsphere-automation-sdk-go/runtime/protocol/client"
 	"github.com/vmware/vsphere-automation-sdk-go/runtime/security"
 	"io"
 	"net/http"
@@ -33,44 +33,37 @@ type HTTPClient interface {
 }
 
 type ClientImpl struct {
-	vmcURL       string
-	cspURL       string
-	refreshToken string
-	orgID        string
-	accessToken  string
-	httpClient   HTTPClient
+	connector  connector.Wrapper
+	httpClient HTTPClient
 }
 
-func NewSddcGroupClient(vmcURL string, cspURL string, refreshToken string, orgID string) *ClientImpl {
+func NewSddcGroupClient(wrapper connector.Wrapper) *ClientImpl {
+	copyWrapper := connector.CopyWrapper(wrapper)
 	return &ClientImpl{
-		vmcURL:       vmcURL,
-		cspURL:       cspURL,
-		refreshToken: refreshToken,
-		orgID:        orgID,
-		httpClient:   http.DefaultClient,
+		connector:  *copyWrapper,
+		httpClient: http.DefaultClient,
 	}
 }
 
 // newTestSddcGroupClient intended for injecting dummy accessToken and stubbed httpClient for
 // testing purposes.
 func newTestSddcGroupClient(vmcURL string, orgID string, accessToken string, httpClient HTTPClient) *ClientImpl {
+	testConnector := connector.Wrapper{
+		VmcURL: vmcURL,
+		OrgID:  orgID,
+	}
+	// Create a dummy connector to house the access token in a security context
+	testConnector.Connector = client.NewRestConnector("", http.Client{})
+	testConnector.Connector.SetSecurityContext(security.NewOauthSecurityContext(accessToken))
 	return &ClientImpl{
-		vmcURL:      vmcURL,
-		orgID:       orgID,
-		accessToken: accessToken,
-		httpClient:  httpClient,
+		connector:  testConnector,
+		httpClient: httpClient,
 	}
 }
 
 // Authenticate grab an access token and set it into the Client instance for later use
 func (client *ClientImpl) Authenticate() error {
-	authURL := client.cspURL + constants.CspRefreshURLSuffix
-	securityContext, err := connector.SecurityContextByRefreshToken(client.refreshToken, authURL)
-	if err != nil {
-		return err
-	}
-	client.accessToken = securityContext.Property(security.ACCESS_TOKEN).(string)
-	return nil
+	return client.connector.Authenticate()
 }
 
 func (client *ClientImpl) ValidateCreateSddcGroup(sddcIDs *[]string) error {
@@ -97,7 +90,7 @@ func (client *ClientImpl) validateCreateUpdateSddcGroupInternal(groupID string, 
 		return err
 	}
 	validateCreateURL := client.getBaseURL() + fmt.Sprintf(
-		"/network/%s/core/network-connectivity-configs/validate-members", client.orgID)
+		"/network/%s/core/network-connectivity-configs/validate-members", client.connector.OrgID)
 
 	req := client.createNewRequest(http.MethodPost, validateCreateURL, bytes.NewBuffer(requestPayload))
 
@@ -114,7 +107,8 @@ func (client *ClientImpl) validateCreateUpdateSddcGroupInternal(groupID string, 
 
 func (client *ClientImpl) GetSddcGroup(groupID string) (*DeploymentGroup,
 	*NetworkConnectivityConfig, error) {
-	getSddcGroupURL := client.getBaseURL() + fmt.Sprintf("/inventory/%s/core/deployment-groups/%s", client.orgID, groupID)
+	getSddcGroupURL := client.getBaseURL() + fmt.Sprintf("/inventory/%s/core/deployment-groups/%s",
+		client.connector.OrgID, groupID)
 	req := client.createNewRequest(http.MethodGet, getSddcGroupURL, nil)
 	rawResponse, statusCode, err := client.executeRequest(req)
 	var group *DeploymentGroup
@@ -141,7 +135,8 @@ func (client *ClientImpl) GetSddcGroup(groupID string) (*DeploymentGroup,
 	}
 	getTraitsURL := client.getBaseURL() + fmt.Sprintf("/network/%s/core/network-connectivity-configs/%s/"+
 		"?trait=AwsVpcAttachmentsTrait,AwsDirectConnectGatewayAssociationsTrait,"+
-		"AwsNetworkConnectivityTrait,AwsCustomerTransitGatewayAssociationsTrait", client.orgID, resourceID)
+		"AwsNetworkConnectivityTrait,AwsCustomerTransitGatewayAssociationsTrait",
+		client.connector.OrgID, resourceID)
 	req = client.createNewRequest(http.MethodGet, getTraitsURL, nil)
 	rawResponse, statusCode, err = client.executeRequest(req)
 	if err != nil {
@@ -176,7 +171,8 @@ func (client *ClientImpl) CreateSddcGroup(
 		return "", "", err
 	}
 	createSddcGroupURL := client.getBaseURL() + fmt.Sprintf(
-		"/network/%s/core/network-connectivity-configs/create-group-network-connectivity", client.orgID)
+		"/network/%s/core/network-connectivity-configs/create-group-network-connectivity",
+		client.connector.OrgID)
 
 	req := client.createNewRequest(http.MethodPost, createSddcGroupURL, bytes.NewBuffer(requestPayload))
 
@@ -219,7 +215,7 @@ func (client *ClientImpl) UpdateSddcGroupMembers(
 		return "", err
 	}
 	config := NewAwsUpdateDeploymentGroupMembersConfig(addMembers, removeMembers)
-	networkOperation := NewNetworkOperation(client.orgID, resourceID, UpdateMembersNetworkOperationType, *config)
+	networkOperation := NewNetworkOperation(client.connector.OrgID, resourceID, UpdateMembersNetworkOperationType, *config)
 	networkOperationResponse, err := client.executeNetworkOperation(networkOperation)
 	if err != nil {
 		return "", err
@@ -233,7 +229,7 @@ func (client *ClientImpl) DeleteSddcGroup(groupID string) (taskID string, error 
 		return "", err
 	}
 	config := NewAwsDeleteDeploymentGroupConfig()
-	networkOperation := NewNetworkOperation(client.orgID, resourceID, DeleteSddcGroupNetworkOperationType, *config)
+	networkOperation := NewNetworkOperation(client.connector.OrgID, resourceID, DeleteSddcGroupNetworkOperationType, *config)
 	networkOperationResponse, err := client.executeNetworkOperation(networkOperation)
 	if err != nil {
 		return "", err
@@ -243,7 +239,7 @@ func (client *ClientImpl) DeleteSddcGroup(groupID string) (taskID string, error 
 
 func (client *ClientImpl) getResourceIDFromGroupID(groupID string) (resourceID string, error error) {
 	getResourceIDURL := client.getBaseURL() + fmt.Sprintf(
-		"/network/%s/core/network-connectivity-configs/?group_id=%s", client.orgID, groupID)
+		"/network/%s/core/network-connectivity-configs/?group_id=%s", client.connector.OrgID, groupID)
 
 	req := client.createNewRequest(http.MethodGet, getResourceIDURL, nil)
 
@@ -292,7 +288,7 @@ func (client *ClientImpl) executeNetworkOperation(networkOperation *NetworkOpera
 
 func (client *ClientImpl) getNetworkOperationsURL() string {
 	return client.getBaseURL() + fmt.Sprintf(
-		"/network/%s/aws/operations", client.orgID)
+		"/network/%s/aws/operations", client.connector.OrgID)
 }
 
 // executeRequest Returns the body of the response as byte array pointer, the status code
@@ -325,12 +321,12 @@ func (client *ClientImpl) executeRequest(
 }
 
 func (client *ClientImpl) getBaseURL() string {
-	return client.vmcURL + "/api"
+	return client.connector.VmcURL + "/api"
 }
 
 func (client *ClientImpl) createNewRequest(method string, URL string, body io.Reader) *http.Request {
 	req, _ := http.NewRequest(method, URL, body)
-	req.Header.Add(authnHeader, client.accessToken)
+	req.Header.Add(authnHeader, client.connector.Connector.SecurityContext().Property(security.ACCESS_TOKEN).(string))
 	if method == http.MethodPost {
 		req.Header.Add("content-type", "application/json")
 	}

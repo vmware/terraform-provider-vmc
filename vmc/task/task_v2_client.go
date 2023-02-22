@@ -8,7 +8,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/vmware/terraform-provider-vmc/vmc/connector"
-	"github.com/vmware/terraform-provider-vmc/vmc/constants"
+	"github.com/vmware/vsphere-automation-sdk-go/runtime/protocol/client"
 	"github.com/vmware/vsphere-automation-sdk-go/runtime/security"
 	"io"
 	"net/http"
@@ -39,50 +39,43 @@ type HTTPClient interface {
 }
 
 type V2ClientImpl struct {
-	vmcURL       string
-	cspURL       string
-	refreshToken string
-	orgID        string
-	accessToken  string
-	HTTPClient   HTTPClient
+	connector  connector.Wrapper
+	HTTPClient HTTPClient
 }
 
-func NewV2ClientImpl(vmcURL string, cspURL string, refreshToken string, orgID string) *V2ClientImpl {
+func NewV2ClientImpl(wrapper connector.Wrapper) *V2ClientImpl {
+	copyWrapper := connector.CopyWrapper(wrapper)
 	return &V2ClientImpl{
-		vmcURL:       vmcURL,
-		cspURL:       cspURL,
-		refreshToken: refreshToken,
-		orgID:        orgID,
-		HTTPClient:   http.DefaultClient,
+		connector:  *copyWrapper,
+		HTTPClient: http.DefaultClient,
 	}
 }
 
 // newTestV2ClientImpl intended for injecting dummy accessToken and stubbed HTTPClient for
 // testing purposes.
 func newTestV2ClientImpl(vmcURL string, orgID string, accessToken string, httpClient HTTPClient) *V2ClientImpl {
+	testConnector := connector.Wrapper{
+		VmcURL: vmcURL,
+		OrgID:  orgID,
+	}
+	// Create a dummy connector to house the access token in a security context
+	testConnector.Connector = client.NewRestConnector("", http.Client{})
+	testConnector.Connector.SetSecurityContext(security.NewOauthSecurityContext(accessToken))
 	return &V2ClientImpl{
-		vmcURL:      vmcURL,
-		orgID:       orgID,
-		accessToken: accessToken,
-		HTTPClient:  httpClient,
+		connector:  testConnector,
+		HTTPClient: httpClient,
 	}
 }
 
-// Authenticate grab an access token and set it into the SddcGroupClient instance for later use
+// Authenticate grab an access token and set it into the V2Client instance for later use
 func (client *V2ClientImpl) Authenticate() error {
-	authURL := client.cspURL + constants.CspRefreshURLSuffix
-	securityContext, err := connector.SecurityContextByRefreshToken(client.refreshToken, authURL)
-	if err != nil {
-		return err
-	}
-	client.accessToken = securityContext.Property(security.ACCESS_TOKEN).(string)
-	return nil
+	return client.connector.Authenticate()
 }
 
 func (client *V2ClientImpl) GetTask(taskID string) (V2Task, error) {
-	getTaskV2URL := client.getBaseURL() + fmt.Sprintf("/operation/%s/core/operations/%s", client.orgID, taskID)
+	getTaskV2URL := client.getBaseURL() + fmt.Sprintf("/operation/%s/core/operations/%s", client.connector.OrgID, taskID)
 	req, _ := http.NewRequest(http.MethodGet, getTaskV2URL, nil)
-	req.Header.Add(authnHeader, client.accessToken)
+	req.Header.Add(authnHeader, client.connector.Connector.SecurityContext().Property(security.ACCESS_TOKEN).(string))
 	var result V2Task
 	rawResponse, statusCode, err := client.executeRequest(req)
 	if err != nil {
@@ -99,7 +92,7 @@ func (client *V2ClientImpl) GetTask(taskID string) (V2Task, error) {
 }
 
 func (client *V2ClientImpl) getBaseURL() string {
-	return client.vmcURL + "/api"
+	return client.connector.VmcURL + "/api"
 }
 
 // executeRequest Returns the body of the response as byte array pointer, the status code
