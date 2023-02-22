@@ -5,11 +5,12 @@
 package connector
 
 import (
-	"encoding/base64"
+	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
 	"github.com/vmware/terraform-provider-vmc/vmc/constants"
+	"golang.org/x/oauth2/clientcredentials"
 	"io"
 	"net/http"
 	"reflect"
@@ -35,14 +36,7 @@ type Wrapper struct {
 }
 
 func CopyWrapper(original Wrapper) *Wrapper {
-	return &Wrapper{
-		RefreshToken: original.RefreshToken,
-		ClientID:     original.ClientID,
-		ClientSecret: original.ClientSecret,
-		OrgID:        original.OrgID,
-		VmcURL:       original.VmcURL,
-		CspURL:       original.CspURL,
-	}
+	return &original
 }
 
 func (c *Wrapper) Authenticate() error {
@@ -123,10 +117,10 @@ func newClientConnectorByClientID(clientID, clientSecret, serviceURL, cspURL str
 
 	if len(cspURL) <= 0 {
 		cspURL = constants.DefaultCspURL +
-			constants.CspOauthURLSuffix
+			constants.CspTokenURLSuffix
 	} else {
 		cspURL = cspURL +
-			constants.CspOauthURLSuffix
+			constants.CspTokenURLSuffix
 	}
 
 	securityCtx, err := securityContextByClientID(clientID, clientSecret, cspURL)
@@ -140,28 +134,17 @@ func newClientConnectorByClientID(clientID, clientSecret, serviceURL, cspURL str
 	return connector, nil
 }
 
-func securityContextByClientID(clientID string, clientSecret string, cspURL string) (core.SecurityContext, error) {
-	clientCredentials := clientID + ":" + clientSecret
-	encodedClientCredentials := base64.StdEncoding.EncodeToString([]byte(clientCredentials))
-
-	payload := strings.NewReader("grant_type=client_credentials")
-
-	req, _ := http.NewRequest("POST", cspURL, payload)
-
-	req.Header.Add("content-type", "application/x-www-form-urlencoded")
-	req.Header.Add("authorization", "Basic "+encodedClientCredentials)
-
-	res, err := http.DefaultClient.Do(req)
-
+func securityContextByClientID(clientID string, clientSecret string, cspTokenEndpointURL string) (core.SecurityContext, error) {
+	oauth2Config := clientcredentials.Config{
+		ClientID:     clientID,
+		ClientSecret: clientSecret,
+		TokenURL:     cspTokenEndpointURL,
+	}
+	token, err := oauth2Config.Token(context.TODO())
 	if err != nil {
 		return nil, err
 	}
-
-	securityCtx, err := parseAuthnResponse(res)
-	if err != nil {
-		return nil, err
-	}
-	return securityCtx, nil
+	return security.NewOauthSecurityContext(token.AccessToken), nil
 }
 
 func parseAuthnResponse(response *http.Response) (*security.OauthSecurityContext, error) {
@@ -170,7 +153,12 @@ func parseAuthnResponse(response *http.Response) (*security.OauthSecurityContext
 		return nil, fmt.Errorf("response from Cloud Service Provider contains status code %d : %s", response.StatusCode, string(b))
 	}
 
-	defer response.Body.Close()
+	defer func(Body io.ReadCloser) {
+		err := Body.Close()
+		if err != nil {
+			fmt.Println(err)
+		}
+	}(response.Body)
 
 	var jsondata map[string]interface{}
 	err := json.NewDecoder(response.Body).Decode(&jsondata)

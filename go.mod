@@ -12,6 +12,7 @@ require (
 	github.com/vmware/vsphere-automation-sdk-go/services/vmc v0.10.0
 	github.com/vmware/vsphere-automation-sdk-go/services/vmc/autoscaler v0.4.0
 	github.com/vmware/vsphere-automation-sdk-go/services/vmc/draas v0.4.0
+	golang.org/x/oauth2 v0.0.0-20200107190931-bf48bf16ab8d
 )
 
 require (
