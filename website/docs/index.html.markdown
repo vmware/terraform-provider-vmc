@@ -21,18 +21,22 @@ resources.
 In order to use the provider you need to obtain the authentication
 token from the Cloud Service Provider by providing the org scoped API token.
 The provider client uses Cloud Service Provider (CSP) API
-to exchange this org scoped API token for user access token.
+to exchange this org scoped API token/OAuth App Id and Secret for user access token.
 
-Note that in all of the examples you will need to update the `api_token` and `org_id` settings
-in the variables.tf file to match those configured in your VMC environment.
+Note that in all the examples you will need to update the `api_token` (or `client_id` and `client_secret`)
+and `org_id` settings in the variables.tf file to match those configured in your VMC environment.
 
 
 ## Argument Reference
 
 The following arguments are used to configure the VMware Cloud on AWS Provider:
 
-* `api_token` - (Required) API token is used to authenticate when calling VMware Cloud Services APIs.
+* `api_token` - (Required, in conflict with "client_id" and "client_secret") API token is used to authenticate when calling VMware Cloud Services APIs.
    This token is scoped within the organization.
+* `client_id` - (Required in pair with "client_secret", in conflict with "api_token") ID of OAuth App associated with the organization. The combination with
+   "client_secret" is used to authenticate when calling VMware Cloud Services APIs.
+* `client_secret` - (Required in pair with "client_id", in conflict with "api_token") Secret of OAuth App associated with the organization. The combination with
+  "client_id" is used to authenticate when calling VMware Cloud Services APIs.
 *  `org_id` - (Required) Organization Identifier.
 *  `vmc_url` - (Optional) VMware Cloud on AWS URL. Default : https://vmc.vmware.com
 *  `csp_url` - (Optional) Cloud Service Provider URL. Default : https://console.cloud.vmware.com

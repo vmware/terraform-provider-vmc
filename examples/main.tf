@@ -6,7 +6,8 @@ terraform {
   }
 }
 provider "vmc" {
-  refresh_token = var.api_token
+  client_id = var.client_id
+  client_secret = var.client_secret
   org_id = var.org_id
 }
 # Empty data source defined in order to store the org display name and name in terraform state

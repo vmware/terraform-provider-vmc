@@ -1,7 +1,13 @@
-variable "api_token" {
-  description = "API token used to authenticate when calling the VMware Cloud Services API."
+variable "client_id" {
+  description = "ID of an OAuth App associated with the organization. It is recommended to use an OAuth App with least-privileged roles in automated environments."
   default = ""
 }
+
+variable "client_secret" {
+  description = "Secret of the OAuth App, associated with the organization. It is recommended to use an OAuth App with least-privileged roles in automated environments."
+  default = ""
+}
+
 
 variable "org_id" {
   description = "Organization Identifier."
