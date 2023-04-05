@@ -53,7 +53,6 @@ func logVapiErrorData(message string, vAPIMessages []std.LocalizableMessage, vap
 	}
 
 	var typeConverter = bindings.NewTypeConverter()
-	typeConverter.SetMode(bindings.REST)
 	data, err := typeConverter.ConvertToGolang(apiErrorDataValue, model.ErrorResponseBindingType())
 
 	if err != nil {

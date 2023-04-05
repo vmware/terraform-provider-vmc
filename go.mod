@@ -6,12 +6,12 @@ require (
 	github.com/hashicorp/terraform-plugin-sdk/v2 v2.25.0
 	github.com/satori/go.uuid v1.2.0
 	github.com/stretchr/testify v1.7.2
-	github.com/vmware/vsphere-automation-sdk-go/lib v0.4.0
-	github.com/vmware/vsphere-automation-sdk-go/runtime v0.4.0
-	github.com/vmware/vsphere-automation-sdk-go/services/nsxt-vmc-aws-integration v0.5.0
-	github.com/vmware/vsphere-automation-sdk-go/services/vmc v0.10.0
-	github.com/vmware/vsphere-automation-sdk-go/services/vmc/autoscaler v0.4.0
-	github.com/vmware/vsphere-automation-sdk-go/services/vmc/draas v0.4.0
+	github.com/vmware/vsphere-automation-sdk-go/lib v0.6.0
+	github.com/vmware/vsphere-automation-sdk-go/runtime v0.6.0
+	github.com/vmware/vsphere-automation-sdk-go/services/nsxt-vmc-aws-integration v0.6.0
+	github.com/vmware/vsphere-automation-sdk-go/services/vmc v0.11.0
+	github.com/vmware/vsphere-automation-sdk-go/services/vmc/autoscaler v0.5.0
+	github.com/vmware/vsphere-automation-sdk-go/services/vmc/draas v0.5.0
 	golang.org/x/oauth2 v0.5.0
 )
 
@@ -22,6 +22,7 @@ require (
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/fatih/color v1.13.0 // indirect
 	github.com/gibson042/canonicaljson-go v1.0.3 // indirect
+	github.com/golang-jwt/jwt/v4 v4.3.0 // indirect
 	github.com/golang/protobuf v1.5.2 // indirect
 	github.com/google/go-cmp v0.5.9 // indirect
 	github.com/google/uuid v1.2.0 // indirect

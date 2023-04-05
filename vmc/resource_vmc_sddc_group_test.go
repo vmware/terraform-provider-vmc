@@ -91,7 +91,7 @@ resource "vmc_sddc" "sddc_zerocloud_1" {
 
 resource "vmc_sddc" "sddc_zerocloud_2" {
 	sddc_name = %q
-	vpc_cidr      = "10.12.0.0/16"
+	vpc_cidr      = "10.41.0.0/16"
 	num_host      = 1
 	provider_type = "ZEROCLOUD"
 	host_instance_type = "I3_METAL"
