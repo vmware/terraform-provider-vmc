@@ -39,7 +39,7 @@ func dataSourceVmcOrgRead(d *schema.ResourceData, m interface{}) error {
 	orgClient := vmc.NewOrgsClient(connectorWrapper)
 	org, err := orgClient.Get(orgID)
 	if err != nil {
-		return HandleDataSourceReadError(d, "VMC Organization", err)
+		return HandleDataSourceReadError("VMC Organization", err)
 	}
 	d.SetId(orgID)
 	d.Set("display_name", org.DisplayName)

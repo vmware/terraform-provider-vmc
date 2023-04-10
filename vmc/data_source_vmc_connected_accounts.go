@@ -56,7 +56,7 @@ func dataSourceVmcConnectedAccountsRead(d *schema.ResourceData, m interface{}) e
 	}
 
 	if err != nil {
-		return HandleDataSourceReadError(d, "Connected Accounts", err)
+		return HandleDataSourceReadError("Connected Accounts", err)
 	}
 
 	if id == "" {
