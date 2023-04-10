@@ -80,4 +80,8 @@ const (
 	TestSddcName        string = "TEST_SDDC_NAME"
 	AwsAccountNumber    string = "AWS_ACCOUNT_NUMBER"
 	NsxtReverseProxyURL string = "NSXT_REVERSE_PROXY_URL"
+	// SddcGroupTestSddc1Id ID of an existing SDDC used for sddc group test
+	SddcGroupTestSddc1Id string = "SDDC_GROUP_TEST_SDDC_1_ID"
+	// SddcGroupTestSddc2Id ID of an existing SDDC used for sddc group test
+	SddcGroupTestSddc2Id string = "SDDC_GROUP_TEST_SDDC_2_ID"
 )
