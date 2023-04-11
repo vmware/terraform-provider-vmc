@@ -80,7 +80,7 @@ func newClientConnectorByRefreshToken(refreshToken, serviceURL, cspURL string,
 		return nil, err
 	}
 
-	connector := client.NewConnector(serviceURL,
+	connector := client.NewConnector(serviceURL, client.UsingRest(nil),
 		client.WithHttpClient(httpClient), client.WithSecurityContext(securityCtx))
 
 	return connector, nil
@@ -128,7 +128,7 @@ func newClientConnectorByClientID(clientID, clientSecret, serviceURL, cspURL str
 		return nil, err
 	}
 
-	connector := client.NewConnector(serviceURL,
+	connector := client.NewConnector(serviceURL, client.UsingRest(nil),
 		client.WithHttpClient(httpClient), client.WithSecurityContext(securityCtx))
 
 	return connector, nil
