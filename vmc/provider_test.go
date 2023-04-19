@@ -29,7 +29,7 @@ func TestProvider(t *testing.T) {
 
 }
 
-func TestProvider_impl(t *testing.T) {
+func TestProvider_impl(_ *testing.T) {
 	var _ *schema.Provider = Provider()
 }
 
@@ -78,5 +78,14 @@ func testAccPreCheckZerocloud(t *testing.T) {
 	}
 	if v := os.Getenv(constants.AwsAccountNumber); v == "" {
 		t.Fatal(constants.AwsAccountNumber + " must be set for acceptance tests")
+	}
+	if v := os.Getenv(constants.TestSddcID); v == "" {
+		t.Fatal(constants.TestSddcID + " must be set for acceptance tests")
+	}
+	if v := os.Getenv(constants.SddcGroupTestSddc1Id); v == "" {
+		t.Fatal(constants.SddcGroupTestSddc1Id + " must be set for acceptance tests")
+	}
+	if v := os.Getenv(constants.SddcGroupTestSddc2Id); v == "" {
+		t.Fatal(constants.SddcGroupTestSddc2Id + " must be set for acceptance tests")
 	}
 }

@@ -6,12 +6,12 @@ package vmc
 import (
 	"fmt"
 	"github.com/vmware/terraform-provider-vmc/vmc/connector"
+	"github.com/vmware/vsphere-automation-sdk-go/services/nsxt-vmc-aws-integration/nsx_vmc_app/infra"
+	"github.com/vmware/vsphere-automation-sdk-go/services/nsxt-vmc-aws-integration/nsx_vmc_app/model"
 	"strings"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	uuid "github.com/satori/go.uuid"
-	"github.com/vmware/vsphere-automation-sdk-go/services/nsxt-vmc-aws-integration/api"
-	"github.com/vmware/vsphere-automation-sdk-go/services/nsxt-vmc-aws-integration/model"
 )
 
 func resourcePublicIP() *schema.Resource {
@@ -65,7 +65,7 @@ func resourcePublicIPCreate(d *schema.ResourceData, m interface{}) error {
 	if err != nil {
 		return HandleCreateError("NSXT reverse proxy URL connector", err)
 	}
-	nsxVmcAwsClient := api.NewCloudServiceVMCOnAWSPublicIPClient(connector)
+	publicIpsClient := infra.NewPublicIpsClient(connector)
 
 	displayName := d.Get("display_name").(string)
 	// generate random UUID
@@ -78,7 +78,7 @@ func resourcePublicIPCreate(d *schema.ResourceData, m interface{}) error {
 	}
 
 	// API call to create public IP
-	publicIP, err := nsxVmcAwsClient.CreatePublicIp(uuid, *publicIPModel)
+	publicIP, err := publicIpsClient.Update(uuid, *publicIPModel)
 	if err != nil {
 		return HandleCreateError("Public IP", err)
 	}
@@ -94,11 +94,11 @@ func resourcePublicIPRead(d *schema.ResourceData, m interface{}) error {
 	if err != nil {
 		return HandleCreateError("NSXT reverse proxy URL connector", err)
 	}
-	nsxVmcAwsClient := api.NewCloudServiceVMCOnAWSPublicIPClient(connector)
+	publicIpsClient := infra.NewPublicIpsClient(connector)
 	uuid := d.Id()
 
 	if len(uuid) > 0 {
-		publicIP, err := nsxVmcAwsClient.GetPublicIp(uuid)
+		publicIP, err := publicIpsClient.Get(uuid)
 		if err != nil {
 			return HandleReadError(d, "Public IP", uuid, err)
 		}
@@ -108,7 +108,7 @@ func resourcePublicIPRead(d *schema.ResourceData, m interface{}) error {
 		displayName := d.Get("display_name").(string)
 		if len(displayName) > 0 {
 			// get the list of IPs
-			publicIPResultList, err := nsxVmcAwsClient.ListPublicIps(nil, nil, nil, nil, nil)
+			publicIPResultList, err := publicIpsClient.List(nil, nil, nil, nil, nil)
 			if err != nil {
 				return HandleListError("Public IP", err)
 			}
@@ -132,7 +132,7 @@ func resourcePublicIPUpdate(d *schema.ResourceData, m interface{}) error {
 	if err != nil {
 		return HandleCreateError("NSXT reverse proxy URL connector", err)
 	}
-	nsxVmcAwsClient := api.NewCloudServiceVMCOnAWSPublicIPClient(connector)
+	publicIpsClient := infra.NewPublicIpsClient(connector)
 
 	if d.HasChange("display_name") {
 		uuid := d.Id()
@@ -145,7 +145,7 @@ func resourcePublicIPUpdate(d *schema.ResourceData, m interface{}) error {
 		}
 
 		// API call to update public IP
-		publicIP, err := nsxVmcAwsClient.CreatePublicIp(uuid, *publicIPModel)
+		publicIP, err := publicIpsClient.Update(uuid, *publicIPModel)
 		if err != nil {
 			return HandleUpdateError("Public IP", err)
 		}
@@ -163,10 +163,10 @@ func resourcePublicIPDelete(d *schema.ResourceData, m interface{}) error {
 	if err != nil {
 		return HandleCreateError("NSXT reverse proxy URL connector", err)
 	}
-	nsxVmcAwsClient := api.NewCloudServiceVMCOnAWSPublicIPClient(connector)
+	publicIpsClient := infra.NewPublicIpsClient(connector)
 	uuid := d.Id()
 	forceDelete := true
-	err = nsxVmcAwsClient.DeletePublicIp(uuid, &forceDelete)
+	err = publicIpsClient.Delete(uuid, &forceDelete)
 	if err != nil {
 		return HandleDeleteError("Public IP", uuid, err)
 	}

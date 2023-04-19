@@ -59,8 +59,8 @@ func newTestV2ClientImpl(vmcURL string, orgID string, accessToken string, httpCl
 		OrgID:  orgID,
 	}
 	// Create a dummy connector to house the access token in a security context
-	testConnector.Connector = client.NewRestConnector("", http.Client{})
-	testConnector.Connector.SetSecurityContext(security.NewOauthSecurityContext(accessToken))
+	testConnector.Connector = client.NewConnector("", client.WithHttpClient(&http.Client{}),
+		client.WithSecurityContext(security.NewOauthSecurityContext(accessToken)))
 	return &V2ClientImpl{
 		connector:  testConnector,
 		HTTPClient: httpClient,

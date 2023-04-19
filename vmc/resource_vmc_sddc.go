@@ -9,6 +9,7 @@ import (
 	"github.com/vmware/terraform-provider-vmc/vmc/connector"
 	"github.com/vmware/terraform-provider-vmc/vmc/constants"
 	task "github.com/vmware/terraform-provider-vmc/vmc/task"
+	"github.com/vmware/vsphere-automation-sdk-go/services/nsxt-vmc-aws-integration/nsx_vmc_app/infra/external"
 	"log"
 	"strings"
 	"time"
@@ -16,8 +17,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
-	nsxtawsintegrationapi "github.com/vmware/vsphere-automation-sdk-go/services/nsxt-vmc-aws-integration/api"
-	nsxtawsintegrationmodel "github.com/vmware/vsphere-automation-sdk-go/services/nsxt-vmc-aws-integration/model"
+	nsx_vmc_appModel "github.com/vmware/vsphere-automation-sdk-go/services/nsxt-vmc-aws-integration/nsx_vmc_app/model"
 	autoscalercluster "github.com/vmware/vsphere-automation-sdk-go/services/vmc/autoscaler/api/orgs/sddcs/clusters"
 	autoscalermodel "github.com/vmware/vsphere-automation-sdk-go/services/vmc/autoscaler/model"
 	"github.com/vmware/vsphere-automation-sdk-go/services/vmc/model"
@@ -503,8 +503,8 @@ func resourceSddcRead(d *schema.ResourceData, m interface{}) error {
 		if err != nil {
 			return HandleCreateError("NSXT reverse proxy URL connectorWrapper", err)
 		}
-		cloudServicesCommonClient := nsxtawsintegrationapi.NewCloudServiceCommonClient(nsxtReverseProxyURLConnector)
-		externalConnectivityConfig, err := cloudServicesCommonClient.GetExternalConnectivityConfig()
+		cloudServicesCommonClient := external.NewConfigClient(nsxtReverseProxyURLConnector)
+		externalConnectivityConfig, err := cloudServicesCommonClient.Get()
 		if err != nil {
 			return HandleReadError(d, "External connectivity configuration", sddcID, err)
 		}
@@ -656,14 +656,15 @@ func resourceSddcUpdate(d *schema.ResourceData, m interface{}) error {
 			return fmt.Errorf("Intranet MTU uplink cannot be updated for %s provider type", constants.ZeroCloudProviderType)
 		}
 		intranetMTUUplink := d.Get("intranet_mtu_uplink").(int)
+		intranetMTUUplinkPointer := int64(intranetMTUUplink)
 		nsxtReverseProxyURL := d.Get("nsxt_reverse_proxy_url").(string)
 		nxstReverseProxyURLConnector, err := getNsxtReverseProxyURLConnector(nsxtReverseProxyURL, connectorWrapper)
 		if err != nil {
 			return HandleCreateError("NSXT reverse proxy URL connector", err)
 		}
-		cloudServicesCommonClient := nsxtawsintegrationapi.NewCloudServiceCommonClient(nxstReverseProxyURLConnector)
-		externalConnectivityConfig := nsxtawsintegrationmodel.ExternalConnectivityConfig{IntranetMtu: int64(intranetMTUUplink)}
-		_, err = cloudServicesCommonClient.UpdateIntranetUplinkMtu(externalConnectivityConfig)
+		cloudServicesCommonClient := external.NewConfigClient(nxstReverseProxyURLConnector)
+		externalConnectivityConfig := nsx_vmc_appModel.ExternalConnectivityConfig{IntranetMtu: &intranetMTUUplinkPointer}
+		_, err = cloudServicesCommonClient.Update(externalConnectivityConfig)
 		if err != nil {
 			return HandleUpdateError("Intranet MTU Uplink", err)
 		}

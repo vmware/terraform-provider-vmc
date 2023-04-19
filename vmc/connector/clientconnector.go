@@ -43,14 +43,14 @@ func (c *Wrapper) Authenticate() error {
 	var err error
 	httpClient := http.Client{}
 	if len(c.RefreshToken) > 0 {
-		c.Connector, err = newClientConnectorByRefreshToken(c.RefreshToken, c.VmcURL, c.CspURL, httpClient)
+		c.Connector, err = newClientConnectorByRefreshToken(c.RefreshToken, c.VmcURL, c.CspURL, &httpClient)
 		if err != nil {
 			return err
 		}
 		return nil
 	}
 	if len(c.ClientID) > 0 && len(c.ClientSecret) > 0 {
-		c.Connector, err = newClientConnectorByClientID(c.ClientID, c.ClientSecret, c.VmcURL, c.CspURL, httpClient)
+		c.Connector, err = newClientConnectorByClientID(c.ClientID, c.ClientSecret, c.VmcURL, c.CspURL, &httpClient)
 		if err != nil {
 			return err
 		}
@@ -61,7 +61,7 @@ func (c *Wrapper) Authenticate() error {
 
 // newClientConnectorByRefreshToken returns client connector to any VMC service by using OAuth authentication using Refresh Token.
 func newClientConnectorByRefreshToken(refreshToken, serviceURL, cspURL string,
-	httpClient http.Client) (client.Connector, error) {
+	httpClient *http.Client) (client.Connector, error) {
 
 	if len(serviceURL) <= 0 {
 		serviceURL = constants.DefaultVmcURL
@@ -80,8 +80,8 @@ func newClientConnectorByRefreshToken(refreshToken, serviceURL, cspURL string,
 		return nil, err
 	}
 
-	connector := client.NewRestConnector(serviceURL, httpClient)
-	connector.SetSecurityContext(securityCtx)
+	connector := client.NewConnector(serviceURL, client.UsingRest(nil),
+		client.WithHttpClient(httpClient), client.WithSecurityContext(securityCtx))
 
 	return connector, nil
 }
@@ -109,7 +109,7 @@ func securityContextByRefreshToken(refreshToken string, cspURL string) (core.Sec
 
 // newClientConnectorByClientID returns client connector to any VMC service by using OAuth authentication using clientId and secret.
 func newClientConnectorByClientID(clientID, clientSecret, serviceURL, cspURL string,
-	httpClient http.Client) (client.Connector, error) {
+	httpClient *http.Client) (client.Connector, error) {
 
 	if len(serviceURL) <= 0 {
 		serviceURL = constants.DefaultVmcURL
@@ -128,8 +128,8 @@ func newClientConnectorByClientID(clientID, clientSecret, serviceURL, cspURL str
 		return nil, err
 	}
 
-	connector := client.NewRestConnector(serviceURL, httpClient)
-	connector.SetSecurityContext(securityCtx)
+	connector := client.NewConnector(serviceURL, client.UsingRest(nil),
+		client.WithHttpClient(httpClient), client.WithSecurityContext(securityCtx))
 
 	return connector, nil
 }

@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"github.com/vmware/terraform-provider-vmc/vmc/connector"
 	"github.com/vmware/terraform-provider-vmc/vmc/constants"
+	"github.com/vmware/vsphere-automation-sdk-go/services/nsxt-vmc-aws-integration/nsx_vmc_app/infra"
 	"os"
 	"testing"
 
@@ -14,7 +15,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 	"github.com/vmware/vsphere-automation-sdk-go/lib/vapi/std/errors"
-	"github.com/vmware/vsphere-automation-sdk-go/services/nsxt-vmc-aws-integration/api"
 )
 
 func TestAccResourceVmcPublicIp_basic(t *testing.T) {
@@ -56,8 +56,8 @@ func testAccCheckVmcPublicIPExists(name string) resource.TestCheckFunc {
 			return fmt.Errorf("error creating client nsxConnector : %v ", err)
 		}
 
-		nsxVmcAwsClient := api.NewCloudServiceVMCOnAWSPublicIPClient(nsxConnector)
-		publicIP, err := nsxVmcAwsClient.GetPublicIp(uuid)
+		publicIpsClient := infra.NewPublicIpsClient(nsxConnector)
+		publicIP, err := publicIpsClient.Get(uuid)
 		if err != nil {
 			return fmt.Errorf("error getting public IP with ID %s : %v", uuid, err)
 		}
@@ -76,7 +76,7 @@ func testCheckVmcPublicIPDestroy(s *terraform.State) error {
 	if err != nil {
 		return fmt.Errorf("error creating client nsxConnector : %v ", err)
 	}
-	nsxVmcAwsClient := api.NewCloudServiceVMCOnAWSPublicIPClient(nsxConnector)
+	publicIpsClient := infra.NewPublicIpsClient(nsxConnector)
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "vmc_public_ip" {
@@ -85,7 +85,7 @@ func testCheckVmcPublicIPDestroy(s *terraform.State) error {
 
 		uuid := rs.Primary.Attributes["id"]
 		fmt.Printf("UUID : %s ", uuid)
-		publicIP, err := nsxVmcAwsClient.GetPublicIp(uuid)
+		publicIP, err := publicIpsClient.Get(uuid)
 		fmt.Printf("publicIP : %v", publicIP.Id)
 		if err == nil {
 			if *publicIP.Id == uuid {

@@ -53,7 +53,6 @@ func logVapiErrorData(message string, vAPIMessages []std.LocalizableMessage, vap
 	}
 
 	var typeConverter = bindings.NewTypeConverter()
-	typeConverter.SetMode(bindings.REST)
 	data, err := typeConverter.ConvertToGolang(apiErrorDataValue, model.ErrorResponseBindingType())
 
 	if err != nil {
@@ -137,7 +136,7 @@ func HandleReadError(d *schema.ResourceData, resourceType string, resourceID str
 	return logAPIError(msg, err)
 }
 
-func HandleDataSourceReadError(d *schema.ResourceData, resourceType string, err error) error {
+func HandleDataSourceReadError(resourceType string, err error) error {
 	msg := fmt.Sprintf("Failed to read %s ", resourceType)
 	return logAPIError(msg, err)
 }
