@@ -10,7 +10,7 @@ import (
 	"net/url"
 	"strings"
 
-	uuid "github.com/satori/go.uuid"
+	"github.com/gofrs/uuid/v5"
 	"github.com/vmware/vsphere-automation-sdk-go/runtime/protocol/client"
 	"github.com/vmware/vsphere-automation-sdk-go/services/vmc/model"
 	"github.com/vmware/vsphere-automation-sdk-go/services/vmc/orgs"

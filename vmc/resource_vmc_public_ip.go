@@ -1,4 +1,4 @@
-/* Copyright 2020 VMware, Inc.
+/* Copyright 2020-2023 VMware, Inc.
    SPDX-License-Identifier: MPL-2.0 */
 
 package vmc
@@ -10,8 +10,8 @@ import (
 	"github.com/vmware/vsphere-automation-sdk-go/services/nsxt-vmc-aws-integration/nsx_vmc_app/model"
 	"strings"
 
+	"github.com/gofrs/uuid/v5"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-	uuid "github.com/satori/go.uuid"
 )
 
 func resourcePublicIP() *schema.Resource {
@@ -69,16 +69,20 @@ func resourcePublicIPCreate(d *schema.ResourceData, m interface{}) error {
 
 	displayName := d.Get("display_name").(string)
 	// generate random UUID
-	uuid := uuid.NewV4().String()
+	UUIDObject, err := uuid.NewV4()
+	if err != nil {
+		return HandleCreateError("Public IP", err)
+	}
+	UUIDStr := UUIDObject.String()
 
 	// set values in public IP model struct
 	var publicIPModel = &model.PublicIp{
 		DisplayName: &displayName,
-		Id:          &uuid,
+		Id:          &UUIDStr,
 	}
 
 	// API call to create public IP
-	publicIP, err := publicIpsClient.Update(uuid, *publicIPModel)
+	publicIP, err := publicIpsClient.Update(UUIDStr, *publicIPModel)
 	if err != nil {
 		return HandleCreateError("Public IP", err)
 	}
