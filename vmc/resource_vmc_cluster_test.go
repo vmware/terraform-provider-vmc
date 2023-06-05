@@ -157,6 +157,8 @@ data "vmc_connected_accounts" "my_accounts" {
 data "vmc_customer_subnets" "my_subnets" {
   connected_account_id = data.vmc_connected_accounts.my_accounts.id
   region               = "US_WEST_2"
+  sddc_type = "SingleAZ"
+  instance_type = "i3.metal"
 }
 
 resource "vmc_sddc" "sddc_1" {
@@ -207,6 +209,8 @@ data "vmc_connected_accounts" "my_accounts" {
 data "vmc_customer_subnets" "my_subnets" {
   connected_account_id = data.vmc_connected_accounts.my_accounts.id
   region               = "US_WEST_2"
+  sddc_type = "SingleAZ"
+  instance_type = "i3.metal"
 }
 
 resource "vmc_sddc" "sddc_zerocloud_cluster" {
