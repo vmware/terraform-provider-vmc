@@ -215,10 +215,6 @@ resource "vmc_sddc" "sddc_zerocloud" {
     customer_subnet_ids  = [data.vmc_customer_subnets.my_subnets.ids[0]]
     connected_account_id = data.vmc_connected_accounts.my_accounts.id
 	}
-	microsoft_licensing_config {
-        mssql_licensing = "DISABLED"
-        windows_licensing = "ENABLED"
-    }
     timeouts {
       create = "300m"
       update = "300m"
