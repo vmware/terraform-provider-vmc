@@ -82,11 +82,11 @@ The following arguments are supported for vmc_cluster resource:
 
 * `sddc_id` - (Required) SDDC identifier.
 
-* `num_hosts` - (Required) Number of hosts in the cluster. The number of hosts must be between 3 - 16 hosts for a cluster.
+* `num_hosts` - (Required) Number of hosts in the cluster. The number of hosts must be between 2 - 16 hosts for a cluster.
 
 * `host_cpu_cores_count` - (Optional) Customize CPU cores on hosts in a cluster. Specify number of cores to be enabled on hosts in a cluster.
 
-* `host_instance_type` - (Optional) The instance type for the esx hosts added to this cluster. Possible values are: I3_METAL, I3EN_METAL and R5_METAL. Default value: I3_METAL.
+* `host_instance_type` - (Optional) The instance type for the esx hosts added to this cluster. Possible values are: I3_METAL, I3EN_METAL, I4I_METAL, and R5_METAL. Default value: I3_METAL.
 
 * `storage_capacity` - (Optional) For EBS-backed instances i.e: for R5_METAL only, the requested storage capacity in GiB.
 
