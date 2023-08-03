@@ -10,6 +10,7 @@ import (
 	"github.com/vmware/terraform-provider-vmc/vmc/constants"
 	task "github.com/vmware/terraform-provider-vmc/vmc/task"
 	"github.com/vmware/vsphere-automation-sdk-go/services/nsxt-vmc-aws-integration/nsx_vmc_app/infra/external"
+	"github.com/vmware/vsphere-automation-sdk-go/services/vmc/orgs/sddcs/clusters/msft_licensing"
 	"log"
 	"strings"
 	"time"
@@ -23,7 +24,6 @@ import (
 	"github.com/vmware/vsphere-automation-sdk-go/services/vmc/model"
 	"github.com/vmware/vsphere-automation-sdk-go/services/vmc/orgs"
 	"github.com/vmware/vsphere-automation-sdk-go/services/vmc/orgs/sddcs"
-	"github.com/vmware/vsphere-automation-sdk-go/services/vmc/orgs/sddcs/clusters/msft_licensing"
 )
 
 func resourceSddc() *schema.Resource {
@@ -235,6 +235,11 @@ func sddcSchema() map[string]*schema.Schema {
 						ValidateFunc: validation.StringInSlice([]string{
 							constants.LicenseConfigEnabled, constants.LicenseConfigDisabled, constants.CapitalLicenseConfigEnabled, constants.CapitalLicenseConfigDisabled}, false),
 					},
+					"academic_license": {
+						Type:        schema.TypeBool,
+						Optional:    true,
+						Description: "Flag to identify if it is Academic Standard or Commercial Standard License.",
+					},
 				},
 			},
 			Optional:    true,
@@ -378,6 +383,8 @@ func resourceSddcCreate(d *schema.ResourceData, m interface{}) error {
 
 	sddcID := sddcCreateTask.ResourceId
 	d.SetId(*sddcID)
+	msftLicensingConfig := expandMsftLicenseConfig(d.Get("microsoft_licensing_config").([]interface{}))
+
 	return resource.RetryContext(context.Background(), d.Timeout(schema.TimeoutCreate), func() *resource.RetryError {
 		taskErr := task.RetryTaskUntilFinished(connectorWrapper, func() (model.Task, error) {
 			return task.GetTask(connectorWrapper, sddcCreateTask.Id)
@@ -386,10 +393,21 @@ func resourceSddcCreate(d *schema.ResourceData, m interface{}) error {
 			return taskErr
 		}
 		err = resourceSddcRead(d, m)
-		if err == nil {
-			return nil
+		if err != nil {
+			return resource.NonRetryableError(err)
 		}
-		return resource.NonRetryableError(err)
+
+		// Updating the microsoft_license_config after creation since
+		// the backend API throws an error when non nil microsoft_licensing_config
+		// is present in the sddc spec
+		if msftLicensingConfig != nil {
+			err = updateMsftLicenseConfig(d, m, msftLicensingConfig)
+			if err != nil {
+				return resource.NonRetryableError(err)
+			}
+		}
+
+		return nil
 	})
 }
 
@@ -718,31 +736,38 @@ func resourceSddcUpdate(d *schema.ResourceData, m interface{}) error {
 	// Update Microsoft licensing config
 	if d.HasChange("microsoft_licensing_config") {
 		configChangeParam := expandMsftLicenseConfig(d.Get("microsoft_licensing_config").([]interface{}))
-		primaryClusterClient := sddcs.NewPrimaryclusterClient(connectorWrapper)
-		primaryCluster, err := primaryClusterClient.Get(orgID, sddcID)
-		if err != nil {
-			return HandleReadError(d, "Primary Cluster", sddcID, err)
-		}
-		publishClient := msft_licensing.NewPublishClient(connectorWrapper)
-		microsoftLicensingUpdateTask, err := publishClient.Post(orgID, sddcID, primaryCluster.ClusterId, *configChangeParam)
-		if err != nil {
-			return fmt.Errorf("error updating license : %s", err)
-		}
-		return resource.RetryContext(context.Background(), d.Timeout(schema.TimeoutCreate), func() *resource.RetryError {
-			taskErr := task.RetryTaskUntilFinished(connectorWrapper, func() (model.Task, error) {
-				return task.GetTask(connectorWrapper, microsoftLicensingUpdateTask.Id)
-			}, "failed updating Microsoft licensing configuration", nil)
-			if taskErr != nil {
-				return taskErr
-			}
-			err = resourceSddcRead(d, m)
-			if err == nil {
-				return nil
-			}
-			return resource.NonRetryableError(err)
-		})
+		return updateMsftLicenseConfig(d, m, configChangeParam)
 	}
 	return resourceSddcRead(d, m)
+}
+
+func updateMsftLicenseConfig(d *schema.ResourceData, m interface{}, msftLicenseConfig *model.MsftLicensingConfig) error {
+	connectorWrapper := m.(*connector.Wrapper)
+	sddcID := d.Id()
+	orgID := (m.(*connector.Wrapper)).OrgID
+	primaryClusterClient := sddcs.NewPrimaryclusterClient(connectorWrapper)
+	primaryCluster, err := primaryClusterClient.Get(orgID, sddcID)
+	if err != nil {
+		return HandleReadError(d, "Primary Cluster", sddcID, err)
+	}
+	publishClient := msft_licensing.NewPublishClient(connectorWrapper)
+	microsoftLicensingUpdateTask, err := publishClient.Post(orgID, sddcID, primaryCluster.ClusterId, *msftLicenseConfig)
+	if err != nil {
+		return fmt.Errorf("error updating license : %s", err)
+	}
+	return resource.RetryContext(context.Background(), d.Timeout(schema.TimeoutCreate), func() *resource.RetryError {
+		taskErr := task.RetryTaskUntilFinished(connectorWrapper, func() (model.Task, error) {
+			return task.GetTask(connectorWrapper, microsoftLicensingUpdateTask.Id)
+		}, "failed updating Microsoft licensing configuration", nil)
+		if taskErr != nil {
+			return taskErr
+		}
+		err = resourceSddcRead(d, m)
+		if err == nil {
+			return nil
+		}
+		return resource.NonRetryableError(err)
+	})
 }
 
 // buildAwsSddcConfig extracts the creation of the model.AwsSddcConfig, so that it's
@@ -794,7 +819,6 @@ func buildAwsSddcConfig(d *schema.ResourceData) (*model.AwsSddcConfig, error) {
 	if err != nil {
 		return nil, err
 	}
-	msftLicensingConfig := expandMsftLicenseConfig(d.Get("microsoft_licensing_config").([]interface{}))
 
 	return &model.AwsSddcConfig{
 		StorageCapacity:       &storageCapacityConverted,
@@ -813,7 +837,7 @@ func buildAwsSddcConfig(d *schema.ResourceData) (*model.AwsSddcConfig, error) {
 		Region:                region,
 		HostInstanceType:      &hostInstanceType,
 		Size:                  &sddcSize,
-		MsftLicenseConfig:     msftLicensingConfig,
+		MsftLicenseConfig:     nil,
 	}, nil
 }
 

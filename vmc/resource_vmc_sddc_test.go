@@ -204,7 +204,12 @@ resource "vmc_sddc" "sddc_zerocloud" {
       create = "300m"
       update = "300m"
       delete = "180m"
-  }
+  	}
+
+	microsoft_licensing_config {
+		mssql_licensing = "ENABLED"
+		windows_licensing = "DISABLED"
+	}
 }
 `,
 		sddcName,
