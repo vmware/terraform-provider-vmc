@@ -71,7 +71,8 @@ func expandMsftLicenseConfig(config []interface{}) *model.MsftLicensingConfig {
 	licenseConfigMap := config[0].(map[string]interface{})
 	mssqlLicensing := strings.ToUpper(licenseConfigMap["mssql_licensing"].(string))
 	windowsLicensing := strings.ToUpper(licenseConfigMap["windows_licensing"].(string))
-	licenseConfig = model.MsftLicensingConfig{MssqlLicensing: &mssqlLicensing, WindowsLicensing: &windowsLicensing}
+	academicLicense := licenseConfigMap["academic_license"].(bool)
+	licenseConfig = model.MsftLicensingConfig{MssqlLicensing: &mssqlLicensing, WindowsLicensing: &windowsLicensing, AcademicLicense: &academicLicense}
 	return &licenseConfig
 }
 
