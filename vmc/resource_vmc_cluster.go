@@ -159,6 +159,11 @@ func clusterSchema() map[string]*schema.Schema {
 						ValidateFunc: validation.StringInSlice([]string{
 							constants.LicenseConfigEnabled, constants.LicenseConfigDisabled, constants.CapitalLicenseConfigEnabled, constants.CapitalLicenseConfigDisabled}, false),
 					},
+					"academic_license": {
+						Type:        schema.TypeBool,
+						Optional:    true,
+						Description: "Flag to identify if it is Academic Standard or Commercial Standard License.",
+					},
 				},
 			},
 			Optional:    true,
