@@ -1,3 +1,13 @@
+## 1.13.1 (Aug 4, 2023)
+
+BUG FIXES:
+
+* Allowing usage of microsoft_license_config upon SDDC creation. Reading microsoft_license_config.academic_license field [\#190](https://github.com/vmware/terraform-provider-vmc/pull/190)
+
+ENHANCEMENT:
+* Bump google.golang.org/grpc from 1.51.0 to 1.53.0 [\#184](https://github.com/vmware/terraform-provider-vmc/pull/184)
+* Updates to documentation [\#186](https://github.com/vmware/terraform-provider-vmc/pull/186)
+
 ## 1.13 (Feb 23, 2023)
 
 FEATURES:
