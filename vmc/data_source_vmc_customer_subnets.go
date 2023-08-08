@@ -86,13 +86,32 @@ func dataSourceVmcCustomerSubnetsRead(d *schema.ResourceData, m interface{}) err
 	sddcID := d.Get("sddc_id").(string)
 	region := d.Get("region").(string)
 	numHosts := int64(d.Get("num_hosts").(int))
-	sddcType := d.Get("sddc_type").(string)
+
+	/**
+	Fixes https://github.com/vmware/terraform-provider-vmc/issues/191
+	Empty string optional parameters are sent to the API and are failing validation
+	*/
+	var sddcType *string
+	if len(d.Get("sddc_type").(string)) > 0 {
+		tempSddcType := d.Get("sddc_type").(string)
+		sddcType = &tempSddcType
+	}
+
+	/**
+	Fixes https://github.com/vmware/terraform-provider-vmc/issues/191
+	Empty string optional parameters are sent to the API and are failing validation
+	*/
+	var instanceType *string
+	if len(d.Get("instance_type").(string)) > 0 {
+		tempInstanceType := d.Get("instance_type").(string)
+		instanceType = &tempInstanceType
+	}
+
 	forceRefresh := d.Get("force_refresh").(bool)
-	instanceType := d.Get("instance_type").(string)
 
 	connectorWrapper := (m.(*connector.Wrapper)).Connector
 	compatibleSubnetsClient := account_link.NewCompatibleSubnetsClient(connectorWrapper)
-	compatibleSubnets, err := compatibleSubnetsClient.Get(orgID, accountID, &region, &sddcID, &forceRefresh, &instanceType, &sddcType, &numHosts)
+	compatibleSubnets, err := compatibleSubnetsClient.Get(orgID, accountID, &region, &sddcID, &forceRefresh, instanceType, sddcType, &numHosts)
 	ids := []string{}
 	for _, value := range compatibleSubnets.VpcMap {
 		for _, subnet := range value.Subnets {
