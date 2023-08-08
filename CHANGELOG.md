@@ -1,3 +1,10 @@
+## 1.13.2 (Aug 8, 2023)
+
+BUG FIXES:
+
+* Fixing errors when reading Customer Subnets [\#191](https://github.com/vmware/terraform-provider-vmc/pull/191)
+
+
 ## 1.13.1 (Aug 4, 2023)
 
 BUG FIXES:
