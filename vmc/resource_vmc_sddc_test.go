@@ -67,6 +67,29 @@ func TestAccResourceVmcSddcZerocloud(t *testing.T) {
 	})
 }
 
+func TestAccResourceVmcSddcRequiredFieldsOnlyZerocloud(t *testing.T) {
+	var sddcResource model.Sddc
+	sddcName := "terraform_sddc_test_" + acctest.RandStringFromCharSet(10, acctest.CharSetAlphaNum)
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheckZerocloud(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckVmcSddcDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccVmcSddcConfigRequiredFieldsZerocloud(sddcName),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckVmcSddcExists("vmc_sddc.sddc_zerocloud", &sddcResource),
+					testCheckSddcAttributes(&sddcResource),
+					resource.TestCheckResourceAttr("vmc_sddc.sddc_zerocloud", "sddc_state", "READY"),
+					resource.TestCheckResourceAttrSet("vmc_sddc.sddc_zerocloud", "vc_url"),
+					resource.TestCheckResourceAttrSet("vmc_sddc.sddc_zerocloud", "cloud_username"),
+					resource.TestCheckResourceAttrSet("vmc_sddc.sddc_zerocloud", "cloud_password"),
+				),
+			},
+		},
+	})
+}
+
 func testCheckVmcSddcExists(name string, sddcResource *model.Sddc) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		rs, ok := s.RootModule().Resources[name]
@@ -210,6 +233,20 @@ resource "vmc_sddc" "sddc_zerocloud" {
 		mssql_licensing = "ENABLED"
 		windows_licensing = "DISABLED"
 	}
+}
+`,
+		sddcName,
+	)
+}
+
+func testAccVmcSddcConfigRequiredFieldsZerocloud(sddcName string) string {
+	return fmt.Sprintf(`
+
+resource "vmc_sddc" "sddc_zerocloud" {
+	sddc_name = %q
+	num_host  = 2
+	provider_type = "ZEROCLOUD"
+	region = "US_WEST_2"
 }
 `,
 		sddcName,

@@ -439,8 +439,11 @@ func buildClusterConfig(d *schema.ResourceData) (*model.ClusterConfig, error) {
 	numHosts := int64(d.Get("num_hosts").(int))
 	hostCPUCoresCount := int64(d.Get("host_cpu_cores_count").(int))
 
-	hostInstanceType, err := toHostInstanceType(d.Get("host_instance_type").(string))
-	if err != nil {
+	dataHostInstanceType := d.Get("host_instance_type").(string)
+	hostInstanceType, err := toHostInstanceType(dataHostInstanceType)
+	if len(dataHostInstanceType) > 0 && err != nil {
+		// return error only if nonempty host_instance_type is provided
+		// since host_instance_type field is optional in schema
 		return nil, err
 	}
 	var storageCapacityConverted int64

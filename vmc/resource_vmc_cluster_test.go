@@ -77,6 +77,36 @@ func TestAccResourceVmcClusterZerocloud(t *testing.T) {
 	})
 }
 
+func TestAccResourceVmcClusterRequiredFieldsZerocloud(t *testing.T) {
+	var sddcResource model.Sddc
+	clusterRef := "cluster_zerocloud"
+	resourceName := "vmc_cluster." + clusterRef
+	sddcName := "terraform_cluster_test_" + acctest.RandStringFromCharSet(10, acctest.CharSetAlphaNum)
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheckZerocloud(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckVmcClusterDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccVmcClusterConfigBasicRequiredFieldsOnlyZerocloud(sddcName, clusterRef),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckVmcClusterExists(resourceName, &sddcResource),
+					resource.TestCheckResourceAttrSet(resourceName, "id"),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportStateIdFunc: testAccVmcClusterResourceImportStateIDFunc(resourceName),
+				ImportState:       true,
+				ImportStateVerify: true,
+				// "microsoft_licensing_config" and "host_instance_type" are set in the
+				// cluster_info map, not on the cluster resource itself.
+				ImportStateVerifyIgnore: []string{"microsoft_licensing_config", "host_instance_type"},
+			},
+		},
+	})
+}
+
 func testAccCheckVmcClusterExists(clusterRef string, sddcResource *model.Sddc) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		rs, ok := s.RootModule().Resources[clusterRef]
@@ -238,6 +268,36 @@ resource "vmc_cluster" "cluster_2" {
         mssql_licensing = "DISABLED"
         windows_licensing = "ENABLED"
     }
+}
+`,
+		sddcName,
+		clusterRef,
+	)
+}
+func testAccVmcClusterConfigBasicRequiredFieldsOnlyZerocloud(sddcName string, clusterRef string) string {
+	return fmt.Sprintf(`
+resource "vmc_sddc" "sddc_test_required_fields" {
+	sddc_name = %q
+	vpc_cidr      = "10.2.0.0/16"
+	num_host      = 2
+	provider_type = "ZEROCLOUD"
+	host_instance_type = "I3_METAL"
+	region = "US_WEST_2"
+	vxlan_subnet = "192.168.1.0/24"
+	delay_account_link  = false
+	skip_creating_vxlan = false
+	sso_domain          = "vmc.local"
+	deployment_type = "SingleAZ"
+    timeouts {
+      create = "300m"
+      update = "300m"
+      delete = "180m"
+  }
+}
+
+resource "vmc_cluster" %q {
+	sddc_id = vmc_sddc.sddc_test_required_fields.id
+	num_hosts = 2
 }
 `,
 		sddcName,
