@@ -815,8 +815,11 @@ func buildAwsSddcConfig(d *schema.ResourceData) (*model.AwsSddcConfig, error) {
 	}
 
 	accountLinkSddcConfig := expandAccountLinkSddcConfig(accountLinkSddcConfigVar)
-	hostInstanceType, err := toHostInstanceType(d.Get("host_instance_type").(string))
-	if err != nil {
+	dataHostInstanceType := d.Get("host_instance_type").(string)
+	hostInstanceType, err := toHostInstanceType(dataHostInstanceType)
+	if len(dataHostInstanceType) > 0 && err != nil {
+		// return error only if nonempty host_instance_type is provided
+		// since host_instance_type field is optional in schema
 		return nil, err
 	}
 
