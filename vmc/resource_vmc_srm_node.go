@@ -1,4 +1,4 @@
-/* Copyright 2020-2022 VMware, Inc.
+/* Copyright 2020-2023 VMware, Inc.
    SPDX-License-Identifier: MPL-2.0 */
 
 package vmc
@@ -20,6 +20,9 @@ import (
 	"github.com/vmware/vsphere-automation-sdk-go/services/vmc/draas"
 	draasmodel "github.com/vmware/vsphere-automation-sdk-go/services/vmc/draas/model"
 )
+
+// srmNodeCreationLockMutex a mutex that allows only a single srm node per sddc to be created.
+var srmNodeCreationLockMutex = task.KeyedMutex{}
 
 func resourceSrmNode() *schema.Resource {
 	return &schema.Resource{
@@ -83,6 +86,7 @@ func resourceSrmNodeCreate(d *schema.ResourceData, m interface{}) error {
 	orgID := (m.(*connector.Wrapper)).OrgID
 	sddcID := d.Get("sddc_id").(string)
 
+	unlockFn := srmNodeCreationLockMutex.Lock(sddcID)
 	provisionSrmConfigParam := &draasmodel.ProvisionSrmConfig{
 		SrmExtensionKeySuffix: &srmExtensionKeySuffix,
 	}
@@ -100,7 +104,9 @@ func resourceSrmNodeCreate(d *schema.ResourceData, m interface{}) error {
 				return task.GetDraasTask(connectorWrapper, srmNodeCreateTask.Id)
 			},
 			"error creating SRM node",
-			nil)
+			func(task model.Task) {
+				unlockFn()
+			})
 		if taskErr != nil {
 			return taskErr
 		}
@@ -153,6 +159,7 @@ func resourceSrmNodeDelete(d *schema.ResourceData, m interface{}) error {
 	sddcID := d.Get("sddc_id").(string)
 	srmNodeID := d.Id()
 	srmNodeDeleteTask, err := siteRecoverySrmNodesClient.Delete(orgID, sddcID, srmNodeID)
+	unlockFn := srmNodeCreationLockMutex.Lock(sddcID)
 	if err != nil {
 		return HandleDeleteError("SRM Node", sddcID, err)
 	}
@@ -162,7 +169,9 @@ func resourceSrmNodeDelete(d *schema.ResourceData, m interface{}) error {
 				return task.GetDraasTask(connectorWrapper, srmNodeDeleteTask.Id)
 			},
 			"failed to delete SRM node",
-			nil)
+			func(task model.Task) {
+				unlockFn()
+			})
 		if taskErr != nil {
 			return taskErr
 		}

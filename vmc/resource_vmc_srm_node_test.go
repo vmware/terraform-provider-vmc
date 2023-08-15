@@ -42,6 +42,40 @@ func TestAccResourceVmcSrmNodeZerocloud(t *testing.T) {
 	})
 }
 
+func TestAccResourceVmcMultipleSrmNodesZerocloud(t *testing.T) {
+	resourceNames := [2]string{"vmc_srm_node.srm_node_1", "vmc_srm_node.srm_node_2"}
+	suffixes := [2]string{acctest.RandStringFromCharSet(10, acctest.CharSetAlphaNum),
+		acctest.RandStringFromCharSet(10, acctest.CharSetAlphaNum)}
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheckZerocloud(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckVmcSrmNodeDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccVmcMultipleSrmNodesConfig(suffixes),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckVmcSrmNodeExists(resourceNames[0]),
+					resource.TestCheckResourceAttrSet(resourceNames[0], "srm_node_extension_key_suffix"),
+				),
+			},
+			{
+				ResourceName:            resourceNames[0],
+				ImportStateIdFunc:       testAccVmcSrmResourceImportStateIDFunc(resourceNames[0]),
+				ImportStateVerifyIgnore: []string{"srm_node_extension_key_suffix"},
+				ImportState:             true,
+				ImportStateVerify:       true,
+			},
+			{
+				ResourceName:            resourceNames[1],
+				ImportStateIdFunc:       testAccVmcSrmResourceImportStateIDFunc(resourceNames[1]),
+				ImportStateVerifyIgnore: []string{"srm_node_extension_key_suffix"},
+				ImportState:             true,
+				ImportStateVerify:       true,
+			},
+		},
+	})
+}
+
 func testCheckVmcSrmNodeExists(name string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		rs, ok := s.RootModule().Resources[name]
@@ -116,6 +150,37 @@ resource "vmc_srm_node" "srm_node_1"{
 	depends_on = [vmc_site_recovery.site_recovery_1]
 }`,
 		srmExtensionKeySuffix,
+	)
+}
+
+func testAccVmcMultipleSrmNodesConfig(srmExtensionKeySuffixes [2]string) string {
+	return fmt.Sprintf(`
+resource "vmc_sddc" "multiple_srm_nodes_sddc" {
+	sddc_name           = "terraform_srm_node_test"
+	num_host            = 2
+	provider_type       = "ZEROCLOUD"
+	host_instance_type  = "I3_METAL"
+	region = "US_WEST_2"
+	delay_account_link  = true
+}
+
+resource "vmc_site_recovery" "site_recovery_1" {
+	sddc_id = vmc_sddc.multiple_srm_nodes_sddc.id
+}
+
+resource "vmc_srm_node" "srm_node_1" {
+  sddc_id                       = resource.vmc_sddc.multiple_srm_nodes_sddc.id
+  srm_node_extension_key_suffix = %q
+  depends_on                    = [vmc_site_recovery.site_recovery_1]
+}
+
+resource "vmc_srm_node" "srm_node_2" {
+  sddc_id                       = resource.vmc_sddc.multiple_srm_nodes_sddc.id
+  srm_node_extension_key_suffix = %q
+  depends_on                    = [vmc_site_recovery.site_recovery_1]
+}`,
+		srmExtensionKeySuffixes[0],
+		srmExtensionKeySuffixes[1],
 	)
 }
 
