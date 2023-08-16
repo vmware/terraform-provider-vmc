@@ -79,7 +79,7 @@ func TestAccResourceVmcClusterZerocloud(t *testing.T) {
 
 func TestAccResourceVmcClusterRequiredFieldsZerocloud(t *testing.T) {
 	var sddcResource model.Sddc
-	clusterRef := "cluster_zerocloud"
+	clusterRef := "cluster_rq_fields_zerocloud"
 	resourceName := "vmc_cluster." + clusterRef
 	sddcName := "terraform_cluster_test_" + acctest.RandStringFromCharSet(10, acctest.CharSetAlphaNum)
 	resource.ParallelTest(t, resource.TestCase{
