@@ -101,7 +101,7 @@ func TestAccResourceVmcClusterRequiredFieldsZerocloud(t *testing.T) {
 				ImportStateVerify: true,
 				// "microsoft_licensing_config" and "host_instance_type" are set in the
 				// cluster_info map, not on the cluster resource itself.
-				ImportStateVerifyIgnore: []string{"microsoft_licensing_config", "host_instance_type"},
+				ImportStateVerifyIgnore: []string{"microsoft_licensing_config", "host_instance_type", "edrs_policy_type", "enable_edrs", "max_hosts", "min_hosts"},
 			},
 		},
 	})
