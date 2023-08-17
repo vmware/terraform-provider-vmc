@@ -157,9 +157,9 @@ func resourceSrmNodeDelete(d *schema.ResourceData, m interface{}) error {
 
 	orgID := (m.(*connector.Wrapper)).OrgID
 	sddcID := d.Get("sddc_id").(string)
+	unlockFn := srmNodeCreationLockMutex.Lock(sddcID)
 	srmNodeID := d.Id()
 	srmNodeDeleteTask, err := siteRecoverySrmNodesClient.Delete(orgID, sddcID, srmNodeID)
-	unlockFn := srmNodeCreationLockMutex.Lock(sddcID)
 	if err != nil {
 		return HandleDeleteError("SRM Node", sddcID, err)
 	}
