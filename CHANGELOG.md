@@ -1,3 +1,9 @@
+## 1.13.3 (Aug 21, 2023)
+
+BUG FIXES:
+
+* Fixing errors when creating and deleting multiple srm nodes [\#175](https://github.com/vmware/terraform-provider-vmc/pull/195)
+
 ## 1.13.2 (Aug 8, 2023)
 
 BUG FIXES:
