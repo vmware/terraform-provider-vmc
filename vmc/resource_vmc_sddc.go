@@ -455,7 +455,9 @@ func resourceSddcRead(d *schema.ResourceData, m interface{}) error {
 	cluster := map[string]string{}
 	cluster["cluster_name"] = *primaryCluster.ClusterName
 	cluster["cluster_state"] = *primaryCluster.ClusterState
-	cluster["host_instance_type"] = *primaryCluster.EsxHostInfo.InstanceType
+	if primaryCluster.EsxHostInfo != nil {
+		cluster["host_instance_type"] = *primaryCluster.EsxHostInfo.InstanceType
+	}
 	if primaryCluster.MsftLicenseConfig != nil {
 		if primaryCluster.MsftLicenseConfig.MssqlLicensing != nil {
 			cluster["mssql_licensing"] = *primaryCluster.MsftLicenseConfig.MssqlLicensing
