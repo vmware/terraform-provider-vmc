@@ -253,7 +253,10 @@ func resourceClusterRead(d *schema.ResourceData, m interface{}) error {
 		if clusterConfig.ClusterId == clusterID {
 			cluster["cluster_name"] = *clusterConfig.ClusterName
 			cluster["cluster_state"] = *clusterConfig.ClusterState
-			cluster["host_instance_type"] = *clusterConfig.EsxHostInfo.InstanceType
+			if clusterConfig.EsxHostInfo != nil {
+				cluster["host_instance_type"] = *clusterConfig.EsxHostInfo.InstanceType
+			}
+
 			if clusterConfig.MsftLicenseConfig != nil {
 				if clusterConfig.MsftLicenseConfig.MssqlLicensing != nil {
 					cluster["mssql_licensing"] = *clusterConfig.MsftLicenseConfig.MssqlLicensing
