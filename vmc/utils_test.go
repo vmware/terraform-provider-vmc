@@ -25,7 +25,6 @@ func TestToHostInstanceType(t *testing.T) {
 		{input: constants.HostInstancetypeI3, want: result{converted: model.SddcConfig_HOST_INSTANCE_TYPE_I3_METAL, err: nil}},
 		{input: constants.HostInstancetypeI3EN, want: result{converted: model.SddcConfig_HOST_INSTANCE_TYPE_I3EN_METAL, err: nil}},
 		{input: constants.HostInstancetypeI4I, want: result{converted: model.SddcConfig_HOST_INSTANCE_TYPE_I4I_METAL, err: nil}},
-		{input: constants.HostInstancetypeR5, want: result{converted: model.SddcConfig_HOST_INSTANCE_TYPE_R5_METAL, err: nil}},
 		{input: "RandomString", want: result{converted: "", err: fmt.Errorf("unknown host instance type: RandomString")}},
 	}
 

@@ -41,21 +41,6 @@ func resourceSddc() *schema.Resource {
 			Delete: schema.DefaultTimeout(180 * time.Minute),
 		},
 		Schema: sddcSchema(),
-		CustomizeDiff: func(c context.Context, d *schema.ResourceDiff, meta interface{}) error {
-			newInstanceType := d.Get("host_instance_type").(string)
-			switch newInstanceType {
-			case constants.HostInstancetypeI3, constants.HostInstancetypeI3EN, constants.HostInstancetypeI4I:
-				if d.Get("storage_capacity").(string) != "" {
-					return fmt.Errorf("storage_capacity is not supported for host_instance_type %q", newInstanceType)
-				}
-			case constants.HostInstancetypeR5:
-				if d.Get("storage_capacity").(string) == "" {
-					return fmt.Errorf("storage_capacity is required for host_instance_type %q "+
-						"Possible values are 15TB, 20TB, 25TB, 30TB, 35TB per host", newInstanceType)
-				}
-			}
-			return nil
-		},
 	}
 }
 
@@ -63,13 +48,6 @@ func resourceSddc() *schema.Resource {
 // it's made available for mocking in tests.
 func sddcSchema() map[string]*schema.Schema {
 	return map[string]*schema.Schema{
-		"storage_capacity": {
-			Type:     schema.TypeString,
-			Optional: true,
-			ForceNew: true,
-			ValidateFunc: validation.StringInSlice([]string{
-				"15TB", "20TB", "25TB", "30TB", "35TB"}, false),
-		},
 		"sddc_name": {
 			Type:         schema.TypeString,
 			Required:     true,
@@ -183,7 +161,7 @@ func sddcSchema() map[string]*schema.Schema {
 			Optional: true,
 			ForceNew: true,
 			ValidateFunc: validation.StringInSlice(
-				[]string{constants.HostInstancetypeI3, constants.HostInstancetypeR5, constants.HostInstancetypeI3EN, constants.HostInstancetypeI4I}, false),
+				[]string{constants.HostInstancetypeI3, constants.HostInstancetypeI3EN, constants.HostInstancetypeI4I}, false),
 		},
 		"edrs_policy_type": {
 			Type: schema.TypeString,
@@ -775,12 +753,6 @@ func updateMsftLicenseConfig(d *schema.ResourceData, m interface{}, msftLicenseC
 // buildAwsSddcConfig extracts the creation of the model.AwsSddcConfig, so that it's
 // available for testing
 func buildAwsSddcConfig(d *schema.ResourceData) (*model.AwsSddcConfig, error) {
-	var storageCapacityConverted int64
-	storageCapacity := d.Get("storage_capacity").(string)
-	if len(strings.TrimSpace(storageCapacity)) > 0 {
-		storageCapacityConverted = ConvertStorageCapacityToInt(storageCapacity)
-	}
-
 	sddcName := d.Get("sddc_name").(string)
 	vpcCidr := d.Get("vpc_cidr").(string)
 	numHost := d.Get("num_host").(int)
@@ -826,7 +798,6 @@ func buildAwsSddcConfig(d *schema.ResourceData) (*model.AwsSddcConfig, error) {
 	}
 
 	return &model.AwsSddcConfig{
-		StorageCapacity:       &storageCapacityConverted,
 		Name:                  sddcName,
 		VpcCidr:               &vpcCidr,
 		NumHosts:              int64(numHost),
