@@ -172,9 +172,6 @@ The following arguments are supported:
 
 * `sddc_name` - (Required) Name of the SDDC.
 
-* `storage_capacity` - (Optional) The storage capacity value to be requested for the SDDC primary cluster. 
-   This variable is only for R5_METAL. Possible values are 15TB, 20TB, 25TB, 30TB, 35TB per host.
-
 * `num_host` - (Required) The number of hosts in the primary Cluster of the SDDC.
 
 * `size` - (Optional) The size of the vCenter and NSX appliances. 'large' or 'LARGE' SDDC size corresponds to a large vCenter appliance and large NSX appliance. 'medium' or 'MEDIUM' SDDC size corresponds to medium vCenter appliance and medium NSX appliance. Default : 'medium'.

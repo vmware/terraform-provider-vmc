@@ -280,12 +280,6 @@ func TestBuildAwsSddcConfigHostInstanceType(t *testing.T) {
 			err:      nil,
 		},
 		{input: map[string]interface{}{
-			"host_instance_type": constants.HostInstancetypeR5,
-		},
-			expected: model.SddcConfig_HOST_INSTANCE_TYPE_R5_METAL,
-			err:      nil,
-		},
-		{input: map[string]interface{}{
 			"host_instance_type": "RandomString",
 		},
 			expected: "",

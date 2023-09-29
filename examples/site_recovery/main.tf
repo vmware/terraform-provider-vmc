@@ -37,8 +37,6 @@ resource "vmc_sddc" "sddc_1" {
 
   host_instance_type = var.host_instance_type
 
-  storage_capacity = var.storage_capacity
-
   account_link_sddc_config {
     customer_subnet_ids  = [data.vmc_customer_subnets.my_subnets.ids[0]]
     connected_account_id = data.vmc_connected_accounts.my_accounts.id

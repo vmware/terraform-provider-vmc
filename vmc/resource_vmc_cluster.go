@@ -56,22 +56,6 @@ func resourceCluster() *schema.Resource {
 			Update: schema.DefaultTimeout(20 * time.Minute),
 		},
 		Schema: clusterSchema(),
-		CustomizeDiff: func(c context.Context, d *schema.ResourceDiff, meta interface{}) error {
-			newInstanceType := d.Get("host_instance_type").(string)
-
-			switch newInstanceType {
-			case constants.HostInstancetypeI3, constants.HostInstancetypeI3EN, constants.HostInstancetypeI4I:
-				if d.Get("storage_capacity").(string) != "" {
-					return fmt.Errorf("storage_capacity is not supported for host_instance_type %q", newInstanceType)
-				}
-			case constants.HostInstancetypeR5:
-				if d.Get("storage_capacity").(string) == "" {
-					return fmt.Errorf("storage_capacity is required for host_instance_type %q "+
-						"Possible values are 15TB, 20TB, 25TB, 30TB, 35TB per host", newInstanceType)
-				}
-			}
-			return nil
-		},
 	}
 }
 
@@ -100,14 +84,7 @@ func clusterSchema() map[string]*schema.Schema {
 			Optional:    true,
 			Description: "The instance type for the esx hosts added to this cluster.",
 			ValidateFunc: validation.StringInSlice(
-				[]string{constants.HostInstancetypeI3, constants.HostInstancetypeR5, constants.HostInstancetypeI3EN, constants.HostInstancetypeI4I}, false),
-		},
-		"storage_capacity": {
-			Type:     schema.TypeString,
-			Optional: true,
-			ForceNew: true,
-			ValidateFunc: validation.StringInSlice([]string{
-				"15TB", "20TB", "25TB", "30TB", "35TB"}, false),
+				[]string{constants.HostInstancetypeI3, constants.HostInstancetypeI3EN, constants.HostInstancetypeI4I}, false),
 		},
 		"edrs_policy_type": {
 			Type: schema.TypeString,
@@ -449,17 +426,12 @@ func buildClusterConfig(d *schema.ResourceData) (*model.ClusterConfig, error) {
 		// since host_instance_type field is optional in schema
 		return nil, err
 	}
-	var storageCapacityConverted int64
-	storageCapacity := d.Get("storage_capacity").(string)
-	if len(strings.TrimSpace(storageCapacity)) > 0 {
-		storageCapacityConverted = ConvertStorageCapacityToInt(storageCapacity)
-	}
+
 	msftLicensingConfig := expandMsftLicenseConfig(d.Get("microsoft_licensing_config").([]interface{}))
 	return &model.ClusterConfig{
 		NumHosts:          numHosts,
 		HostCpuCoresCount: &hostCPUCoresCount,
 		HostInstanceType:  &hostInstanceType,
-		StorageCapacity:   &storageCapacityConverted,
 		MsftLicenseConfig: msftLicensingConfig,
 	}, nil
 }
