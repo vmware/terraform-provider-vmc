@@ -161,7 +161,7 @@ func sddcSchema() map[string]*schema.Schema {
 			Optional: true,
 			ForceNew: true,
 			ValidateFunc: validation.StringInSlice(
-				[]string{constants.HostInstancetypeI3, constants.HostInstancetypeI3EN, constants.HostInstancetypeI4I}, false),
+				[]string{constants.HostInstancetypeI3, constants.HostInstancetypeI3EN, constants.HostInstancetypeI4I, constants.HostInstancetypeC6I, constants.HostInstancetypeM7i24xl, constants.HostInstancetypeM7i48xl}, false),
 		},
 		"edrs_policy_type": {
 			Type: schema.TypeString,
