@@ -33,7 +33,7 @@ type HTTPClientStub struct {
 func (stub *HTTPClientStub) Do(req *http.Request) (*http.Response, error) {
 	// Handle getResourceIDFromGroupID preliminary request where resource ID is derived from provided group ID
 	if strings.HasPrefix(req.URL.String(),
-		"https://test.vmc.vmware.com/api/network/testOrgID/core/network-connectivity-configs/?group_id=") {
+		"https://test.vmc.vmware.com/api/network/testOrgID/core/network-connectivity-configs?group_id=") {
 		return &http.Response{
 			StatusCode: 200,
 			Body:       io.NopCloser(strings.NewReader(stub.additionalResourceIDRequestJSON)),
@@ -41,7 +41,7 @@ func (stub *HTTPClientStub) Do(req *http.Request) (*http.Response, error) {
 	}
 	// Handle second request where traits are derived from provided resource ID
 	if strings.HasPrefix(req.URL.String(),
-		"https://test.vmc.vmware.com/api/network/testOrgID/core/network-connectivity-configs/resourceIdDifferentFromGroupId/?trait=") {
+		"https://test.vmc.vmware.com/api/network/testOrgID/core/network-connectivity-configs/resourceIdDifferentFromGroupId?trait=") {
 		return &http.Response{
 			StatusCode: 200,
 			Body:       io.NopCloser(strings.NewReader(stub.additionalResourceTraitsResponseJSON)),
