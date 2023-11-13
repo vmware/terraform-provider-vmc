@@ -133,7 +133,7 @@ func (client *ClientImpl) GetSddcGroup(groupID string) (*DeploymentGroup,
 	if err != nil {
 		return group, config, err
 	}
-	getTraitsURL := client.getBaseURL() + fmt.Sprintf("/network/%s/core/network-connectivity-configs/%s/"+
+	getTraitsURL := client.getBaseURL() + fmt.Sprintf("/network/%s/core/network-connectivity-configs/%s"+
 		"?trait=AwsVpcAttachmentsTrait,AwsDirectConnectGatewayAssociationsTrait,"+
 		"AwsNetworkConnectivityTrait,AwsCustomerTransitGatewayAssociationsTrait",
 		client.connector.OrgID, resourceID)
@@ -239,7 +239,7 @@ func (client *ClientImpl) DeleteSddcGroup(groupID string) (taskID string, error 
 
 func (client *ClientImpl) getResourceIDFromGroupID(groupID string) (resourceID string, error error) {
 	getResourceIDURL := client.getBaseURL() + fmt.Sprintf(
-		"/network/%s/core/network-connectivity-configs/?group_id=%s", client.connector.OrgID, groupID)
+		"/network/%s/core/network-connectivity-configs?group_id=%s", client.connector.OrgID, groupID)
 
 	req := client.createNewRequest(http.MethodGet, getResourceIDURL, nil)
 
