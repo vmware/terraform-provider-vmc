@@ -1,8 +1,12 @@
-## 1.14 (TBA)
+## 1.14
 
-Breaking changes
+Breaking changes:
 * Removing support for r5.metal instances [\#205](https://github.com/vmware/terraform-provider-vmc/pull/205)
 * removing `storage_capacity` field from sddc and cluster resources schema [\#205](https://github.com/vmware/terraform-provider-vmc/pull/205)
+
+BUG FIXES:
+
+* Failure during SDDC group creation [\#208](https://github.com/vmware/terraform-provider-vmc/pull/210)
 
 ## 1.13.3 (Aug 21, 2023)
 
