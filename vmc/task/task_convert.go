@@ -54,9 +54,9 @@ func GetAutoscalerTask(connectorWrapper *connector.Wrapper, taskID string) (mode
 	return model.Task{
 		Updated:               autoscalerTask.Updated,
 		UserId:                autoscalerTask.UserId,
-		UpdatedByUserId:       autoscalerTask.UpdatedByUserId,
+		UpdatedByUserId:       &autoscalerTask.UpdatedByUserId,
 		Created:               autoscalerTask.Created,
-		UserName:              autoscalerTask.UserName,
+		UserName:              &autoscalerTask.UserName,
 		Id:                    autoscalerTask.Id,
 		Status:                autoscalerTask.Status,
 		LocalizedErrorMessage: autoscalerTask.ErrorMessage,
@@ -91,9 +91,9 @@ func GetDraasTask(connectorWrapper *connector.Wrapper, taskID string) (model.Tas
 	return model.Task{
 		Updated:               draasTask.Updated,
 		UserId:                draasTask.UserId,
-		UpdatedByUserId:       draasTask.UpdatedByUserId,
+		UpdatedByUserId:       &draasTask.UpdatedByUserId,
 		Created:               draasTask.Created,
-		UserName:              draasTask.UserName,
+		UserName:              &draasTask.UserName,
 		Id:                    draasTask.Id,
 		Status:                draasTask.Status,
 		LocalizedErrorMessage: draasTask.ErrorMessage,

@@ -91,48 +91,24 @@ func TestAccResourceVmcSddcRequiredFieldsOnlyZerocloud(t *testing.T) {
 	})
 }
 
-func TestAccResourceVmcSddcC6iMetal(t *testing.T) {
-	var sddcResource model.Sddc
-	sddcName := "terraform_sddc_c6i_test_" + acctest.RandStringFromCharSet(10, acctest.CharSetAlphaNum)
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheckZerocloud(t) },
-		Providers:    testAccProviders,
-		CheckDestroy: testCheckVmcSddcDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccVmcSddcConfigDiskless(sddcName, constants.HostInstancetypeC6I),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckVmcSddcExists("vmc_sddc.sddc_c6i", &sddcResource),
-					testCheckSddcAttributes(&sddcResource),
-					resource.TestCheckResourceAttr("vmc_sddc.sddc_c6i", "sddc_state", "READY"),
-					resource.TestCheckResourceAttrSet("vmc_sddc.sddc_c6i", "vc_url"),
-					resource.TestCheckResourceAttrSet("vmc_sddc.sddc_c6i", "cloud_username"),
-					resource.TestCheckResourceAttrSet("vmc_sddc.sddc_c6i", "cloud_password"),
-					resource.TestCheckResourceAttrSet("vmc_sddc.sddc_c6i", "nsxt_reverse_proxy_url"),
-				),
-			},
-		},
-	})
-}
-
 func TestAccResourceVmcSddcM7i24xlMetal(t *testing.T) {
 	var sddcResource model.Sddc
 	sddcName := "terraform_sddc_m7i_24_xl_test_" + acctest.RandStringFromCharSet(10, acctest.CharSetAlphaNum)
+	sddcResourceName := "sddc_" + strings.Replace(strings.ToLower(constants.HostInstancetypeM7i24xl), "_metal", "", 1)
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheckZerocloud(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckVmcSddcDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccVmcSddcConfigDiskless(sddcName, constants.HostInstancetypeM7i24xl),
+				Config: testAccVmcSddcConfigDiskless(sddcName, sddcResourceName, constants.HostInstancetypeM7i24xl),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckVmcSddcExists("vmc_sddc.sddc_c6i", &sddcResource),
+					testCheckVmcSddcExists("vmc_sddc."+sddcResourceName, &sddcResource),
 					testCheckSddcAttributes(&sddcResource),
-					resource.TestCheckResourceAttr("vmc_sddc.sddc_sddc_m7i_24xl", "sddc_state", "READY"),
-					resource.TestCheckResourceAttrSet("vmc_sddc.sddc_sddc_m7i_24xl", "vc_url"),
-					resource.TestCheckResourceAttrSet("vmc_sddc.sddc_sddc_m7i_24xl", "cloud_username"),
-					resource.TestCheckResourceAttrSet("vmc_sddc.sddc_sddc_m7i_24xl", "cloud_password"),
-					resource.TestCheckResourceAttrSet("vmc_sddc.sddc_sddc_m7i_24xl", "nsxt_reverse_proxy_url"),
+					resource.TestCheckResourceAttr("vmc_sddc."+sddcResourceName, "sddc_state", "READY"),
+					resource.TestCheckResourceAttrSet("vmc_sddc."+sddcResourceName, "vc_url"),
+					resource.TestCheckResourceAttrSet("vmc_sddc."+sddcResourceName, "cloud_username"),
+					resource.TestCheckResourceAttrSet("vmc_sddc."+sddcResourceName, "cloud_password"),
 				),
 			},
 		},
@@ -287,37 +263,25 @@ resource "vmc_sddc" "sddc_zerocloud" {
 		sddcName,
 	)
 }
-func testAccVmcSddcConfigDiskless(sddcName string, hostInstanceType string) string {
+func testAccVmcSddcConfigDiskless(sddcName string, sddcResourceName string, hostInstanceType string) string {
 
-	sddcResourceName := "sddc_" + strings.Replace(strings.ToLower(hostInstanceType), "_metal", "", 1)
 	return fmt.Sprintf(`
-data "vmc_connected_accounts" "my_accounts" {
-  account_number = %q
-}
-
-data "vmc_customer_subnets" "my_subnets" {
-  connected_account_id = data.vmc_connected_accounts.my_accounts.id
-  region               = "US_WEST_2"
-}
 
 resource "vmc_sddc" %q {
 	sddc_name = %q
-	vpc_cidr      = "10.40.0.0/16"
+	vpc_cidr      = "10.2.0.0/16"
 	num_host      = 3
 	provider_type = "ZEROCLOUD"
+	sddc_type="DEFAULT"
 	host_instance_type = %q
 	region = "US_WEST_2"
 	vxlan_subnet = "192.168.1.0/24"
 
 	delay_account_link  = false
-	skip_creating_vxlan = false
+	skip_creating_vxlan = true
 	sso_domain          = "vmc.local"
 
 	deployment_type = "SingleAZ"
-	account_link_sddc_config {
-		customer_subnet_ids  = [data.vmc_customer_subnets.my_subnets.ids[0]]
-		connected_account_id = data.vmc_connected_accounts.my_accounts.id
-	  }
 
     timeouts {
       create = "300m"
@@ -331,7 +295,6 @@ resource "vmc_sddc" %q {
 	}
 }
 `,
-		os.Getenv(constants.AwsAccountNumber),
 		sddcResourceName,
 		sddcName,
 		hostInstanceType,

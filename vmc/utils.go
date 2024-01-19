@@ -120,11 +120,11 @@ func toHostInstanceType(userPassedHostInstanceType string) (string, error) {
 	case constants.HostInstancetypeI4I:
 		return model.SddcConfig_HOST_INSTANCE_TYPE_I4I_METAL, nil
 	case constants.HostInstancetypeC6I:
-		return "c6i.metal", nil
+		return model.SddcConfig_HOST_INSTANCE_TYPE_C6I_METAL, nil
 	case constants.HostInstancetypeM7i24xl:
-		return "m7i.metal-24xl", nil
+		return model.SddcConfig_HOST_INSTANCE_TYPE_M7I_METAL_24XL, nil
 	case constants.HostInstancetypeM7i48xl:
-		return "m7i.metal-48xl", nil
+		return model.SddcConfig_HOST_INSTANCE_TYPE_M7I_METAL_48XL, nil
 	default:
 		return "", fmt.Errorf("unknown host instance type: %s", userPassedHostInstanceType)
 	}
