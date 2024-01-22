@@ -192,6 +192,8 @@ github.com/vmware/vsphere-automation-sdk-go/services/nsxt-vmc-aws-integration v0
 github.com/vmware/vsphere-automation-sdk-go/services/nsxt-vmc-aws-integration v0.7.0/go.mod h1:htCzdCKX+aE4MvPBGYSgbgI9BtJqXTWzKhU6TQtTBlI=
 github.com/vmware/vsphere-automation-sdk-go/services/vmc v0.12.0 h1:qHxs2D5KTB3yc2Ib1YznariK5R3bo0eLyHAtSX5CN3U=
 github.com/vmware/vsphere-automation-sdk-go/services/vmc v0.12.0/go.mod h1:FbObXRbJxdOkI3qu0bzCxdun/bltk83+gOI65rLua3M=
+github.com/vmware/vsphere-automation-sdk-go/services/vmc v0.14.0 h1:h8apaqbHR8c2RAx3OJB1PGDICXrHE37nIEHXXnoAXkc=
+github.com/vmware/vsphere-automation-sdk-go/services/vmc v0.14.0/go.mod h1:FbObXRbJxdOkI3qu0bzCxdun/bltk83+gOI65rLua3M=
 github.com/vmware/vsphere-automation-sdk-go/services/vmc/autoscaler v0.6.0 h1:gQbbzwkv/cJkog6h6gk142kdTXyjv+Xuq+vXlu150B0=
 github.com/vmware/vsphere-automation-sdk-go/services/vmc/autoscaler v0.6.0/go.mod h1:mciXH8XPYdvAHAMGsFXzVlyGtpA5B8DusC11MsBAoPU=
 github.com/vmware/vsphere-automation-sdk-go/services/vmc/draas v0.6.0 h1:/124hmS53PqpmClRJL5H0hQcH5Ok1qBQvOC8a8E6KyA=

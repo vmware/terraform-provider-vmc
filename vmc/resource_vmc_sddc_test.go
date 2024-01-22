@@ -10,6 +10,7 @@ import (
 	"github.com/vmware/terraform-provider-vmc/vmc/connector"
 	"github.com/vmware/terraform-provider-vmc/vmc/constants"
 	"os"
+	"strings"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
@@ -84,6 +85,30 @@ func TestAccResourceVmcSddcRequiredFieldsOnlyZerocloud(t *testing.T) {
 					resource.TestCheckResourceAttrSet("vmc_sddc.sddc_zerocloud", "vc_url"),
 					resource.TestCheckResourceAttrSet("vmc_sddc.sddc_zerocloud", "cloud_username"),
 					resource.TestCheckResourceAttrSet("vmc_sddc.sddc_zerocloud", "cloud_password"),
+				),
+			},
+		},
+	})
+}
+
+func TestAccResourceVmcSddcM7i24xlMetal(t *testing.T) {
+	var sddcResource model.Sddc
+	sddcName := "terraform_sddc_m7i_24_xl_test_" + acctest.RandStringFromCharSet(10, acctest.CharSetAlphaNum)
+	sddcResourceName := "sddc_" + strings.Replace(strings.ToLower(constants.HostInstancetypeM7i24xl), "_metal", "", 1)
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheckZerocloud(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckVmcSddcDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccVmcSddcConfigDiskless(sddcName, sddcResourceName, constants.HostInstancetypeM7i24xl),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckVmcSddcExists("vmc_sddc."+sddcResourceName, &sddcResource),
+					testCheckSddcAttributes(&sddcResource),
+					resource.TestCheckResourceAttr("vmc_sddc."+sddcResourceName, "sddc_state", "READY"),
+					resource.TestCheckResourceAttrSet("vmc_sddc."+sddcResourceName, "vc_url"),
+					resource.TestCheckResourceAttrSet("vmc_sddc."+sddcResourceName, "cloud_username"),
+					resource.TestCheckResourceAttrSet("vmc_sddc."+sddcResourceName, "cloud_password"),
 				),
 			},
 		},
@@ -236,6 +261,43 @@ resource "vmc_sddc" "sddc_zerocloud" {
 }
 `,
 		sddcName,
+	)
+}
+func testAccVmcSddcConfigDiskless(sddcName string, sddcResourceName string, hostInstanceType string) string {
+
+	return fmt.Sprintf(`
+
+resource "vmc_sddc" %q {
+	sddc_name = %q
+	vpc_cidr      = "10.2.0.0/16"
+	num_host      = 3
+	provider_type = "ZEROCLOUD"
+	sddc_type="DEFAULT"
+	host_instance_type = %q
+	region = "US_WEST_2"
+	vxlan_subnet = "192.168.1.0/24"
+
+	delay_account_link  = false
+	skip_creating_vxlan = true
+	sso_domain          = "vmc.local"
+
+	deployment_type = "SingleAZ"
+
+    timeouts {
+      create = "300m"
+      update = "300m"
+      delete = "180m"
+  	}
+
+	microsoft_licensing_config {
+		mssql_licensing = "ENABLED"
+		windows_licensing = "DISABLED"
+	}
+}
+`,
+		sddcResourceName,
+		sddcName,
+		hostInstanceType,
 	)
 }
 

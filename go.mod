@@ -9,7 +9,7 @@ require (
 	github.com/vmware/vsphere-automation-sdk-go/lib v0.7.0
 	github.com/vmware/vsphere-automation-sdk-go/runtime v0.7.0
 	github.com/vmware/vsphere-automation-sdk-go/services/nsxt-vmc-aws-integration v0.7.0
-	github.com/vmware/vsphere-automation-sdk-go/services/vmc v0.12.0
+	github.com/vmware/vsphere-automation-sdk-go/services/vmc v0.14.0
 	github.com/vmware/vsphere-automation-sdk-go/services/vmc/autoscaler v0.6.0
 	github.com/vmware/vsphere-automation-sdk-go/services/vmc/draas v0.6.0
 	golang.org/x/oauth2 v0.7.0
