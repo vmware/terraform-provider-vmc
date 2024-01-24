@@ -266,6 +266,16 @@ resource "vmc_sddc" "sddc_zerocloud" {
 func testAccVmcSddcConfigDiskless(sddcName string, sddcResourceName string, hostInstanceType string) string {
 
 	return fmt.Sprintf(`
+data "vmc_connected_accounts" "my_accounts" {
+      account_number = %q
+}
+
+data "vmc_customer_subnets" "my_subnets" {
+  connected_account_id = data.vmc_connected_accounts.my_accounts.id
+  region               = "US_WEST_2"
+  sddc_type = "SingleAZ"
+  instance_type = "m7i.metal-24xl"
+}
 
 resource "vmc_sddc" %q {
 	sddc_name = %q
@@ -282,6 +292,10 @@ resource "vmc_sddc" %q {
 	sso_domain          = "vmc.local"
 
 	deployment_type = "SingleAZ"
+	account_link_sddc_config {
+		customer_subnet_ids  = [data.vmc_customer_subnets.my_subnets.ids[0]]
+		connected_account_id = data.vmc_connected_accounts.my_accounts.id
+	}
 
     timeouts {
       create = "300m"
@@ -289,12 +303,9 @@ resource "vmc_sddc" %q {
       delete = "180m"
   	}
 
-	microsoft_licensing_config {
-		mssql_licensing = "ENABLED"
-		windows_licensing = "DISABLED"
-	}
 }
 `,
+		os.Getenv(constants.AwsAccountNumber),
 		sddcResourceName,
 		sddcName,
 		hostInstanceType,
