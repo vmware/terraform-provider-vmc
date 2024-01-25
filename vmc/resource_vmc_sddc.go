@@ -764,11 +764,9 @@ func buildAwsSddcConfig(d *schema.ResourceData) (*model.AwsSddcConfig, error) {
 	}
 	vxlanSubnet := d.Get("vxlan_subnet").(string)
 	delayAccountLink := d.Get("delay_account_link").(bool)
-	var accountLinkConfig *model.AccountLinkConfig
-	if delayAccountLink {
-		accountLinkConfig = &model.AccountLinkConfig{
-			DelayAccountLink: &delayAccountLink,
-		}
+
+	accountLinkConfig := &model.AccountLinkConfig{
+		DelayAccountLink: &delayAccountLink,
 	}
 
 	providerType := d.Get("provider_type").(string)
@@ -809,6 +807,7 @@ func buildAwsSddcConfig(d *schema.ResourceData) (*model.AwsSddcConfig, error) {
 		VxlanSubnet:           &vxlanSubnet,
 		Provider:              providerType,
 		SkipCreatingVxlan:     &skipCreatingVxlan,
+		AccountLinkConfig:     accountLinkConfig,
 		AccountLinkSddcConfig: accountLinkSddcConfig,
 		SsoDomain:             &ssoDomain,
 		SddcTemplateId:        &sddcTemplateID,
@@ -817,10 +816,6 @@ func buildAwsSddcConfig(d *schema.ResourceData) (*model.AwsSddcConfig, error) {
 		HostInstanceType:      &hostInstanceType,
 		Size:                  &sddcSize,
 		MsftLicenseConfig:     nil,
-	}
-
-	if accountLinkConfig != nil {
-		model.AccountLinkConfig = accountLinkConfig
 	}
 
 	return &model, nil
