@@ -1,3 +1,9 @@
+## 1.15 (Jan 25, 2024)
+
+ENHANCEMENT:
+* bumping vsphere-automation-sdk-go/services/vmc to v0.14.0
+* Added support for disk less instances c6i/m7i [\#214](https://github.com/vmware/terraform-provider-vmc/pull/214)
+
 ## 1.14
 
 Breaking changes:
