@@ -1,3 +1,8 @@
+## 1.15.1 (Apr 5, 2024)
+
+BUG FIXES:
+* bump protobuf due to a security vulnerability
+
 ## 1.15 (Jan 25, 2024)
 
 ENHANCEMENT:
