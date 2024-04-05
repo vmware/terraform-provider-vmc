@@ -10,7 +10,7 @@ jobs:
   scan:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - name: Install and run Spectral CI
         uses: spectralops/spectral-github-action@v2
         with:
