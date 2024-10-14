@@ -1,15 +1,17 @@
-/* Copyright 2020 VMware, Inc.
-   SPDX-License-Identifier: MPL-2.0 */
+// © Broadcom. All Rights Reserved.
+// The term "Broadcom" refers to Broadcom Inc. and/or its subsidiaries.
+// SPDX-License-Identifier: MPL-2.0
 
 package vmc
 
 import (
 	"fmt"
+	"os"
+	"testing"
+
 	"github.com/vmware/terraform-provider-vmc/vmc/connector"
 	"github.com/vmware/terraform-provider-vmc/vmc/constants"
 	"github.com/vmware/vsphere-automation-sdk-go/services/nsxt-vmc-aws-integration/nsx_vmc_app/infra"
-	"os"
-	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"

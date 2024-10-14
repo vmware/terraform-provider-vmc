@@ -1,10 +1,12 @@
-/* Copyright 2019-2022 VMware, Inc.
-   SPDX-License-Identifier: MPL-2.0 */
+// © Broadcom. All Rights Reserved.
+// The term "Broadcom" refers to Broadcom Inc. and/or its subsidiaries.
+// SPDX-License-Identifier: MPL-2.0
 
 package vmc
 
 import (
 	"fmt"
+
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/vmware/terraform-provider-vmc/vmc/connector"
 	"github.com/vmware/terraform-provider-vmc/vmc/constants"
