@@ -6,10 +6,11 @@ package vmc
 import (
 	"context"
 	"fmt"
-	"github.com/vmware/terraform-provider-vmc/vmc/connector"
-	task "github.com/vmware/terraform-provider-vmc/vmc/task"
 	"strings"
 	"time"
+
+	"github.com/vmware/terraform-provider-vmc/vmc/connector"
+	task "github.com/vmware/terraform-provider-vmc/vmc/task"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 
@@ -192,7 +193,7 @@ func resourceSiteRecoveryDelete(d *schema.ResourceData, m interface{}) error {
 	orgID := (m.(*connector.Wrapper)).OrgID
 	sddcID := d.Get("sddc_id").(string)
 
-	siteRecoveryDeleteTask, err := siteRecoveryClient.Delete(orgID, sddcID, nil, nil)
+	siteRecoveryDeleteTask, err := siteRecoveryClient.Delete(orgID, sddcID, &draasmodel.DeleteConfigInternal{})
 	if err != nil {
 		return HandleDeleteError("Site recovery", sddcID, err)
 	}
