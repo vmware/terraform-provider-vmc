@@ -1,6 +1,6 @@
 module github.com/vmware/terraform-provider-vmc
 
-go 1.19
+go 1.21
 
 require (
 	github.com/gofrs/uuid/v5 v5.2.0
@@ -11,7 +11,7 @@ require (
 	github.com/vmware/vsphere-automation-sdk-go/services/nsxt-vmc-aws-integration v0.8.0
 	github.com/vmware/vsphere-automation-sdk-go/services/vmc v0.14.0
 	github.com/vmware/vsphere-automation-sdk-go/services/vmc/autoscaler v0.6.0
-	github.com/vmware/vsphere-automation-sdk-go/services/vmc/draas v0.6.0
+	github.com/vmware/vsphere-automation-sdk-go/services/vmc/draas v0.7.0
 	golang.org/x/oauth2 v0.23.0
 )
 
