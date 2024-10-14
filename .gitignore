@@ -1,16 +1,16 @@
-.idea/
-terraform.*
-crash.log
-.terraform/
+# Ignore any built binaries.
 terraform-provider-vmc
-.DS_Store
-terraform.tfplan
-terraform.tfstate
-*.backup
-*.bak
-*.hcl
-*.iml
-*~
-/*.tf
-.terraform.tfstate.lock.info
+terraform-provider-vmc.exe
+
+# Ignore distribution directories.
 dist/
+
+# Ignore editor directories.
+.idea/
+.vscode/
+
+# Ignore temporaroy editor files.
+*~
+
+# Ignore macOS desktop services store files.
+**/.DS_Store
