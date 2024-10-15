@@ -43,11 +43,11 @@ func ConvertStorageCapacityToInt(s string) int64 {
 func ConvertDeployType(s string) string {
 	if s == "SINGLE_AZ" {
 		return constants.SingleAvailabilityZone
-	} else if s == "MULTI_AZ" {
-		return constants.MultiAvailabilityZone
-	} else {
-		return ""
 	}
+	if s == "MULTI_AZ" {
+		return constants.MultiAvailabilityZone
+	}
+	return ""
 }
 
 func IsValidUUID(u string) error {
