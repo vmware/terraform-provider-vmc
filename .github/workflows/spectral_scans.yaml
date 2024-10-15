@@ -12,7 +12,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Install and run Spectral CI
-        uses: spectralops/spectral-github-action@v2
+        uses: spectralops/spectral-github-action@v5
         with:
           spectral-dsn: ${{ env.SPECTRAL_DSN }}
           spectral-args: scan --ok --include-tags base,audit,iac --asset-mapping "VMware Github"
