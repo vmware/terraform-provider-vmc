@@ -833,13 +833,13 @@ func expandAccountLinkSddcConfig(l []interface{}) []model.AccountLinkSddcConfig 
 
 	for _, config := range l {
 		c := config.(map[string]interface{})
-		var subnetIds []string
+		var subnetIDs []string
 		for _, subnetID := range c["customer_subnet_ids"].([]interface{}) {
-			subnetIds = append(subnetIds, subnetID.(string))
+			subnetIDs = append(subnetIDs, subnetID.(string))
 		}
 		var connectedAccID = c["connected_account_id"].(string)
 		con := model.AccountLinkSddcConfig{
-			CustomerSubnetIds:  subnetIds,
+			CustomerSubnetIds:  subnetIDs,
 			ConnectedAccountId: &connectedAccID,
 		}
 
