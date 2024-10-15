@@ -84,7 +84,7 @@ func (client *V2ClientImpl) GetTask(taskID string) (V2Task, error) {
 		return result, err
 	}
 	if statusCode == http.StatusNotFound {
-		return result, fmt.Errorf("Task with ID: %s not found ", taskID)
+		return result, fmt.Errorf("task with ID: %s not found ", taskID)
 	}
 	if statusCode == http.StatusOK {
 		err := json.NewDecoder(bytes.NewReader(*rawResponse)).Decode(&result)

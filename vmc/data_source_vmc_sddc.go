@@ -165,7 +165,7 @@ func dataSourceVmcSddcRead(d *schema.ResourceData, m interface{}) error {
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("Error while getting the SDDC with ID %s,%v", sddcID, err)
+		return fmt.Errorf("error while getting the SDDC with ID %s,%v", sddcID, err)
 	}
 
 	if *sddc.SddcState == "DELETED" {
