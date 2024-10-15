@@ -9,7 +9,7 @@ import (
 	"log"
 	"sync"
 
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
 	"github.com/vmware/terraform-provider-vmc/vmc/connector"
 	"github.com/vmware/vsphere-automation-sdk-go/lib/vapi/std/errors"
 	"github.com/vmware/vsphere-automation-sdk-go/services/vmc/model"
@@ -47,7 +47,7 @@ var maxServiceUnavailableRetries = 20
 func RetryTaskUntilFinished(authenticator connector.Authenticator,
 	taskSupplier func() (model.Task, error),
 	errorMessage string,
-	finishCallback func(task model.Task)) *resource.RetryError {
+	finishCallback func(task model.Task)) *retry.RetryError {
 	task, err := taskSupplier()
 	if err != nil {
 		// Try to reauthenticate (if access token expired)
@@ -58,28 +58,28 @@ func RetryTaskUntilFinished(authenticator connector.Authenticator,
 				if finishCallback != nil {
 					finishCallback(task)
 				}
-				return resource.NonRetryableError(fmt.Errorf("authentication error from Cloud Service Provider : %v", err))
+				return retry.NonRetryableError(fmt.Errorf("authentication error from Cloud Service Provider : %v", err))
 			}
-			return resource.RetryableError(fmt.Errorf("task still in progress"))
+			return retry.RetryableError(fmt.Errorf("task still in progress"))
 		}
 		// Best-effort resiliency in case of difficulties the VMC service may experience,
 		// during long-running tasks
 		if err.Error() == (errors.ServiceUnavailable{}.Error()) {
 			serviceUnavailableRetries++
 			if serviceUnavailableRetries <= maxServiceUnavailableRetries {
-				return resource.RetryableError(fmt.Errorf(
+				return retry.RetryableError(fmt.Errorf(
 					"VMC backend is experiencing difficulties, retry %d from %d to polling the SDDC Create Task",
 					serviceUnavailableRetries, maxServiceUnavailableRetries))
 			}
 			if finishCallback != nil {
 				finishCallback(task)
 			}
-			return resource.NonRetryableError(fmt.Errorf("max ServiceUnavailable retries (20) reached to create SDDC"))
+			return retry.NonRetryableError(fmt.Errorf("max ServiceUnavailable retries (20) reached to create SDDC"))
 		}
 		if finishCallback != nil {
 			finishCallback(task)
 		}
-		return resource.NonRetryableError(fmt.Errorf(errorMessage+": %v", err))
+		return retry.NonRetryableError(fmt.Errorf(errorMessage+": %v", err))
 
 	}
 	// If code reached this point it is safe to assume "service unavailable" window passed,
@@ -91,14 +91,14 @@ func RetryTaskUntilFinished(authenticator connector.Authenticator,
 		if finishCallback != nil {
 			finishCallback(task)
 		}
-		return resource.NonRetryableError(fmt.Errorf("task status was empty. Some API error occurred"))
+		return retry.NonRetryableError(fmt.Errorf("task status was empty. Some API error occurred"))
 	} else if *task.Status == model.Task_STATUS_FAILED {
 		if finishCallback != nil {
 			finishCallback(task)
 		}
-		return resource.NonRetryableError(fmt.Errorf("task failed: "+errorMessage+": %s", *task.ErrorMessage))
+		return retry.NonRetryableError(fmt.Errorf("task failed: "+errorMessage+": %s", *task.ErrorMessage))
 	} else if *task.Status != model.Task_STATUS_FINISHED {
-		return resource.RetryableError(fmt.Errorf("expected task type: %s to be finished %s", *task.TaskType, *task.Status))
+		return retry.RetryableError(fmt.Errorf("expected task type: %s to be finished %s", *task.TaskType, *task.Status))
 	}
 	if finishCallback != nil {
 		finishCallback(task)

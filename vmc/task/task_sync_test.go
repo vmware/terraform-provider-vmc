@@ -9,7 +9,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
 	"github.com/stretchr/testify/assert"
 	"github.com/vmware/terraform-provider-vmc/vmc/connector"
 	"github.com/vmware/vsphere-automation-sdk-go/lib/vapi/std/errors"
@@ -69,7 +69,7 @@ func TestRetryTaskUntilFinished(t *testing.T) {
 	}
 	type test struct {
 		input inputStruct
-		want  *resource.RetryError
+		want  *retry.RetryError
 	}
 	var finishCallbackHasBeenCalled = false
 	tests := []test{
@@ -85,7 +85,7 @@ func TestRetryTaskUntilFinished(t *testing.T) {
 					assert.Fail(t, "finishCallback should not be called on retrievable errors")
 				},
 			},
-			want: resource.RetryableError(fmt.Errorf("task still in progress")),
+			want: retry.RetryableError(fmt.Errorf("task still in progress")),
 		},
 		// Unauthenticated handling - fail
 		{
@@ -99,7 +99,7 @@ func TestRetryTaskUntilFinished(t *testing.T) {
 					assert.Equal(t, "Unauthenticated handling - fail", task.Id)
 				},
 			},
-			want: resource.NonRetryableError(fmt.Errorf("authentication error from Cloud Service Provider : authentication broken")),
+			want: retry.NonRetryableError(fmt.Errorf("authentication error from Cloud Service Provider : authentication broken")),
 		},
 		// Service unavailable retry
 		{
@@ -115,7 +115,7 @@ func TestRetryTaskUntilFinished(t *testing.T) {
 					assert.Fail(t, "finishCallback should not be called on retrievable errors")
 				},
 			},
-			want: resource.RetryableError(fmt.Errorf(
+			want: retry.RetryableError(fmt.Errorf(
 				"VMC backend is experiencing difficulties, retry 20 from 20 to polling the SDDC Create Task")),
 		},
 		// Service unavailable fail
@@ -130,7 +130,7 @@ func TestRetryTaskUntilFinished(t *testing.T) {
 					assert.Equal(t, "Service unavailable fail", task.Id)
 				},
 			},
-			want: resource.NonRetryableError(fmt.Errorf("max ServiceUnavailable retries (20) reached to create SDDC")),
+			want: retry.NonRetryableError(fmt.Errorf("max ServiceUnavailable retries (20) reached to create SDDC")),
 		},
 		// Task status failed
 		{
@@ -148,7 +148,7 @@ func TestRetryTaskUntilFinished(t *testing.T) {
 					assert.Equal(t, model.Task_STATUS_FAILED, *task.Status)
 				},
 			},
-			want: resource.NonRetryableError(fmt.Errorf("task failed: Cluster creation failed: mnogoGrumna")),
+			want: retry.NonRetryableError(fmt.Errorf("task failed: Cluster creation failed: mnogoGrumna")),
 		},
 		// Task status not finished
 		{
@@ -164,7 +164,7 @@ func TestRetryTaskUntilFinished(t *testing.T) {
 					assert.Equal(t, model.Task_STATUS_STARTED, *task.Status)
 				},
 			},
-			want: resource.RetryableError(fmt.Errorf("expected task type: notMyType to be finished STARTED")),
+			want: retry.RetryableError(fmt.Errorf("expected task type: notMyType to be finished STARTED")),
 		},
 		// Task status invalid
 		{
@@ -180,7 +180,7 @@ func TestRetryTaskUntilFinished(t *testing.T) {
 					finishCallbackHasBeenCalled = true
 				},
 			},
-			want: resource.NonRetryableError(fmt.Errorf("task status was empty. Some API error occurred")),
+			want: retry.NonRetryableError(fmt.Errorf("task status was empty. Some API error occurred")),
 		},
 		// Task status finished
 		{

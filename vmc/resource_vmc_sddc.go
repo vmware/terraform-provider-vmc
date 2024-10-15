@@ -17,7 +17,7 @@ import (
 	"github.com/vmware/vsphere-automation-sdk-go/services/nsxt-vmc-aws-integration/nsx_vmc_app/infra/external"
 	"github.com/vmware/vsphere-automation-sdk-go/services/vmc/orgs/sddcs/clusters/msft_licensing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 	nsx_vmc_appModel "github.com/vmware/vsphere-automation-sdk-go/services/nsxt-vmc-aws-integration/nsx_vmc_app/model"
@@ -365,7 +365,7 @@ func resourceSddcCreate(d *schema.ResourceData, m interface{}) error {
 	d.SetId(*sddcID)
 	msftLicensingConfig := expandMsftLicenseConfig(d.Get("microsoft_licensing_config").([]interface{}))
 
-	return resource.RetryContext(context.Background(), d.Timeout(schema.TimeoutCreate), func() *resource.RetryError {
+	return retry.RetryContext(context.Background(), d.Timeout(schema.TimeoutCreate), func() *retry.RetryError {
 		taskErr := task.RetryTaskUntilFinished(connectorWrapper, func() (model.Task, error) {
 			return task.GetTask(connectorWrapper, sddcCreateTask.Id)
 		}, "error creating SDDC", nil)
@@ -374,7 +374,7 @@ func resourceSddcCreate(d *schema.ResourceData, m interface{}) error {
 		}
 		err = resourceSddcRead(d, m)
 		if err != nil {
-			return resource.NonRetryableError(err)
+			return retry.NonRetryableError(err)
 		}
 
 		// Updating the microsoft_license_config after creation since
@@ -383,7 +383,7 @@ func resourceSddcCreate(d *schema.ResourceData, m interface{}) error {
 		if msftLicensingConfig != nil {
 			err = updateMsftLicenseConfig(d, m, msftLicensingConfig)
 			if err != nil {
-				return resource.NonRetryableError(err)
+				return retry.NonRetryableError(err)
 			}
 		}
 
@@ -523,7 +523,7 @@ func resourceSddcDelete(d *schema.ResourceData, m interface{}) error {
 	if err != nil {
 		return HandleDeleteError("SDDC", sddcID, err)
 	}
-	return resource.RetryContext(context.Background(), d.Timeout(schema.TimeoutDelete), func() *resource.RetryError {
+	return retry.RetryContext(context.Background(), d.Timeout(schema.TimeoutDelete), func() *retry.RetryError {
 		taskErr := task.RetryTaskUntilFinished(connectorWrapper, func() (model.Task, error) {
 			return task.GetTask(connectorWrapper, sddcDeleteTask.Id)
 		}, "failed to delete SDDC", nil)
@@ -566,7 +566,7 @@ func resourceSddcUpdate(d *schema.ResourceData, m interface{}) error {
 				if err != nil {
 					return HandleUpdateError("SDDC", err)
 				}
-				err = resource.RetryContext(context.Background(), d.Timeout(schema.TimeoutUpdate), func() *resource.RetryError {
+				err = retry.RetryContext(context.Background(), d.Timeout(schema.TimeoutUpdate), func() *retry.RetryError {
 					taskErr := task.RetryTaskUntilFinished(connectorWrapper, func() (model.Task, error) {
 						return task.GetTask(connectorWrapper, sddcTypeUpdateTask.Id)
 					}, "error scaling SDDC", nil)
@@ -577,7 +577,7 @@ func resourceSddcUpdate(d *schema.ResourceData, m interface{}) error {
 					if err == nil {
 						return nil
 					}
-					return resource.NonRetryableError(err)
+					return retry.NonRetryableError(err)
 				})
 				if err != nil {
 					return err
@@ -619,7 +619,7 @@ func resourceSddcUpdate(d *schema.ResourceData, m interface{}) error {
 		if err != nil {
 			return HandleUpdateError("SDDC", err)
 		}
-		err = resource.RetryContext(context.Background(), d.Timeout(schema.TimeoutUpdate), func() *resource.RetryError {
+		err = retry.RetryContext(context.Background(), d.Timeout(schema.TimeoutUpdate), func() *retry.RetryError {
 			taskErr := task.RetryTaskUntilFinished(connectorWrapper, func() (model.Task, error) {
 				return task.GetTask(connectorWrapper, hostUpdateTask.Id)
 			}, "failed to update hosts", nil)
@@ -630,7 +630,7 @@ func resourceSddcUpdate(d *schema.ResourceData, m interface{}) error {
 			if err == nil {
 				return nil
 			}
-			return resource.NonRetryableError(err)
+			return retry.NonRetryableError(err)
 		})
 		if err != nil {
 			return err
@@ -695,7 +695,7 @@ func resourceSddcUpdate(d *schema.ResourceData, m interface{}) error {
 			return HandleUpdateError("EDRS Policy", err)
 		}
 
-		return resource.RetryContext(context.Background(), d.Timeout(schema.TimeoutUpdate), func() *resource.RetryError {
+		return retry.RetryContext(context.Background(), d.Timeout(schema.TimeoutUpdate), func() *retry.RetryError {
 			taskErr := task.RetryTaskUntilFinished(connectorWrapper, func() (model.Task, error) {
 				return task.GetTask(connectorWrapper, edrsPolicyUpdateTask.Id)
 			}, "failed to update EDRS policy configuration", nil)
@@ -706,7 +706,7 @@ func resourceSddcUpdate(d *schema.ResourceData, m interface{}) error {
 			if err == nil {
 				return nil
 			}
-			return resource.NonRetryableError(err)
+			return retry.NonRetryableError(err)
 		})
 	}
 
@@ -737,7 +737,7 @@ func updateMsftLicenseConfig(d *schema.ResourceData, m interface{}, msftLicenseC
 	if err != nil {
 		return fmt.Errorf("error updating license : %s", err)
 	}
-	return resource.RetryContext(context.Background(), d.Timeout(schema.TimeoutCreate), func() *resource.RetryError {
+	return retry.RetryContext(context.Background(), d.Timeout(schema.TimeoutCreate), func() *retry.RetryError {
 		taskErr := task.RetryTaskUntilFinished(connectorWrapper, func() (model.Task, error) {
 			return task.GetTask(connectorWrapper, microsoftLicensingUpdateTask.Id)
 		}, "failed updating Microsoft licensing configuration", nil)
@@ -748,7 +748,7 @@ func updateMsftLicenseConfig(d *schema.ResourceData, m interface{}, msftLicenseC
 		if err == nil {
 			return nil
 		}
-		return resource.NonRetryableError(err)
+		return retry.NonRetryableError(err)
 	})
 }
 
