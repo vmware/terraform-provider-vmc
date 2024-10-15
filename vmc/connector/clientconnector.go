@@ -1,5 +1,6 @@
-/* Copyright 2019-2022 VMware, Inc.
-   SPDX-License-Identifier: MPL-2.0 */
+// © Broadcom. All Rights Reserved.
+// The term "Broadcom" refers to Broadcom Inc. and/or its subsidiaries.
+// SPDX-License-Identifier: MPL-2.0
 
 // Package connector provides helper methods that provides client.Connector, required to call VMC APIs.
 package connector
@@ -9,12 +10,13 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/vmware/terraform-provider-vmc/vmc/constants"
-	"golang.org/x/oauth2/clientcredentials"
 	"io"
 	"net/http"
 	"reflect"
 	"strings"
+
+	"github.com/vmware/terraform-provider-vmc/vmc/constants"
+	"golang.org/x/oauth2/clientcredentials"
 
 	"github.com/vmware/vsphere-automation-sdk-go/runtime/core"
 	"github.com/vmware/vsphere-automation-sdk-go/runtime/protocol/client"

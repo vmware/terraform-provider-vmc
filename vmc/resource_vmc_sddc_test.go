@@ -1,17 +1,19 @@
-/* Copyright 2019-2022 VMware, Inc.
-   SPDX-License-Identifier: MPL-2.0 */
+// © Broadcom. All Rights Reserved.
+// The term "Broadcom" refers to Broadcom Inc. and/or its subsidiaries.
+// SPDX-License-Identifier: MPL-2.0
 
 package vmc
 
 import (
 	"fmt"
+	"os"
+	"strings"
+	"testing"
+
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/stretchr/testify/assert"
 	"github.com/vmware/terraform-provider-vmc/vmc/connector"
 	"github.com/vmware/terraform-provider-vmc/vmc/constants"
-	"os"
-	"strings"
-	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
@@ -209,7 +211,7 @@ resource "vmc_sddc" "sddc_1" {
 	sso_domain          = "vmc.local"
 
 	deployment_type = "SingleAZ"
-	
+
 	account_link_sddc_config {
     customer_subnet_ids  = [data.vmc_customer_subnets.my_subnets.ids[0]]
     connected_account_id = data.vmc_connected_accounts.my_accounts.id

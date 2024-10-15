@@ -1,14 +1,16 @@
-/* Copyright 2019-2022 VMware, Inc.
-   SPDX-License-Identifier: MPL-2.0 */
+// © Broadcom. All Rights Reserved.
+// The term "Broadcom" refers to Broadcom Inc. and/or its subsidiaries.
+// SPDX-License-Identifier: MPL-2.0
 
 package vmc
 
 import (
 	"fmt"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
-	"github.com/vmware/terraform-provider-vmc/vmc/constants"
 	"os"
 	"testing"
+
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/vmware/terraform-provider-vmc/vmc/constants"
 )
 
 func TestAccDataSourceVmcCustomerSubnetsBasic(t *testing.T) {
@@ -57,7 +59,7 @@ func TestAccDataSourceVmcCustomerSubnetsOnlyRequiredProperties(t *testing.T) {
 
 func testAccDataSourceVmcCustomerSubnetsConfig() string {
 	return fmt.Sprintf(`
-	
+
 data "vmc_connected_accounts" "my_accounts" {
     account_number = %q
 }
@@ -74,7 +76,7 @@ data "vmc_customer_subnets" "my_subnets" {
 
 func testAccDataSourceVmcCustomerSubnetsOnlyRequiredProperties() string {
 	return fmt.Sprintf(`
-	
+
 data "vmc_connected_accounts" "my_accounts" {
     account_number = %q
 }

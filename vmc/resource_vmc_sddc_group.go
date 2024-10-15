@@ -1,11 +1,15 @@
-/* Copyright 2022 VMware, Inc.
-   SPDX-License-Identifier: MPL-2.0 */
+// © Broadcom. All Rights Reserved.
+// The term "Broadcom" refers to Broadcom Inc. and/or its subsidiaries.
+// SPDX-License-Identifier: MPL-2.0
 
 package vmc
 
 import (
 	"context"
 	"fmt"
+	"strings"
+	"time"
+
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
@@ -14,8 +18,6 @@ import (
 	"github.com/vmware/terraform-provider-vmc/vmc/sddcgroup"
 	"github.com/vmware/terraform-provider-vmc/vmc/task"
 	"github.com/vmware/vsphere-automation-sdk-go/services/vmc/model"
-	"strings"
-	"time"
 )
 
 func resourceSddcGroup() *schema.Resource {
