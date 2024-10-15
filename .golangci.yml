@@ -1,24 +1,42 @@
+# © Broadcom. All Rights Reserved.
+# The term “Broadcom” refers to Broadcom Inc. and/or its subsidiaries.
+# SPDX-License-Identifier: MPL-2.0
+
+# For more information about the golangci-lint configuration file, refer to:
+# https://golangci-lint.run/usage/configuration/
+
 issues:
-  max-per-linter: 0
-  max-same-issues: 0
+  exclude-rules:
+    # Exclude staticcheck for some rules.
+  - linters: [staticcheck]
+    text: "G115|G402|G404|GetOkExists|SA1006|SA1019|SA4004|SA4006|SA4010|SA4017|SA5007|SA6005|SA9004"
 
 linters:
   disable-all: true
   enable:
     - errcheck
     - gofmt
+    - goimports
     - gosimple
+    - gosec
+    - govet
     - ineffassign
     - misspell
+    - revive
     - staticcheck
     - unconvert
     - unused
-    - vet
-    - revive
+
+run:
+  deadline: 30m
+
+output:
+  formats:
+    - format: colored-line-number
 
 linters-settings:
   errcheck:
-    ignore:  github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema:ForceNew|Set,fmt:.*,io:Close
-
-run:
-  deadline: 5m
+    exclude-functions:
+      - "github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema:ForceNew|Set"
+      - "fmt:.*"
+      - "io:Close"
