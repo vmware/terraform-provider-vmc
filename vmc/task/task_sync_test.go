@@ -81,7 +81,7 @@ func TestRetryTaskUntilFinished(t *testing.T) {
 					return model.Task{}, errors.Unauthenticated{}
 				},
 				errorMessage: "",
-				finishCallback: func(task model.Task) {
+				finishCallback: func(_ model.Task) {
 					assert.Fail(t, "finishCallback should not be called on retrievable errors")
 				},
 			},
@@ -111,7 +111,7 @@ func TestRetryTaskUntilFinished(t *testing.T) {
 					return model.Task{}, errors.ServiceUnavailable{}
 				},
 				errorMessage: "",
-				finishCallback: func(task model.Task) {
+				finishCallback: func(_ model.Task) {
 					assert.Fail(t, "finishCallback should not be called on retrievable errors")
 				},
 			},

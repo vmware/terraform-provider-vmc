@@ -146,7 +146,7 @@ func testCheckVmcSddcExists(name string, sddcResource *model.Sddc) resource.Test
 }
 
 func testCheckSddcAttributes(sddcResource *model.Sddc) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
+	return func(_ *terraform.State) error {
 		sddcState := sddcResource.SddcState
 		if *sddcState != "READY" {
 			return fmt.Errorf(" SDDC %s with ID %s is not in ready state", *sddcResource.Name, sddcResource.Id)

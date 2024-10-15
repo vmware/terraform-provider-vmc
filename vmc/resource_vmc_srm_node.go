@@ -32,7 +32,7 @@ func resourceSrmNode() *schema.Resource {
 		Read:   resourceSrmNodeRead,
 		Delete: resourceSrmNodeDelete,
 		Importer: &schema.ResourceImporter{
-			State: func(d *schema.ResourceData, meta interface{}) ([]*schema.ResourceData, error) {
+			State: func(d *schema.ResourceData, _ interface{}) ([]*schema.ResourceData, error) {
 				idParts := strings.Split(d.Id(), ",")
 				if len(idParts) != 2 || idParts[0] == "" || idParts[1] == "" {
 					return nil, fmt.Errorf("unexpected format of ID (%q), expected id,sddc_id", d.Id())
@@ -106,7 +106,7 @@ func resourceSrmNodeCreate(d *schema.ResourceData, m interface{}) error {
 				return task.GetDraasTask(connectorWrapper, srmNodeCreateTask.Id)
 			},
 			"error creating SRM node",
-			func(task model.Task) {
+			func(_ model.Task) {
 				unlockFn()
 			})
 		if taskErr != nil {
@@ -171,7 +171,7 @@ func resourceSrmNodeDelete(d *schema.ResourceData, m interface{}) error {
 				return task.GetDraasTask(connectorWrapper, srmNodeDeleteTask.Id)
 			},
 			"failed to delete SRM node",
-			func(task model.Task) {
+			func(_ model.Task) {
 				unlockFn()
 			})
 		if taskErr != nil {
