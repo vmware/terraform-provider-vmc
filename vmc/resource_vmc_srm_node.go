@@ -15,9 +15,9 @@ import (
 	task "github.com/vmware/terraform-provider-vmc/vmc/task"
 	"github.com/vmware/vsphere-automation-sdk-go/services/vmc/model"
 
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/vmware/vsphere-automation-sdk-go/services/vmc/draas"
 	draasmodel "github.com/vmware/vsphere-automation-sdk-go/services/vmc/draas/model"
@@ -100,7 +100,7 @@ func resourceSrmNodeCreate(d *schema.ResourceData, m interface{}) error {
 	}
 
 	d.SetId(*srmNodeCreateTask.ResourceId)
-	return resource.RetryContext(context.Background(), d.Timeout(schema.TimeoutCreate), func() *resource.RetryError {
+	return retry.RetryContext(context.Background(), d.Timeout(schema.TimeoutCreate), func() *retry.RetryError {
 		taskErr := task.RetryTaskUntilFinished(connectorWrapper,
 			func() (model.Task, error) {
 				return task.GetDraasTask(connectorWrapper, srmNodeCreateTask.Id)
@@ -116,7 +116,7 @@ func resourceSrmNodeCreate(d *schema.ResourceData, m interface{}) error {
 		if err == nil {
 			return nil
 		}
-		return resource.NonRetryableError(err)
+		return retry.NonRetryableError(err)
 	})
 }
 
@@ -165,7 +165,7 @@ func resourceSrmNodeDelete(d *schema.ResourceData, m interface{}) error {
 	if err != nil {
 		return HandleDeleteError("SRM Node", sddcID, err)
 	}
-	return resource.RetryContext(context.Background(), d.Timeout(schema.TimeoutDelete), func() *resource.RetryError {
+	return retry.RetryContext(context.Background(), d.Timeout(schema.TimeoutDelete), func() *retry.RetryError {
 		taskErr := task.RetryTaskUntilFinished(connectorWrapper,
 			func() (model.Task, error) {
 				return task.GetDraasTask(connectorWrapper, srmNodeDeleteTask.Id)

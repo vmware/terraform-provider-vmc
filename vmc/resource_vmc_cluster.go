@@ -15,7 +15,7 @@ import (
 	"github.com/vmware/terraform-provider-vmc/vmc/constants"
 	task "github.com/vmware/terraform-provider-vmc/vmc/task"
 
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 	autoscalercluster "github.com/vmware/vsphere-automation-sdk-go/services/vmc/autoscaler/api/orgs/sddcs/clusters"
@@ -171,7 +171,7 @@ func resourceClusterCreate(d *schema.ResourceData, m interface{}) error {
 		return HandleCreateError("Cluster", err)
 	}
 	var clusterID = ""
-	return resource.RetryContext(context.Background(), d.Timeout(schema.TimeoutCreate), func() *resource.RetryError {
+	return retry.RetryContext(context.Background(), d.Timeout(schema.TimeoutCreate), func() *retry.RetryError {
 		taskErr := task.RetryTaskUntilFinished(connectorWrapper,
 			func() (model.Task, error) {
 				return task.GetTask(connectorWrapper, clusterCreateTask.Id)
@@ -189,13 +189,13 @@ func resourceClusterCreate(d *schema.ResourceData, m interface{}) error {
 			return taskErr
 		}
 		if clusterID == "" {
-			return resource.NonRetryableError(fmt.Errorf("error getting clusterID"))
+			return retry.NonRetryableError(fmt.Errorf("error getting clusterID"))
 		}
 		err = resourceClusterRead(d, m)
 		if err == nil {
 			return nil
 		}
-		return resource.NonRetryableError(err)
+		return retry.NonRetryableError(err)
 	})
 }
 
@@ -274,7 +274,7 @@ func resourceClusterDelete(d *schema.ResourceData, m interface{}) error {
 	if err != nil {
 		return HandleDeleteError("Cluster", clusterID, err)
 	}
-	return resource.RetryContext(context.Background(), d.Timeout(schema.TimeoutDelete), func() *resource.RetryError {
+	return retry.RetryContext(context.Background(), d.Timeout(schema.TimeoutDelete), func() *retry.RetryError {
 		taskErr := task.RetryTaskUntilFinished(connectorWrapper,
 			func() (model.Task, error) {
 				return task.GetTask(connectorWrapper, clusterDeleteTask.Id)
@@ -322,7 +322,7 @@ func resourceClusterUpdate(d *schema.ResourceData, m interface{}) error {
 		if err != nil {
 			return HandleUpdateError("Cluster", err)
 		}
-		err = resource.RetryContext(context.Background(), d.Timeout(schema.TimeoutUpdate), func() *resource.RetryError {
+		err = retry.RetryContext(context.Background(), d.Timeout(schema.TimeoutUpdate), func() *retry.RetryError {
 			taskErr := task.RetryTaskUntilFinished(connectorWrapper,
 				func() (model.Task, error) {
 					return task.GetTask(connectorWrapper, hostUpdateTask.Id)
@@ -338,7 +338,7 @@ func resourceClusterUpdate(d *schema.ResourceData, m interface{}) error {
 			if err == nil {
 				return nil
 			}
-			return resource.NonRetryableError(err)
+			return retry.NonRetryableError(err)
 		})
 		if err != nil {
 			return err
@@ -364,7 +364,7 @@ func resourceClusterUpdate(d *schema.ResourceData, m interface{}) error {
 		if err != nil {
 			return HandleUpdateError("EDRS Policy", err)
 		}
-		return resource.RetryContext(context.Background(), d.Timeout(schema.TimeoutUpdate), func() *resource.RetryError {
+		return retry.RetryContext(context.Background(), d.Timeout(schema.TimeoutUpdate), func() *retry.RetryError {
 			taskErr := task.RetryTaskUntilFinished(connectorWrapper,
 				func() (model.Task, error) {
 					return task.GetAutoscalerTask(connectorWrapper, edrsPolicyUpdateTask.Id)
@@ -380,7 +380,7 @@ func resourceClusterUpdate(d *schema.ResourceData, m interface{}) error {
 			if err == nil {
 				return nil
 			}
-			return resource.NonRetryableError(err)
+			return retry.NonRetryableError(err)
 		})
 	}
 	// Update Microsoft licensing config
@@ -392,7 +392,7 @@ func resourceClusterUpdate(d *schema.ResourceData, m interface{}) error {
 		if err != nil {
 			return HandleUpdateError("Microsoft Licensing Config", err)
 		}
-		return resource.RetryContext(context.Background(), d.Timeout(schema.TimeoutCreate), func() *resource.RetryError {
+		return retry.RetryContext(context.Background(), d.Timeout(schema.TimeoutCreate), func() *retry.RetryError {
 			taskErr := task.RetryTaskUntilFinished(connectorWrapper,
 				func() (model.Task, error) {
 					return task.GetTask(connectorWrapper, microsoftLicensingUpdateTask.Id)
@@ -408,7 +408,7 @@ func resourceClusterUpdate(d *schema.ResourceData, m interface{}) error {
 			if err == nil {
 				return nil
 			}
-			return resource.NonRetryableError(err)
+			return retry.NonRetryableError(err)
 		})
 
 	}

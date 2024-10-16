@@ -11,7 +11,7 @@ import (
 	"time"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 	"github.com/vmware/terraform-provider-vmc/vmc/connector"
@@ -189,7 +189,7 @@ func resourceSddcGroupCreate(ctx context.Context, data *schema.ResourceData, i i
 		return diag.FromErr(err)
 	}
 	data.SetId(sddcGroupID)
-	err = resource.RetryContext(context.Background(), data.Timeout(schema.TimeoutCreate), func() *resource.RetryError {
+	err = retry.RetryContext(context.Background(), data.Timeout(schema.TimeoutCreate), func() *retry.RetryError {
 		taskErr := task.RetryTaskUntilFinished(connectorWrapper, func() (model.Task, error) {
 			return task.GetV2Task(connectorWrapper, taskID)
 		}, "error creating SDDC group", nil)
@@ -200,7 +200,7 @@ func resourceSddcGroupCreate(ctx context.Context, data *schema.ResourceData, i i
 		if !diags.HasError() {
 			return nil
 		}
-		return resource.NonRetryableError(err)
+		return retry.NonRetryableError(err)
 	})
 	if err != nil {
 		return diag.FromErr(err)
@@ -312,7 +312,7 @@ func resourceSddcGroupDelete(_ context.Context, data *schema.ResourceData, i int
 	if err != nil {
 		return diag.FromErr(err)
 	}
-	err = resource.RetryContext(context.Background(), data.Timeout(schema.TimeoutCreate), func() *resource.RetryError {
+	err = retry.RetryContext(context.Background(), data.Timeout(schema.TimeoutCreate), func() *retry.RetryError {
 		taskErr := task.RetryTaskUntilFinished(connectorWrapper, func() (model.Task, error) {
 			return task.GetV2Task(connectorWrapper, deleteSddcTaskID)
 		}, "error deleting SDDC group", nil)
@@ -341,7 +341,7 @@ func updateSddcGroupMembers(data *schema.ResourceData,
 	if err != nil {
 		return diag.FromErr(err)
 	}
-	err = resource.RetryContext(context.Background(), data.Timeout(schema.TimeoutCreate), func() *resource.RetryError {
+	err = retry.RetryContext(context.Background(), data.Timeout(schema.TimeoutCreate), func() *retry.RetryError {
 		taskErr := task.RetryTaskUntilFinished(connectorWrapper, func() (model.Task, error) {
 			return task.GetV2Task(connectorWrapper, updateMembersTaskID)
 		}, "error updating SDDC group members", nil)
