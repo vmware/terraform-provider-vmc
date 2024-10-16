@@ -177,7 +177,7 @@ func resourceSddcGroupCreate(ctx context.Context, data *schema.ResourceData, i i
 	if err != nil {
 		return diag.FromErr(err)
 	}
-	sddcMemberIDs := getCurrentSddcMemberIDs(data)
+	sddcMemberIDs := getCurrentsddcMemberIDs(data)
 	err = sddcGroupsClient.ValidateCreateSddcGroup(sddcMemberIDs)
 	if err != nil {
 		return diag.FromErr(err)
@@ -280,13 +280,13 @@ func resourceSddcGroupRead(_ context.Context, data *schema.ResourceData, i inter
 
 func resourceSddcGroupUpdate(ctx context.Context, data *schema.ResourceData, i interface{}) diag.Diagnostics {
 	if data.HasChange("sddc_member_ids") {
-		oldIdsRaw, newIdsRaw := data.GetChange("sddc_member_ids")
-		oldIds := oldIdsRaw.(*schema.Set)
-		newIds := newIdsRaw.(*schema.Set)
-		addedIds := getAddedIds(oldIds, newIds)
-		removedIds := getRemovedIds(oldIds, newIds)
+		oldIDsRaw, newIDsRaw := data.GetChange("sddc_member_ids")
+		oldIDs := oldIDsRaw.(*schema.Set)
+		newIDs := newIDsRaw.(*schema.Set)
+		addedIDs := getaddedIDs(oldIDs, newIDs)
+		removedIDs := getremovedIDs(oldIDs, newIDs)
 
-		diags := updateSddcGroupMembers(data, i, addedIds, removedIds)
+		diags := updateSddcGroupMembers(data, i, addedIDs, removedIDs)
 		if diags != nil {
 			return diags
 		}
@@ -301,9 +301,9 @@ func resourceSddcGroupDelete(_ context.Context, data *schema.ResourceData, i int
 	if err != nil {
 		return diag.FromErr(err)
 	}
-	sddcMemberIds := getCurrentSddcMemberIDs(data)
+	sddcMemberIDs := getCurrentsddcMemberIDs(data)
 	// Removal of all sddc members from the group is required prior to deletion
-	diags := updateSddcGroupMembers(data, i, new([]string), sddcMemberIds)
+	diags := updateSddcGroupMembers(data, i, new([]string), sddcMemberIDs)
 	if diags != nil {
 		return diags
 	}
@@ -329,7 +329,7 @@ func resourceSddcGroupDelete(_ context.Context, data *schema.ResourceData, i int
 }
 
 func updateSddcGroupMembers(data *schema.ResourceData,
-	i interface{}, addedIds *[]string, removedIds *[]string) diag.Diagnostics {
+	i interface{}, addedIDs *[]string, removedIDs *[]string) diag.Diagnostics {
 	connectorWrapper := i.(*connector.Wrapper)
 	sddcGroupsClient := sddcgroup.NewSddcGroupClient(*connectorWrapper)
 	err := sddcGroupsClient.Authenticate()
@@ -337,7 +337,7 @@ func updateSddcGroupMembers(data *schema.ResourceData,
 		return diag.FromErr(err)
 	}
 
-	updateMembersTaskID, err := sddcGroupsClient.UpdateSddcGroupMembers(data.Id(), addedIds, removedIds)
+	updateMembersTaskID, err := sddcGroupsClient.UpdateSddcGroupMembers(data.Id(), addedIDs, removedIDs)
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -356,31 +356,31 @@ func updateSddcGroupMembers(data *schema.ResourceData,
 	return nil
 }
 
-func getCurrentSddcMemberIDs(data *schema.ResourceData) *[]string {
-	sddcMemberIdsSet := data.Get("sddc_member_ids").(*schema.Set)
+func getCurrentsddcMemberIDs(data *schema.ResourceData) *[]string {
+	sddcMemberIDsSe := data.Get("sddc_member_ids").(*schema.Set)
 	var sddcMemberIDs []string
-	for _, sddcMemberID := range sddcMemberIdsSet.List() {
+	for _, sddcMemberID := range sddcMemberIDsSe.List() {
 		sddcMemberIDs = append(sddcMemberIDs, sddcMemberID.(string))
 	}
 	return &sddcMemberIDs
 }
 
-func getAddedIds(oldIDs *schema.Set, newIDs *schema.Set) *[]string {
-	var addedIds []string
+func getaddedIDs(oldIDs *schema.Set, newIDs *schema.Set) *[]string {
+	var addedIDs []string
 	for _, newID := range newIDs.List() {
 		if !oldIDs.Contains(newID) {
-			addedIds = append(addedIds, newID.(string))
+			addedIDs = append(addedIDs, newID.(string))
 		}
 	}
-	return &addedIds
+	return &addedIDs
 }
 
-func getRemovedIds(oldIDs *schema.Set, newIDs *schema.Set) *[]string {
-	var removedIds []string
+func getremovedIDs(oldIDs *schema.Set, newIDs *schema.Set) *[]string {
+	var removedIDs []string
 	for _, oldID := range oldIDs.List() {
 		if !newIDs.Contains(oldID) {
-			removedIds = append(removedIds, oldID.(string))
+			removedIDs = append(removedIDs, oldID.(string))
 		}
 	}
-	return &removedIds
+	return &removedIDs
 }

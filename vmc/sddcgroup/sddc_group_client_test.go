@@ -75,7 +75,7 @@ func readAsString(reader io.ReadCloser) string {
 func TestValidateCreateSddcGroup(t *testing.T) {
 	type inputStruct struct {
 		httpClientStub HTTPClient
-		sddcIds        *[]string
+		sddcIDs        *[]string
 	}
 	type test struct {
 		input inputStruct
@@ -93,7 +93,7 @@ func TestValidateCreateSddcGroup(t *testing.T) {
 					responseJSON:   "",
 					t:              t,
 				},
-				sddcIds: &[]string{"lele", "male"},
+				sddcIDs: &[]string{"lele", "male"},
 			},
 			fmt.Errorf("VMC service down"),
 		},
@@ -108,7 +108,7 @@ func TestValidateCreateSddcGroup(t *testing.T) {
 					responseJSON:   "",
 					t:              t,
 				},
-				sddcIds: &[]string{"lele", "male"},
+				sddcIDs: &[]string{"lele", "male"},
 			},
 			nil,
 		},
@@ -124,14 +124,14 @@ func TestValidateCreateSddcGroup(t *testing.T) {
 						"\n\"details\": [\n{\n\"validation_error_message\": \"Found invalid or overlapping CIDR blocks.\",\n\"members\": [\n\"male\"\n]\n}\n]\n}",
 					t: t,
 				},
-				sddcIds: &[]string{"lele", "male"},
+				sddcIDs: &[]string{"lele", "male"},
 			},
 			fmt.Errorf("Found invalid or overlapping CIDR blocks. For members: male "),
 		},
 	}
 	for _, testCase := range tests {
 		sddcGroupClient := newTestSddcGroupClient(testVmcURL, testOrgID, testAccessToken, testCase.input.httpClientStub)
-		assert.Equal(t, testCase.want, sddcGroupClient.ValidateCreateSddcGroup(testCase.input.sddcIds))
+		assert.Equal(t, testCase.want, sddcGroupClient.ValidateCreateSddcGroup(testCase.input.sddcIDs))
 	}
 }
 
