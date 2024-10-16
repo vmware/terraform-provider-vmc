@@ -145,7 +145,7 @@ func (client *ClientImpl) GetSddcGroup(groupID string) (*DeploymentGroup,
 		return group, config, err
 	}
 	if statusCode == http.StatusNotFound {
-		return group, config, fmt.Errorf("No NetworkConnectivityConfig with ID: %s not found ", resourceID)
+		return group, config, fmt.Errorf("no NetworkConnectivityConfig with ID: %s not found ", resourceID)
 	}
 	if statusCode == http.StatusOK {
 		err := json.NewDecoder(bytes.NewReader(*rawResponse)).Decode(&config)
@@ -309,10 +309,10 @@ func (client *ClientImpl) executeRequest(
 		return nil, response.StatusCode, err
 	}
 	if response.StatusCode == http.StatusUnauthorized {
-		return nil, response.StatusCode, fmt.Errorf("Unauthenticated request ")
+		return nil, response.StatusCode, fmt.Errorf("unauthenticated request ")
 	}
 	if response.StatusCode == http.StatusForbidden {
-		return nil, response.StatusCode, fmt.Errorf("Unauthorized request ")
+		return nil, response.StatusCode, fmt.Errorf("unauthorized request ")
 	}
 	result, err := io.ReadAll(response.Body)
 	if err != nil {

@@ -653,7 +653,7 @@ func resourceSddcUpdate(d *schema.ResourceData, m interface{}) error {
 
 	if d.HasChange("intranet_mtu_uplink") {
 		if d.Get("provider_type") == constants.ZeroCloudProviderType {
-			return fmt.Errorf("Intranet MTU uplink cannot be updated for %s provider type", constants.ZeroCloudProviderType)
+			return fmt.Errorf("intranet MTU uplink cannot be updated for %s provider type", constants.ZeroCloudProviderType)
 		}
 		intranetMTUUplink := d.Get("intranet_mtu_uplink").(int)
 		intranetMTUUplinkPointer := int64(intranetMTUUplink)
