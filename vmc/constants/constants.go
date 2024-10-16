@@ -15,7 +15,7 @@ const (
 	CspRefreshURLSuffix string = "/csp/gateway/am/api/auth/api-tokens/authorize"
 
 	// CspTokenURLSuffix defines the CSP Oauth API endpoint.
-	CspTokenURLSuffix string = "/csp/gateway/am/api/auth/token"
+	CspTokenURLSuffix string = "/csp/gateway/am/api/auth/token" // #nosec G101
 
 	// sksNSXTManager to be stripped from nsxt reverse proxy url for public IP resource
 	SksNSXTManager string = "/sks-nsxt-manager"
