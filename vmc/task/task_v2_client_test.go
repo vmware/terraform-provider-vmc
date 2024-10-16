@@ -102,7 +102,7 @@ func TestGetTask(t *testing.T) {
 			},
 			outputStruct{
 				task:  V2Task{},
-				error: fmt.Errorf("Task with ID: lele not found "),
+				error: fmt.Errorf("task with ID: lele not found "),
 			},
 		},
 	}

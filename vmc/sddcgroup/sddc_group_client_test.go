@@ -254,7 +254,7 @@ func TestGetSddcGroup(t *testing.T) {
 			outputStruct{
 				sddcGroup:                 nil,
 				networkConnectivityConfig: nil,
-				error:                     fmt.Errorf("Unauthenticated request "),
+				error:                     fmt.Errorf("unauthenticated request "),
 			},
 		},
 		{
