@@ -35,7 +35,7 @@ func resourceCluster() *schema.Resource {
 		Update: resourceClusterUpdate,
 		Read:   resourceClusterRead,
 		Importer: &schema.ResourceImporter{
-			State: func(d *schema.ResourceData, meta interface{}) ([]*schema.ResourceData, error) {
+			State: func(d *schema.ResourceData, _ interface{}) ([]*schema.ResourceData, error) {
 				idParts := strings.Split(d.Id(), ",")
 				if len(idParts) != 2 || idParts[0] == "" || idParts[1] == "" {
 					return nil, fmt.Errorf("unexpected format of ID (%q), expected id,sddc_id", d.Id())
@@ -280,7 +280,7 @@ func resourceClusterDelete(d *schema.ResourceData, m interface{}) error {
 				return task.GetTask(connectorWrapper, clusterDeleteTask.Id)
 			},
 			"error deleting cluster "+clusterID,
-			func(task model.Task) {
+			func(_ model.Task) {
 				unlockFunction()
 			})
 		if taskErr != nil {
@@ -328,7 +328,7 @@ func resourceClusterUpdate(d *schema.ResourceData, m interface{}) error {
 					return task.GetTask(connectorWrapper, hostUpdateTask.Id)
 				},
 				"error updating hosts for cluster "+clusterID,
-				func(task model.Task) {
+				func(_ model.Task) {
 					unlockFunction()
 				})
 			if taskErr != nil {
@@ -370,7 +370,7 @@ func resourceClusterUpdate(d *schema.ResourceData, m interface{}) error {
 					return task.GetAutoscalerTask(connectorWrapper, edrsPolicyUpdateTask.Id)
 				},
 				"error updating EDRS policy configuration "+clusterID,
-				func(task model.Task) {
+				func(_ model.Task) {
 					unlockFunction()
 				})
 			if taskErr != nil {
@@ -398,7 +398,7 @@ func resourceClusterUpdate(d *schema.ResourceData, m interface{}) error {
 					return task.GetTask(connectorWrapper, microsoftLicensingUpdateTask.Id)
 				},
 				"error updating Microsoft licensing configuration "+clusterID,
-				func(task model.Task) {
+				func(_ model.Task) {
 					unlockFunction()
 				})
 			if taskErr != nil {

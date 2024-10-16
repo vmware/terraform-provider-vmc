@@ -33,7 +33,7 @@ func dataSourceVmcCustomerSubnets() *schema.Resource {
 				ValidateFunc: validation.All(
 					validation.NoZeroValues,
 				),
-				DiffSuppressFunc: func(k, old, new string, d *schema.ResourceData) bool {
+				DiffSuppressFunc: func(_, old, new string, _ *schema.ResourceData) bool {
 					return old == strings.ReplaceAll(strings.ToUpper(new), "-", "_")
 				},
 			},

@@ -23,7 +23,7 @@ func resourcePublicIP() *schema.Resource {
 		Update: resourcePublicIPUpdate,
 		Delete: resourcePublicIPDelete,
 		Importer: &schema.ResourceImporter{
-			State: func(d *schema.ResourceData, meta interface{}) ([]*schema.ResourceData, error) {
+			State: func(d *schema.ResourceData, _ interface{}) ([]*schema.ResourceData, error) {
 				idParts := strings.Split(d.Id(), ",")
 				if len(idParts) != 2 || idParts[0] == "" || idParts[1] == "" {
 					return nil, fmt.Errorf("unexpected format of ID (%q), expected public_ip_id,nsxt_reverse_proxy_url", d.Id())
