@@ -73,7 +73,7 @@ func logVapiErrorData(message string, vAPIMessages []std.LocalizableMessage, vap
 
 	details := fmt.Sprintf(" %s: %s", message, printAPIError(apiError))
 	log.Printf("[ERROR]: %s", details)
-	return fmt.Errorf(details)
+	return fmt.Errorf("%s", details)
 }
 
 func logAPIError(message string, err error) error {

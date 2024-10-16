@@ -355,5 +355,5 @@ func toConflictError(rawResponse *[]byte) error {
 	if err != nil {
 		return err
 	}
-	return fmt.Errorf(validationErrorResponseToString(&validationErrorResponse))
+	return fmt.Errorf("%s", validationErrorResponseToString(&validationErrorResponse))
 }
