@@ -48,7 +48,10 @@ func resourceCluster() *schema.Resource {
 				}
 
 				d.SetId(idParts[0])
-				d.Set("sddc_id", idParts[1])
+				if err := d.Set("sddc_id", idParts[1]); err != nil {
+					return nil, fmt.Errorf("error setting sddc_id: %v", err)
+				}
+
 				return []*schema.ResourceData{d}, nil
 			},
 		},
@@ -244,8 +247,13 @@ func resourceClusterRead(d *schema.ResourceData, m interface{}) error {
 					cluster["windows_licensing"] = *clusterConfig.MsftLicenseConfig.WindowsLicensing
 				}
 			}
-			d.Set("cluster_info", cluster)
-			d.Set("num_hosts", len(clusterConfig.EsxHostList))
+			if err := d.Set("cluster_info", cluster); err != nil {
+				return fmt.Errorf("error setting cluster_info: %v", err)
+			}
+			if err := d.Set("num_hosts", len(clusterConfig.EsxHostList)); err != nil {
+				return fmt.Errorf("error setting num_hosts: %v", err)
+			}
+
 			break
 		}
 	}
@@ -255,10 +263,19 @@ func resourceClusterRead(d *schema.ResourceData, m interface{}) error {
 	if err != nil {
 		return HandleReadError(d, "Cluster", clusterID, err)
 	}
-	d.Set("edrs_policy_type", *edrsPolicy.PolicyType)
-	d.Set("enable_edrs", edrsPolicy.EnableEdrs)
-	d.Set("max_hosts", *edrsPolicy.MaxHosts)
-	d.Set("min_hosts", *edrsPolicy.MinHosts)
+	if err := d.Set("edrs_policy_type", *edrsPolicy.PolicyType); err != nil {
+		return fmt.Errorf("error setting edrs_policy_type: %v", err)
+	}
+	if err := d.Set("enable_edrs", edrsPolicy.EnableEdrs); err != nil {
+		return fmt.Errorf("error setting enable_edrs: %v", err)
+	}
+	if err := d.Set("max_hosts", *edrsPolicy.MaxHosts); err != nil {
+		return fmt.Errorf("error setting max_hosts: %v", err)
+	}
+	if err := d.Set("min_hosts", *edrsPolicy.MinHosts); err != nil {
+		return fmt.Errorf("error setting min_hosts: %v", err)
+	}
+
 	return nil
 }
 

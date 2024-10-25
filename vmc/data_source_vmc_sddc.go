@@ -175,55 +175,111 @@ func dataSourceVmcSddcRead(d *schema.ResourceData, m interface{}) error {
 	}
 
 	d.SetId(sddc.Id)
-
-	d.Set("sddc_name", sddc.Name)
-	d.Set("updated", sddc.Updated.String())
-	d.Set("user_id", sddc.UserId)
-	d.Set("updated_by_user_id", sddc.UpdatedByUserId)
-	d.Set("created", sddc.Created.String())
-	d.Set("version", sddc.Version)
-	d.Set("updated_by_user_name", sddc.UpdatedByUserName)
-	d.Set("user_name", sddc.UserName)
-	d.Set("org_id", sddc.OrgId)
-	d.Set("sddc_type", sddc.SddcType)
-	// the key "provider" is reserved by the Terraform SDK, however the same information
-	// is carried by the sddc.ResourceConfig.Provider variable
-	//d.Set("provider", sddc.Provider)
-	d.Set("account_link_state", sddc.AccountLinkState)
-	d.Set("sddc_access_state", sddc.SddcAccessState)
-	d.Set("sddc_type", sddc.SddcType)
-	d.Set("sddc_state", sddc.SddcState)
+	if err := d.Set("sddc_name", sddc.Name); err != nil {
+		return fmt.Errorf("error setting sddc_name: %v", err)
+	}
+	if err := d.Set("updated", sddc.Updated.String()); err != nil {
+		return fmt.Errorf("error setting updated: %v", err)
+	}
+	if err := d.Set("user_id", sddc.UserId); err != nil {
+		return fmt.Errorf("error setting user_id: %v", err)
+	}
+	if err := d.Set("updated_by_user_id", sddc.UpdatedByUserId); err != nil {
+		return fmt.Errorf("error setting updated_by_user_id: %v", err)
+	}
+	if err := d.Set("created", sddc.Created.String()); err != nil {
+		return fmt.Errorf("error setting created: %v", err)
+	}
+	if err := d.Set("version", sddc.Version); err != nil {
+		return fmt.Errorf("error setting version: %v", err)
+	}
+	if err := d.Set("updated_by_user_name", sddc.UpdatedByUserName); err != nil {
+		return fmt.Errorf("error setting updated_by_user_name: %v", err)
+	}
+	if err := d.Set("user_name", sddc.UserName); err != nil {
+		return fmt.Errorf("error setting user_name: %v", err)
+	}
+	if err := d.Set("org_id", sddc.OrgId); err != nil {
+		return fmt.Errorf("error setting org_id: %v", err)
+	}
+	if err := d.Set("sddc_type", sddc.SddcType); err != nil {
+		return fmt.Errorf("error setting sddc_type: %v", err)
+	}
+	if err := d.Set("account_link_state", sddc.AccountLinkState); err != nil {
+		return fmt.Errorf("error setting account_link_state: %v", err)
+	}
+	if err := d.Set("sddc_access_state", sddc.SddcAccessState); err != nil {
+		return fmt.Errorf("error setting sddc_access_state: %v", err)
+	}
+	if err := d.Set("sddc_state", sddc.SddcState); err != nil {
+		return fmt.Errorf("error setting sddc_state: %v", err)
+	}
 	if sddc.ResourceConfig != nil {
-		d.Set("vc_url", sddc.ResourceConfig.VcUrl)
-		d.Set("cloud_username", sddc.ResourceConfig.CloudUsername)
-		d.Set("nsxt_reverse_proxy_url", sddc.ResourceConfig.NsxApiPublicEndpointUrl)
-		d.Set("region", sddc.ResourceConfig.Region)
-		// Query the API for primary Cluster ID so only it's hosts can be added to the
+		if err := d.Set("vc_url", sddc.ResourceConfig.VcUrl); err != nil {
+			return fmt.Errorf("error setting vc_url: %v", err)
+		}
+		if err := d.Set("cloud_username", sddc.ResourceConfig.CloudUsername); err != nil {
+			return fmt.Errorf("error setting cloud_username: %v", err)
+		}
+		if err := d.Set("nsxt_reverse_proxy_url", sddc.ResourceConfig.NsxApiPublicEndpointUrl); err != nil {
+			return fmt.Errorf("error setting nsxt_reverse_proxy_url: %v", err)
+		}
+		if err := d.Set("region", sddc.ResourceConfig.Region); err != nil {
+			return fmt.Errorf("error setting region: %v", err)
+		}
+
+		// Query the API for primary Cluster ID so only its hosts can be added to the
 		// sddc host
 		primaryClusterClient := sddcs.NewPrimaryclusterClient(connectorWrapper)
 		primaryCluster, err := primaryClusterClient.Get(orgID, sddcID)
 		if err != nil {
 			return HandleReadError(d, "Primary Cluster", sddcID, err)
 		}
-		d.Set("num_host", getHostCountCluster(&sddc, primaryCluster.ClusterId))
-		d.Set("provider_type", sddc.ResourceConfig.Provider)
-		d.Set("availability_zones", sddc.ResourceConfig.AvailabilityZones)
-		d.Set("deployment_type", ConvertDeployType(*sddc.ResourceConfig.DeploymentType))
-		d.Set("sso_domain", *sddc.ResourceConfig.SsoDomain)
-		d.Set("skip_creating_vxlan", *sddc.ResourceConfig.SkipCreatingVxlan)
-		d.Set("nsxt_ui", *sddc.ResourceConfig.Nsxt)
+		if err := d.Set("num_host", getHostCountCluster(&sddc, primaryCluster.ClusterId)); err != nil {
+			return fmt.Errorf("error setting num_host: %v", err)
+		}
+		if err := d.Set("provider_type", sddc.ResourceConfig.Provider); err != nil {
+			return fmt.Errorf("error setting provider_type: %v", err)
+		}
+		if err := d.Set("availability_zones", sddc.ResourceConfig.AvailabilityZones); err != nil {
+			return fmt.Errorf("error setting availability_zones: %v", err)
+		}
+		if err := d.Set("deployment_type", ConvertDeployType(*sddc.ResourceConfig.DeploymentType)); err != nil {
+			return fmt.Errorf("error setting deployment_type: %v", err)
+		}
+		if err := d.Set("sso_domain", *sddc.ResourceConfig.SsoDomain); err != nil {
+			return fmt.Errorf("error setting sso_domain: %v", err)
+		}
+		if err := d.Set("skip_creating_vxlan", *sddc.ResourceConfig.SkipCreatingVxlan); err != nil {
+			return fmt.Errorf("error setting skip_creating_vxlan: %v", err)
+		}
+		if err := d.Set("nsxt_ui", *sddc.ResourceConfig.Nsxt); err != nil {
+			return fmt.Errorf("error setting nsxt_ui: %v", err)
+		}
 		if sddc.ResourceConfig.NsxCloudAdmin != nil {
-			d.Set("nsxt_cloudadmin", *sddc.ResourceConfig.NsxCloudAdmin)
+			if err := d.Set("nsxt_cloudadmin", *sddc.ResourceConfig.NsxCloudAdmin); err != nil {
+				return fmt.Errorf("error setting nsxt_cloudadmin: %v", err)
+			}
 			// Evade nil pointer dereference when user's access_token doesn't have NSX roles
 			if sddc.ResourceConfig.NsxCloudAdminPassword != nil {
-				_ = d.Set("nsxt_cloudadmin_password", *sddc.ResourceConfig.NsxCloudAdminPassword)
+				if err := d.Set("nsxt_cloudadmin_password", *sddc.ResourceConfig.NsxCloudAdminPassword); err != nil {
+					return fmt.Errorf("error setting nsxt_cloudadmin_password: %v", err)
+				}
 			}
 			if sddc.ResourceConfig.NsxCloudAuditPassword != nil {
-				_ = d.Set("nsxt_cloudaudit_password", *sddc.ResourceConfig.NsxCloudAuditPassword)
+				if err := d.Set("nsxt_cloudaudit_password", *sddc.ResourceConfig.NsxCloudAuditPassword); err != nil {
+					return fmt.Errorf("error setting nsxt_cloudaudit_password: %v", err)
+				}
 			}
-			d.Set("nsxt_cloudaudit", *sddc.ResourceConfig.NsxCloudAudit)
-			d.Set("nsxt_private_ip", *sddc.ResourceConfig.NsxMgrManagementIp)
-			d.Set("nsxt_private_url", *sddc.ResourceConfig.NsxMgrLoginUrl)
+			if err := d.Set("nsxt_cloudaudit", *sddc.ResourceConfig.NsxCloudAudit); err != nil {
+				return fmt.Errorf("error setting nsxt_cloudaudit: %v", err)
+			}
+			if err := d.Set("nsxt_private_ip", *sddc.ResourceConfig.NsxMgrManagementIp); err != nil {
+				return fmt.Errorf("error setting nsxt_private_ip: %v", err)
+			}
+			if err := d.Set("nsxt_private_url", *sddc.ResourceConfig.NsxMgrLoginUrl); err != nil {
+				return fmt.Errorf("error setting nsxt_private_url: %v", err)
+			}
 		}
 	}
 
