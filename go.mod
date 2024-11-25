@@ -5,7 +5,7 @@ go 1.22.0
 require (
 	github.com/gofrs/uuid/v5 v5.3.0
 	github.com/hashicorp/terraform-plugin-sdk/v2 v2.35.0
-	github.com/stretchr/testify v1.9.0
+	github.com/stretchr/testify v1.10.0
 	github.com/vmware/vsphere-automation-sdk-go/lib v0.7.0
 	github.com/vmware/vsphere-automation-sdk-go/runtime v0.7.0
 	github.com/vmware/vsphere-automation-sdk-go/services/nsxt-vmc-aws-integration v0.8.0
