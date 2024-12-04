@@ -207,7 +207,7 @@ BUG FIXES:
 
 * Added instructions for delay needed after SDDC creation for site recovery [\#21](https://github.com/vmware/terraform-provider-vmc/pull/21)
 * Removed capitalized error messages from code [\#23](https://github.com/vmware/terraform-provider-vmc/pull/23)
-* Updated module name in go.mod [\#24](https://github.com/vmware/terraform-provider-vmc/pull/24)
+* Updated module name in `go.mod`. [\#24](https://github.com/vmware/terraform-provider-vmc/pull/24)
 
 ENHANCEMENTS:
 

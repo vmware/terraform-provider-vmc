@@ -28,7 +28,7 @@ In addition to arguments listed above, the following attributes are exported:
 
 * `id` - SDDC identifier.
 
-* `region` - The AWS specific (e.g us-west-2) or VMC specific region (e.g US_WEST_2) of the cloud resources to work in.
+* `region` - The AWS specific (e.g. us-west-2) or VMC specific region (e.g. US_WEST_2) of the cloud resources to work in.
 
 * `sddc_name` -  Name of the SDDC.
 
@@ -50,7 +50,7 @@ In addition to arguments listed above, the following attributes are exported:
 
 * `vc_url` - VC URL.
 
-* `cloud_username` - Cloud user name.
+* `cloud_username` - Cloud username.
 
 * `nsxt_reverse_proxy_url` - NSXT reverse proxy url for managing public IP.
 

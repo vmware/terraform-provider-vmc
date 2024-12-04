@@ -120,7 +120,7 @@ resource "vmc_sddc" "sddc_1" {
 
 For deployment type "MultiAZ", a single SDDC can be deployed across two AWS availability zones. 
 
-When enabled the default number of ESXi hosts supported in a MultiAZ SDDC is 6. Additional hosts can be added later but must to be done in pairs across AWS availability zones.The MultiAZ SDDC requires an AWS VPC with two subnets, one subnet per availability zone.
+When enabled the default number of ESXi hosts supported in a MultiAZ SDDC is 6. Additional hosts can be added later but must be done in pairs across AWS availability zones.The MultiAZ SDDC requires an AWS VPC with two subnets, one subnet per availability zone.
 
 ## Example
 
@@ -168,7 +168,7 @@ The following arguments are supported:
 
 * `org_id` - (Required) Organization identifier.
 
-* `region` - (Required)  The AWS specific (e.g us-west-2) or VMC specific region (e.g US_WEST_2) of the cloud resources to work in.
+* `region` - (Required)  The AWS specific (e.g. us-west-2) or VMC specific region (e.g. US_WEST_2) of the cloud resources to work in.
 
 * `sddc_name` - (Required) Name of the SDDC.
 
@@ -178,7 +178,7 @@ The following arguments are supported:
                      			
 * `account_link_sddc_config` - (Optional) The account linking configuration object.
 
-* `host_instance_type` -  (Optional) The instance type for the esx hosts in the primary cluster of the SDDC. Possible values : I3_METAL, I3EN_METAL, I4I_METAL, and R5_METAL. Default value : I3_METAL. Currently I3EN_METAL host_instance_type does not support 1NODE and 2 node SDDC deployment. 
+* `host_instance_type` -  (Optional) The instance type for the esx hosts in the primary cluster of the SDDC. Possible values : I3_METAL, I3EN_METAL, I4I_METAL, and R5_METAL. Default value : I3_METAL. Currently, I3EN_METAL host_instance_type does not support 1NODE and 2 node SDDC deployment. 
 
 * `vpc_cidr` - (Optional) SDDC management network CIDR. Only prefix of 16, 20 and 23 are supported. Note : Specify a private subnet range (RFC 1918) to be used for 
    vCenter Server, NSX Manager, and ESXi hosts. Choose a range that will not conflict with other networks you will connect to this SDDC.
@@ -200,7 +200,7 @@ The following arguments are supported:
 
 * `sso_domain` - (Optional) The SSO domain name to use for vSphere users. If not specified, vmc.local will be used.
 
-* `sddc_template_id` - (Optional) If provided, configuration from the template will applied to the provisioned SDDC.
+* `sddc_template_id` - (Optional) If provided, configuration from the template will be applied to the provisioned SDDC.
 
 * `deployment_type` - (Optional) Denotes if request is for a SingleAZ or a MultiAZ SDDC. Default : SingleAZ.
 
