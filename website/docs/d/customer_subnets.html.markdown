@@ -21,7 +21,7 @@ data "vmc_customer_subnets" "my_subnets" {
 
 * `org_id` - (Computed) Organization identifier.
 
-* `region` - (Required) The AWS specific (e.g us-west-2) or VMC specific region (e.g US_WEST_2) of the cloud resources to work in.
+* `region` - (Required) The AWS specific (e.g. us-west-2) or VMC specific region (e.g. US_WEST_2) of the cloud resources to work in.
 
 * `num_hosts` - (Optional) The number of hosts.
 

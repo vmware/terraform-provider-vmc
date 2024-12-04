@@ -14,7 +14,7 @@ SPDX-License-Identifier: MPL-2.0
 
 The Terraform Provider for VMware Cloud on AWS is a Partner Tier provider.
 
-Partner providers are owned and maintained by a partner in the HashiCorp Technology Partner Program. HashiCorp verifies the authenticity of the publisher and the provider is listed on the [Terraform Registry][terraform-registry] with a partner tier label.
+Partner providers are owned and maintained by a partner in the HashiCorp Technology Partner Program. HashiCorp verifies the authenticity of the publisher and the provider are listed on the [Terraform Registry][terraform-registry] with a partner tier label.
 
 ### Configure the Terraform Configuration Files
 

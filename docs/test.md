@@ -16,7 +16,7 @@ create real resources, and often cost money to run.
 
 ## Configuring Environment Variables
 
-Set required environment variables based based on your infrastructure settings.
+Set required environment variables based on your infrastructure settings.
 
 ```sh
 $ # clientId and client secret of the test OAuth2.0 app attached to the test organization with at least
@@ -54,7 +54,7 @@ If you want to run against a specific set of tests, run `make testacc` with the
 $ make testacc TESTARGS="-run=TestAccResourceVmcSddc_basic"
 ```
 
-Additionally, A limited set of acceptance tests can be ran with the ZEROCLOUD
+Additionally, a limited set of acceptance tests can be run with the ZEROCLOUD
 cloud provider, which is much faster and cheaper, while providing decent API
 coverage:. For example:
 

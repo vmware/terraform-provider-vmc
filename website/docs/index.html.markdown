@@ -21,7 +21,7 @@ resources.
 In order to use the provider you need to obtain the authentication
 token from the Cloud Service Provider by providing the org scoped API token.
 The provider client uses Cloud Service Provider (CSP) API
-to exchange this org scoped API token/OAuth App Id and Secret for user access token.
+to exchange this org scoped API token/OAuth App ID and Secret for user access token.
 
 Note that in all the examples you will need to update the `client_id` and `client_secret` or `api_token` 
 and `org_id` settings in the variables.tf file to match those configured in your VMC environment.

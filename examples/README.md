@@ -2,7 +2,7 @@
 
 This is an example that demonstrates the creation of VMC resources like SDDC, cluster, public IP, site recovery and SRM node.
 
-For site recovery activation, a 10 minute delay must be added after SDDC is created and before site recovery can be activated.
+For site recovery activation, a 10-minute delay must be added after SDDC is created and before site recovery can be activated.
 
 To add delay after SDDC has been created, update SDDC resource in [main.tf](https://github.com/vmware/terraform-provider-vmc/blob/master/examples/main.tf) with local-exec provisioner:
 

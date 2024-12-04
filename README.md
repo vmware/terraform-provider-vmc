@@ -34,7 +34,7 @@ Learn more:
 
 The Terraform Provider for VMware Cloud on AWS is a Partner tier provider.
 
-Partner tier providers are owned and maintained by a partner in the HashiCorp Technology Partner Program. HashiCorp verifies the authenticity of the publisher and the provider is listed on the [Terraform Registry][terraform-registry] with a Partner tier label.
+Partner tier providers are owned and maintained by a partner in the HashiCorp Technology Partner Program. HashiCorp verifies the authenticity of the publisher and the provider are listed on the [Terraform Registry][terraform-registry] with a Partner tier label.
 
 To use a released version of the Terraform provider in your environment, run `terraform init` and Terraform will automatically install the provider from the Terraform Registry.
 
@@ -63,7 +63,7 @@ If you would like to submit a pull request, please read the [contribution guidel
 
 ## Support
 
-The Terraform Provider for VMware Cloud on AWS is supported by Broadcom and the provider community. For bugs and feature requests please open a Github Issue and label it appropriately or contact Broadcom support.
+The Terraform Provider for VMware Cloud on AWS is supported by Broadcom and the provider community. For bugs and feature requests please open a GitHub Issue and label it appropriately or contact Broadcom support.
 
 ## License
 
