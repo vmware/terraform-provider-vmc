@@ -1,5 +1,17 @@
 # Release History
 
+## 1.15.3
+
+> Release Date: 2025-02-11
+
+CHORE:
+
+- Updated `github.com/gofrs/uuid/v5` from 5.3.0 to 5.3.1. [#295](https://github.com/vmware/terraform-provider-vmc/pull/295)
+- Updated `github.com/hashicorp/terraform-plugin-sdk/v2` from 2.35.0 to 2.36.0. [#293](https://github.com/vmware/terraform-provider-vmc/pull/293)
+- Updated `golang.org/x/net` from 0.31.0 to 0.33.0. [#292](https://github.com/vmware/terraform-provider-vmc/pull/292)
+- Updated `golang.org/x/oauth2` from 0.24.0 to 0.25.0 [#291](https://github.com/vmware/terraform-provider-vmc/pull/291)
+- Updated `golang.org/x/crypto` from 0.29.0 to 0.31.0. [#290](https://github.com/vmware/terraform-provider-vmc/pull/290)
+
 ## 1.15.2
 
 > Release Date: 2024-12-09
@@ -138,7 +150,7 @@ FEATURES:
 FEATURES:
 
 - `num_hosts` property on SDDC now shows and controls the number of hosts in the primary cluster (created by default with an SDDC). Previously there was no way to scale up/down the number of hosts in the primary cluster
-- Cluster operations like Create/Update/Destroy on more than one cluster can now be initiated simultaneously, without the need for depends_on=[] 
+- Cluster operations like Create/Update/Destroy on more than one cluster can now be initiated simultaneously, without the need for depends_on=[]
 - Error reporting improvements
 
 BUG FIXES:
