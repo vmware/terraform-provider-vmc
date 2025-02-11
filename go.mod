@@ -5,7 +5,7 @@ go 1.22.7
 toolchain go1.23.3
 
 require (
-	github.com/gofrs/uuid/v5 v5.3.0
+	github.com/gofrs/uuid/v5 v5.3.1
 	github.com/hashicorp/terraform-plugin-sdk/v2 v2.36.0
 	github.com/stretchr/testify v1.10.0
 	github.com/vmware/vsphere-automation-sdk-go/lib v0.7.0
