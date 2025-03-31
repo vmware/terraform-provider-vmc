@@ -151,10 +151,10 @@ github.com/vmihailenco/msgpack/v5 v5.4.1 h1:cQriyiUvjTwOHg8QZaPihLWeRAAVoCpE00IU
 github.com/vmihailenco/msgpack/v5 v5.4.1/go.mod h1:GaZTsDaehaPpQVyxrf5mtQlH+pc21PIudVV/E3rRQok=
 github.com/vmihailenco/tagparser/v2 v2.0.0 h1:y09buUbR+b5aycVFQs/g70pqKVZNBmxwAhO7/IwNM9g=
 github.com/vmihailenco/tagparser/v2 v2.0.0/go.mod h1:Wri+At7QHww0WTrCBeu4J6bNtoV6mEfg5OIWRZA9qds=
-github.com/vmware/vsphere-automation-sdk-go/lib v0.7.0 h1:pT+oqJ8FD5eUBQkl+e7LZwwtbwPvW5kDyyGXvt66gOM=
-github.com/vmware/vsphere-automation-sdk-go/lib v0.7.0/go.mod h1:f3+6YVZpNcK2pYyiQ94BoHWmjMj9BnYav0vNFuTiDVM=
-github.com/vmware/vsphere-automation-sdk-go/runtime v0.7.0 h1:pSBxa9Agh6bgW8Hr0A1eQxuwnxGTnuAVox8iQb023hg=
-github.com/vmware/vsphere-automation-sdk-go/runtime v0.7.0/go.mod h1:qdzEFm2iK3dvlmm99EYYNxs70HbzuiHyENFD24Ps8fQ=
+github.com/vmware/vsphere-automation-sdk-go/lib v0.8.0 h1:u1SXOTM6D4Ygb3jeidj2RdFf2X2Sq+yu53SbPzyf23g=
+github.com/vmware/vsphere-automation-sdk-go/lib v0.8.0/go.mod h1:8d5JTwjpM/Z03n/IZb0fwmXkJNWvWwuLXBqoakqYio4=
+github.com/vmware/vsphere-automation-sdk-go/runtime v0.8.0 h1:KnDIX9LY0nru7iMQTg0sy9vChhyorPo5OdASM2MaAcI=
+github.com/vmware/vsphere-automation-sdk-go/runtime v0.8.0/go.mod h1:DzLetYAmw1+vj7bqElRWEpuy40WYE/woL3alsymYa/c=
 github.com/vmware/vsphere-automation-sdk-go/services/nsxt-vmc-aws-integration v0.8.0 h1:WajoIqQomDSObtcrDLE5NBoGBLSBb684mhvi1zU8LUM=
 github.com/vmware/vsphere-automation-sdk-go/services/nsxt-vmc-aws-integration v0.8.0/go.mod h1:htCzdCKX+aE4MvPBGYSgbgI9BtJqXTWzKhU6TQtTBlI=
 github.com/vmware/vsphere-automation-sdk-go/services/vmc v0.14.0 h1:h8apaqbHR8c2RAx3OJB1PGDICXrHE37nIEHXXnoAXkc=

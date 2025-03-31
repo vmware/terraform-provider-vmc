@@ -8,8 +8,8 @@ require (
 	github.com/gofrs/uuid/v5 v5.3.2
 	github.com/hashicorp/terraform-plugin-sdk/v2 v2.36.1
 	github.com/stretchr/testify v1.10.0
-	github.com/vmware/vsphere-automation-sdk-go/lib v0.7.0
-	github.com/vmware/vsphere-automation-sdk-go/runtime v0.7.0
+	github.com/vmware/vsphere-automation-sdk-go/lib v0.8.0
+	github.com/vmware/vsphere-automation-sdk-go/runtime v0.8.0
 	github.com/vmware/vsphere-automation-sdk-go/services/nsxt-vmc-aws-integration v0.8.0
 	github.com/vmware/vsphere-automation-sdk-go/services/vmc v0.14.0
 	github.com/vmware/vsphere-automation-sdk-go/services/vmc/autoscaler v0.6.0
