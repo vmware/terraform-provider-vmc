@@ -181,7 +181,7 @@ func resourceClusterCreate(d *schema.ResourceData, m interface{}) error {
 				unlockFunction()
 				// Obtain the ID of the newly created cluster
 				if task.Params.HasField(constants.ClusterIDFieldName) {
-					clusterID, err = task.Params.String(constants.ClusterIDFieldName)
+					clusterID, err = task.Params.StringField(constants.ClusterIDFieldName)
 					d.SetId(clusterID)
 				}
 			})
