@@ -73,7 +73,7 @@ The term "Broadcom" refers to Broadcom Inc. and/or its subsidiaries.
 The Terraform Provider for VMware Cloud on AWS is available under the [Mozilla Public License, version 2.0][provider-license] license.
 
 [golang-install]: https://golang.org/doc/install
-[product-documentation]: https://docs.vmware.com/en/VMware-Cloud-on-AWS/index.html
+[product-documentation]: https://techdocs.broadcom.com/us/en/vmware-cis/cloud/vmware-cloud-on-aws/SaaS.html
 [provider-contributing]: CONTRIBUTING.md
 [provider-discussions]: https://github.com/vmware/terraform-provider-vmc/discussions
 [provider-documentation]: https://registry.terraform.io/providers/vmware/vmc/latest/docs
