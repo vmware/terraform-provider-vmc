@@ -1,16 +1,11 @@
 ---
-layout: "vmc"
-
 page_title: "VMC: vmc_sddc_group"
-sidebar_current: "docs-vmc-resource-sddc-group"
-
-description: |-
-  Provides a resource to provision SDDC Group.
+description: A resource for adding SDDCs into an SDDC Group.
 ---
 
-# vmc_sddc_group
+# Resource: vmc_sddc_group
 
-Provides a resource include one or more SDDCs into an SDDC Group, increasing the network bandwidth between the SDDC members of the group
+Provides a resource to add SDDCs into an SDDC Group.
 
 ## Example
 
@@ -105,10 +100,11 @@ resource "vmc_sddc" "sddc_2" {
 
 ## Argument Reference
 
-The following arguments are supported:
+The following arguments are supported for this resource:
 
 * `name` - (Required) Name of the SDDC Group.
 
 * `description` - (Required)  Short description of the SDDC Group.
 
-* `sddc_member_ids` - (Required) IDs of the SDDCs to be included as members in the SDDC Group.
+* `sddc_member_ids` - (Required) IDs of the SDDCs to be included as members in
+  the SDDC Group.
