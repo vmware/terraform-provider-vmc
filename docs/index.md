@@ -1,5 +1,4 @@
 ---
-layout: "vmc"
 page_title: "Terraform Provider for VMware Cloud on AWS"
 sidebar_current: "docs-vmc-index"
 description: |-
@@ -23,7 +22,7 @@ token/OAuth App ID and Secret for user access token.
 terraform {
   required_providers {
     vcf = {
-      source = "vmware/vmc"
+      source  = "vmware/vmc"
       version = "x.y.z"
     }
   }
@@ -31,7 +30,7 @@ terraform {
 
 provider "vmc" {
   refresh_token = var.api_token
-  org_id = var.org_id
+  org_id        = var.org_id
 }
 
 data "vmc_connected_accounts" "my_accounts" {
@@ -60,7 +59,7 @@ resource "vmc_sddc" "sddc_1" {
     customer_subnet_ids  = [data.vmc_customer_subnets.my_subnets.ids[0]]
     connected_account_id = data.vmc_connected_accounts.my_accounts.id
   }
-  
+
   timeouts {
     create = "300m"
     update = "300m"
@@ -70,7 +69,7 @@ resource "vmc_sddc" "sddc_1" {
 
 resource "vmc_public_ip" "public_ip_1" {
   nsxt_reverse_proxy_url = vmc_sddc.sddc_1.nsxt_reverse_proxy_url
-  display_name = var.public_ip_displayname
+  display_name           = var.public_ip_displayname
 }
 ```
 
@@ -83,7 +82,7 @@ description of the purpose and how to use it.
 The following arguments are used to configure the provider:
 
 * `api_token` - (Required, in conflict with `client_id` and `client_secret`)
-  API token is used to authenticate when calling VMware Cloud Services APIs. 
+  API token is used to authenticate when calling VMware Cloud Services APIs.
   This token is scoped within the organization.
 * `client_id` - (Required in pair with `client_secret`, in conflict with `api_token`)
   ID of OAuth App associated with the organization. The combination with
@@ -96,4 +95,4 @@ The following arguments are used to configure the provider:
 * `vmc_url` - (Optional) VMware Cloud on AWS URL. Default: https://vmc.vmware.com
 * `csp_url` - (Optional) Cloud Service Provider URL. Default: https://console.cloud.vmware.com
 
-[product-documentation]: https://docs.vmware.com/en/VMware-Cloud-on-AWS/index.html
+[product-documentation]: https://techdocs.broadcom.com/us/en/vmware-cis/cloud/vmware-cloud-on-aws/SaaS.html
