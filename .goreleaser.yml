@@ -1,21 +1,20 @@
+---
 version: 2
+
+project_name: terraform-provider-vmc
 
 before:
   hooks:
     - go mod tidy
+
 builds:
-  - env:
-      - CGO_ENABLED=0
-    mod_timestamp: '{{ .CommitTimestamp }}'
-    flags:
-      - -trimpath
-    ldflags:
-      - '-s -w -X main.version={{.Version}} -X main.commit={{.Commit}}'
+  - id: default
+    binary: '{{ .ProjectName }}_v{{ .Version }}'
     goos:
-      - freebsd
-      - windows
       - linux
+      - windows
       - darwin
+      - freebsd
     goarch:
       - amd64
       - '386'
@@ -24,18 +23,29 @@ builds:
     ignore:
       - goos: darwin
         goarch: '386'
-    binary: '{{ .ProjectName }}_v{{ .Version }}'
+    env:
+      - CGO_ENABLED=0
+    flags:
+      - -trimpath
+    ldflags:
+      - '-s -w -X main.version={{.Version}} -X main.commit={{.Commit}}'
+    mod_timestamp: '{{ .CommitTimestamp }}'
+
 archives:
-  - format: zip
+  - id: default
     name_template: '{{ .ProjectName }}_{{ .Version }}_{{ .Os }}_{{ .Arch }}'
+    formats: ['zip']
+
 checksum:
+  name_template: '{{ .ProjectName }}_{{ .Version }}_SHA256SUMS'
+  algorithm: sha256
   extra_files:
     - glob: 'terraform-registry-manifest.json'
       name_template: '{{ .ProjectName }}_{{ .Version }}_manifest.json'
-  name_template: '{{ .ProjectName }}_{{ .Version }}_SHA256SUMS'
-  algorithm: sha256
+
 signs:
-  - artifacts: checksum
+  - id: default
+    artifacts: checksum
     args:
       - "--batch"
       - "--local-user"
@@ -44,9 +54,11 @@ signs:
       - "${signature}"
       - "--detach-sign"
       - "${artifact}"
+
 release:
   extra_files:
     - glob: 'terraform-registry-manifest.json'
       name_template: '{{ .ProjectName }}_{{ .Version }}_manifest.json'
+
 changelog:
   disable: true
