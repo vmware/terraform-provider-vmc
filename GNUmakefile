@@ -1,3 +1,5 @@
+export PATH := $(shell go env GOPATH)/bin:$(PATH)
+
 TEST ?= $(shell go list ./... | grep -v 'vendor')
 GOFMT_FILES ?= $(shell find . -name '*.go' | grep -v vendor)
 PKG_NAME = vmc
@@ -39,7 +41,6 @@ test-compile:
 	go test -c $(TEST) $(TESTARGS)
 
 tools:
-	GO111MODULE=on go install github.com/golangci/golangci-lint/cmd/golangci-lint
 	GO111MODULE=on go install -mod=mod github.com/katbyte/terrafmt
 
 docs-hcl-lint:
