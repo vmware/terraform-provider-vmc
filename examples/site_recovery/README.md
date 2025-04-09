@@ -1,47 +1,53 @@
-# Example: Site recovery management for SDDC
+# Example
 
-This is an example that demonstrates site recovery management actions like activation and deactivation after SDDC has been created.
+## Site Recovery Management for SDDC
+
+This is an example that demonstrates Site Recovery management actions like
+activation and deactivation after SDDC has been created.
 
 To run the example:
 
-* Generate an API token using [VMware Cloud on AWS console] (https://vmc.vmware.com/console/)
+* Generate an API token using
+  [VMware Cloud on AWS console](https://vmc.vmware.com/console/).
 
-* Update the required parameters api_token and org_id in [variables.tf](https://github.com/vmware/terraform-provider-vmc/blob/master/examples/site_recovery/variables.tf) with your infrastructure settings.
+* Update the required parameters `api_token` and `org_id` in the
+  [`variables.tf`](https://github.com/vmware/terraform-provider-vmc/blob/main/examples/site_recovery/variables.tf)
+  with your infrastructure settings.
 
-* Load the provider
+* Load the provider:
 
-```sh
-    terraform init
-```
+  ```sh
+  terraform init
+  ```
 
-* Execute the plan
+* Run the plan:
 
-```sh
-   terraform apply
-```
+  ```sh
+  terraform apply
+  ```
 
-or
+  or
 
-```sh
-   terraform apply -var="api_token=xxxx" -var="org_id=xxxx"
-```
+  ```sh
+  terraform apply -var="api_token=xxxx" -var="org_id=xxxx"
+  ```
 
-Verify site recovery has been activated successfully.
+  Verify Site Recovery has been activated successfully.
 
-* Check the terraform state
+* Check the state:
 
-```sh
-    terraform show
-```
+  ```sh
+  terraform show
+  ```
 
-* Deactivate site recovery
+* Deactivate Site Recovery:
 
-```sh
-    terraform destroy
-```
+  ```sh
+  terraform destroy
+  ```
 
-or
+  or
 
-```sh
-    terraform destroy -var="api_token=xxxx" -var="org_id=xxxx"
-```
+  ```sh
+  terraform destroy -var="api_token=xxxx" -var="org_id=xxxx"
+  ```

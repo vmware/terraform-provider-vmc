@@ -7,7 +7,7 @@ terraform {
 }
 provider "vmc" {
   refresh_token = var.api_token
-  org_id = var.org_id
+  org_id        = var.org_id
 }
 
 # Empty data source defined in order to store the org display name and name in terraform state
@@ -33,8 +33,8 @@ resource "vmc_sddc" "sddc_1" {
   delay_account_link  = false
   skip_creating_vxlan = false
   sso_domain          = "vmc.local"
-  sddc_type = var.sddc_type
-  deployment_type = "SingleAZ"
+  sddc_type           = var.sddc_type
+  deployment_type     = "SingleAZ"
 
   host_instance_type = var.host_instance_type
 
@@ -51,5 +51,5 @@ resource "vmc_sddc" "sddc_1" {
 
 resource "vmc_public_ip" "public_ip_1" {
   nsxt_reverse_proxy_url = vmc_sddc.sddc_1.nsxt_reverse_proxy_url
-  display_name = var.public_ip_displayname
+  display_name           = var.public_ip_displayname
 }

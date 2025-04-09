@@ -1,47 +1,53 @@
-# Example: Public IP management for SDDC
+# Example
 
-This is an example that demonstrates public IP management actions like creating and deleting public IP after SDDC has been created.
+## Public IP management for SDDC
+
+This is an example that demonstrates public IP management actions like creating
+and deleting public IP after SDDC has been created.
 
 To run the example:
 
-* Generate an API token using [VMware Cloud on AWS console] (https://vmc.vmware.com/console/)
+* Generate an API token using
+  [VMware Cloud on AWS console](https://vmc.vmware.com/console/).
 
-* Update the required parameters api_token and org_id in [variables.tf](https://github.com/vmware/terraform-provider-vmc/blob/master/examples/public_ip/variables.tf) with your infrastructure settings.
+* Update the required parameters `api_token` and `org_id` in the
+  [`variables.tf`](https://github.com/vmware/terraform-provider-vmc/blob/main/examples/public_ip/variables.tf)
+  with your infrastructure settings.
 
-* Load the provider
+* Load the provider:
 
-```sh
-    terraform init
-```
+  ```sh
+  terraform init
+  ```
 
-* Execute the plan
+* Run the plan:
 
-```sh
-   terraform apply
-```
+  ```sh
+  terraform apply
+  ```
 
-or
+  or
 
-```sh
-   terraform apply -var="api_token=xxxx" -var="org_id=xxxx"
-```
+  ```sh
+  terraform apply -var="api_token=xxxx" -var="org_id=xxxx"
+  ```
 
-Verify public IP has been created successfully.
+  Verify public IP has been created successfully.
 
-* Check the terraform state
+* Check the state:
 
-```sh
-    terraform show
-```
+  ```sh
+  terraform show
+  ```
 
-* Delete public IP
+* Delete public IP:
 
-```sh
-    terraform destroy
-```
+  ```sh
+  terraform destroy
+  ```
 
-or
+  or
 
-```sh
-    terraform destroy -var="api_token=xxxx" -var="org_id=xxxx"
-```
+  ```sh
+  terraform destroy -var="api_token=xxxx" -var="org_id=xxxx"
+  ```
