@@ -1,9 +1,12 @@
 ---
-name: Manage Stale Items
+name: Stale
 
 on:
   schedule:
     - cron: 00 00 * * *
+
+permissions:
+  contents: read
 
 jobs:
   stale:
@@ -12,13 +15,13 @@ jobs:
       issues: write
       pull-requests: write
     steps:
-      - uses: actions/stale@28ca1036281a5e5922ead5184a1bbf96e5fc984e # v9.0.0
+      - uses: actions/stale@5bef64f19d7facfb25b37b414482c7164d639639 # v9.1.0
         with:
-          repo-token: '${{ secrets.GITHUB_TOKEN }}'
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
           days-before-stale: 360
           days-before-close: 30
-          exempt-issue-labels: 'needs-triage'
-          exempt-pr-labels: 'needs-review'
+          exempt-issue-labels: needs-triage
+          exempt-pr-labels: needs-review
           remove-stale-when-updated: true
           delete-branch: false
           stale-issue-label: stale
