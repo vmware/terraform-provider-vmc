@@ -1,11 +1,11 @@
 variable "api_token" {
   description = "API token used to authenticate when calling the VMware Cloud Services API."
-  default = ""
+  default     = ""
 }
 
 variable "org_id" {
   description = "Organization Identifier."
-  default = ""
+  default     = ""
 }
 
 variable "aws_account_number" {
@@ -15,26 +15,26 @@ variable "aws_account_number" {
 
 variable "sddc_group_name" {
   description = "Name of the SDDC Group"
-  default = "sddc-group-test"
+  default     = "sddc-group-test"
 }
 
 variable "sddc_group_description" {
   description = "Short description of the SDDC Group"
-  default = "This SDDC Group increases the network bandwidth between the SDDC members"
+  default     = "This SDDC Group increases the network bandwidth between the SDDC members"
 }
 
-variable "sddc1_name"{
+variable "sddc1_name" {
   description = "Name of first SDDC."
-  default = "sddc-1-test"
+  default     = "sddc-1-test"
 }
 
-variable "sddc2_name"{
+variable "sddc2_name" {
   description = "Name of second SDDC."
-  default = "sddc-2-test"
+  default     = "sddc-2-test"
 }
 
 variable "sddc_region" {
-  description = "The AWS  or VMC specific region."
+  description = "The AWS or VMC specific region."
   default     = "us-west-2"
 }
 
@@ -53,32 +53,32 @@ variable "vxlan_subnet" {
   default     = ""
 }
 
-variable host_instance_type {
+variable "host_instance_type" {
   description = "The instance type for the ESX hosts in the primary cluster of the SDDC. Possible values: I3_METAL, I4I_METAL."
   default     = ""
 }
 
-variable sddc_primary_cluster_num_hosts {
+variable "sddc_primary_cluster_num_hosts" {
   description = "The number of hosts in the primary cluster of the SDDC."
   default     = 1
 }
 
-variable provider_type {
+variable "provider_type" {
   description = "Determines what additional properties are available based on cloud provider. Default value : AWS"
   default     = "AWS"
 }
 
-variable sddc_type {
+variable "sddc_type" {
   description = "Denotes the sddc type, if the value is null or empty, the type is considered as default. Possible values : '1NODE', 'DEFAULT'. "
-  default = "1NODE"
+  default     = "1NODE"
 }
 
-variable size {
+variable "size" {
   description = "The size of the vCenter and NSX appliances. 'large' or 'LARGE' SDDC size corresponds to a large vCenter appliance and large NSX appliance. 'medium' or 'MEDIUM' SDDC size corresponds to medium vCenter appliance and medium NSX appliance. Default : 'medium'."
-  default = "medium"
+  default     = "medium"
 }
 
-variable deployment_type {
+variable "deployment_type" {
   description = "Denotes if request is for a SingleAZ or a MultiAZ SDDC. Default : SingleAZ."
-  default = "SingleAZ"
+  default     = "SingleAZ"
 }

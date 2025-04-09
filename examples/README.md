@@ -1,84 +1,92 @@
-# Example: Creation of SDDC, public IP, cluster, site recovery and SRM node.
+# Example
 
-This is an example that demonstrates the creation of VMC resources like SDDC, cluster, public IP, site recovery and SRM node.
+## Creation of SDDC, Public IP, Cluster, Site Recovery, and SRM Node
 
-For site recovery activation, a 10-minute delay must be added after SDDC is created and before site recovery can be activated.
+This is an example that demonstrates the creation of VMC resources like SDDC,
+cluster, public IP, Site Recovery and SRM node.
 
-To add delay after SDDC has been created, update SDDC resource in [main.tf](https://github.com/vmware/terraform-provider-vmc/blob/master/examples/main.tf) with local-exec provisioner:
+For Site Recovery activation, a 10-minute delay must be added after SDDC is
+created and before Site Recovery can be activated.
 
-```sh
-    resource "vmc_sddc" "sddc_1" { 
-      sddc_name           = var.sddc_name
-      vpc_cidr            = var.vpc_cidr
-      num_host            = var.num_hosts
-      provider_type       = var.provider_type
-      region              = data.vmc_customer_subnets.my_subnets.region
-      vxlan_subnet        = var.vxlan_subnet
-      delay_account_link  = false
-      skip_creating_vxlan = false
-      sso_domain          = "vmc.local"
-      sddc_type = var.sddc_type
-      deployment_type = "SingleAZ"
-    
-      host_instance_type = var.host_instance_type
-    
-      account_link_sddc_config {
-        customer_subnet_ids  = [data.vmc_customer_subnets.my_subnets.ids[0]]
-        connected_account_id = data.vmc_connected_accounts.my_accounts.id
-      }
+To add delay after SDDC has been created, update SDDC resource in the
+[`main.tf`](https://github.com/vmware/terraform-provider-vmc/blob/main/examples/main.tf)
+with `local-exec` provisioner:
 
-      timeouts {
-        create = "300m"
-        update = "300m"
-        delete = "180m"
-      }
+```hcl
+resource "vmc_sddc" "sddc_1" {
+  sddc_name           = var.sddc_name
+  vpc_cidr            = var.vpc_cidr
+  num_host            = var.num_hosts
+  provider_type       = var.provider_type
+  region              = data.vmc_customer_subnets.my_subnets.region
+  vxlan_subnet        = var.vxlan_subnet
+  delay_account_link  = false
+  skip_creating_vxlan = false
+  sso_domain          = "vmc.local"
+  sddc_type           = var.sddc_type
+  deployment_type     = "SingleAZ"
 
-      # provisioner defined to add 10 minute delay after SDDC creation to enable site recovery activation.
-      provisioner "local-exec" {
-        command = "sleep 600"
-      }   
-    }
+  host_instance_type = var.host_instance_type
 
+  account_link_sddc_config {
+    customer_subnet_ids  = [data.vmc_customer_subnets.my_subnets.ids[0]]
+    connected_account_id = data.vmc_connected_accounts.my_accounts.id
+  }
+
+  timeouts {
+    create = "300m"
+    update = "300m"
+    delete = "180m"
+  }
+
+  # provisioner defined to add 10 minute delay after SDDC creation to enable site recovery activation.
+  provisioner "local-exec" {
+    command = "sleep 600"
+  }
+}
 ```
 
 To run the example:
 
-* Generate an API token using [VMware Cloud on AWS console] (https://vmc.vmware.com/console/)
+* Generate an API token using [VMware Cloud on AWS console]
+  (<https://vmc.vmware.com/console/>)
 
-* Update the required parameters api_token and org_id in [variables.tf](https://github.com/vmware/terraform-provider-vmc/blob/master/examples/variables.tf) with your infrastructure settings.
- 
-* Load the provider
+* Update the required parameters `api_token` and `org_id` in the
+  [`variables.tf`](https://github.com/vmware/terraform-provider-vmc/blob/main/examples/variables.tf)
+  with your infrastructure settings.
 
-```sh
-    terraform init
-```
+* Load the provider:
 
-* Execute the plan
+  ```sh
+  terraform init
+  ```
 
-```sh
-   terraform apply
-```
+* Run the plan:
 
-or
+  ```sh
+  terraform apply
+  ```
 
-```sh
-   terraform apply -var="api_token=xxxx" -var="org_id=xxxx"
-```
+  or
 
-* Check the terraform state
+  ```sh
+  terraform apply -var="api_token=xxxx" -var="org_id=xxxx"
+  ```
 
-```sh
-    terraform show
-```
+* Check the state:
+
+  ```sh
+  terraform show
+  ```
 
 * Delete VMC resources created during apply.
 
-```sh
-    terraform destroy
-```
+  ```sh
+  terraform destroy
+  ```
 
-or
+  or
 
-```sh
-    terraform destroy -var="api_token=xxxx" -var="org_id=xxxx"
-```
+  ```sh
+  terraform destroy -var="api_token=xxxx" -var="org_id=xxxx"
+  ```

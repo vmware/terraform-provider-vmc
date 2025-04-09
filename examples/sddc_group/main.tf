@@ -7,7 +7,7 @@ terraform {
 }
 provider "vmc" {
   refresh_token = var.api_token
-  org_id = var.org_id
+  org_id        = var.org_id
 }
 # Empty data source defined in order to store the org display name and name in terraform state
 data "vmc_org" "my_org" {
@@ -23,8 +23,8 @@ data "vmc_customer_subnets" "my_subnets" {
 }
 
 resource "vmc_sddc_group" "sddc_group" {
-  name  = var.sddc_group_name
-  description    = var.sddc_group_description
+  name            = var.sddc_group_name
+  description     = var.sddc_group_description
   sddc_member_ids = [vmc_sddc.sddc_1.id, vmc_sddc.sddc_2.id]
 }
 
@@ -49,7 +49,7 @@ resource "vmc_sddc" "sddc_1" {
   }
 
   microsoft_licensing_config {
-    mssql_licensing = "ENABLED"
+    mssql_licensing   = "ENABLED"
     windows_licensing = "DISABLED"
   }
 
@@ -81,7 +81,7 @@ resource "vmc_sddc" "sddc_2" {
   }
 
   microsoft_licensing_config {
-    mssql_licensing = "ENABLED"
+    mssql_licensing   = "ENABLED"
     windows_licensing = "DISABLED"
   }
 

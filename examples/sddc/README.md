@@ -1,47 +1,53 @@
-# Example: Provision an SDDC
+# Example
 
-This is an example that demonstrates SDDC management actions like creating, updating and deleting an existing SDDC.
+## Provision an SDDC
+
+This is an example that demonstrates SDDC management actions like creating,
+updating, and deleting an existing SDDC.
 
 To run the example:
 
-* Generate an API token using [VMware Cloud on AWS console] (https://vmc.vmware.com/console/)
+* Generate an API token using
+  [VMware Cloud on AWS console](https://vmc.vmware.com/console/).
 
-* Update the required parameters api_token and org_id in [variables.tf](https://github.com/vmware/terraform-provider-vmc/blob/master/examples/sddc/variables.tf) with your infrastructure settings.
+* Update the required parameters `api_token` and `org_id` in the
+  [`variables.tf`](https://github.com/vmware/terraform-provider-vmc/blob/main/examples/sddc/variables.tf)
+  with your infrastructure settings.
 
-* Load the provider
+* Load the provider:
 
-```sh
-    terraform init
-```
+  ```sh
+  terraform init
+  ```
 
-* Execute the plan
+* Run the plan:
 
-```sh
-   terraform apply
-```
+  ```sh
+  terraform apply
+  ```
 
-or
+  or
 
-```sh
-   terraform apply -var="api_token=xxxx" -var="org_id=xxxx"
-```
+  ```sh
+  terraform apply -var="api_token=xxxx" -var="org_id=xxxx"
+  ```
 
-Verify the SDDC has been created successfully.
+  Verify the SDDC has been created successfully.
 
-* Check the terraform state
+* Check the state:
 
-```sh
-    terraform show
-```
+  ```sh
+  terraform show
+  ```
 
-* Delete the SDDC
+* Delete the SDDC:
 
-```sh
-    terraform destroy
-```
+  ```sh
+  terraform destroy
+  ```
 
-or
+  or
 
-```sh
-    terraform destroy -var="api_token=xxxx" -var="org_id=xxxx"
-```
+  ```sh
+  terraform destroy -var="api_token=xxxx" -var="org_id=xxxx"
+  ```

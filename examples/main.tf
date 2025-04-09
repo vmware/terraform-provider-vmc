@@ -6,9 +6,9 @@ terraform {
   }
 }
 provider "vmc" {
-  client_id = var.client_id
+  client_id     = var.client_id
   client_secret = var.client_secret
-  org_id = var.org_id
+  org_id        = var.org_id
 }
 # Empty data source defined in order to store the org display name and name in terraform state
 data "vmc_org" "my_org" {
@@ -33,8 +33,8 @@ resource "vmc_sddc" "sddc_1" {
   delay_account_link  = false
   skip_creating_vxlan = false
   sso_domain          = "vmc.local"
-  sddc_type = var.sddc_type
-  deployment_type = "SingleAZ"
+  sddc_type           = var.sddc_type
+  deployment_type     = "SingleAZ"
 
   host_instance_type = var.host_instance_type
 
@@ -50,22 +50,22 @@ resource "vmc_sddc" "sddc_1" {
 }
 
 resource "vmc_cluster" "cluster_1" {
-  sddc_id = vmc_sddc.sddc_1.id
+  sddc_id   = vmc_sddc.sddc_1.id
   num_hosts = var.cluster_num_hosts
 }
 
 resource "vmc_public_ip" "public_ip_1" {
   nsxt_reverse_proxy_url = vmc_sddc.sddc_1.nsxt_reverse_proxy_url
-  display_name = var.public_ip_displayname
+  display_name           = var.public_ip_displayname
 }
 
 resource "vmc_site_recovery" "site_recovery_1" {
-  sddc_id = vmc_sddc.sddc_1.id
+  sddc_id                  = vmc_sddc.sddc_1.id
   srm_extension_key_suffix = var.site_recovery_srm_extension_key_suffix
 }
 
-resource "vmc_srm_node" "srm_node_1"{
-  sddc_id = vmc_sddc.sddc_1.id
+resource "vmc_srm_node" "srm_node_1" {
+  sddc_id                       = vmc_sddc.sddc_1.id
   srm_node_extension_key_suffix = var.srm_node_srm_extension_key_suffix
-  depends_on = [vmc_site_recovery.site_recovery_1]
+  depends_on                    = [vmc_site_recovery.site_recovery_1]
 }

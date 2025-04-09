@@ -7,7 +7,7 @@ terraform {
 }
 provider "vmc" {
   refresh_token = var.api_token
-  org_id = var.org_id
+  org_id        = var.org_id
 }
 # Empty data source defined in order to store the org display name and name in terraform state
 data "vmc_org" "my_org" {
@@ -33,11 +33,11 @@ resource "vmc_sddc" "sddc_1" {
   skip_creating_vxlan = false
   sso_domain          = "vmc.local"
 
-  deployment_type = var.deployment_type
+  deployment_type    = var.deployment_type
   host_instance_type = var.host_instance_type
 
   account_link_sddc_config {
-    customer_subnet_ids  = [data.vmc_customer_subnets.my_subnets.ids[0],data.vmc_customer_subnets.my_subnets.ids[1]]
+    customer_subnet_ids  = [data.vmc_customer_subnets.my_subnets.ids[0], data.vmc_customer_subnets.my_subnets.ids[1]]
     connected_account_id = data.vmc_connected_accounts.my_accounts.id
   }
   timeouts {
