@@ -6,7 +6,6 @@
 # https://golangci-lint.run/usage/configuration/
 
 issues:
-  max-per-linter: 0
   max-same-issues: 0
   exclude-rules:
     # Exclude errcheck for some rules.
@@ -18,7 +17,7 @@ issues:
     text: 'redefines-builtin-id: redefinition of the built-in'
 
 run:
-  deadline: 5m
+  timeout: 5m
 
 linters:
   disable-all: true
