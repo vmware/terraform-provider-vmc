@@ -7,7 +7,7 @@ terraform {
 }
 provider "vmc" {
   refresh_token = var.api_token
-  org_id = var.org_id
+  org_id        = var.org_id
 }
 
 # Empty data source defined in order to store the org display name and name in terraform state
@@ -33,7 +33,7 @@ resource "vmc_sddc" "sddc_1" {
   delay_account_link  = false
   skip_creating_vxlan = false
   sso_domain          = "vmc.local"
-  deployment_type = "SingleAZ"
+  deployment_type     = "SingleAZ"
 
   host_instance_type = var.host_instance_type
 
@@ -49,10 +49,10 @@ resource "vmc_sddc" "sddc_1" {
 }
 
 resource "vmc_cluster" "cluster_1" {
-  sddc_id = vmc_sddc.sddc_1.id
+  sddc_id   = vmc_sddc.sddc_1.id
   num_hosts = var.cluster_num_hosts
   microsoft_licensing_config {
-        mssql_licensing = "DISABLED"
-        windows_licensing = "ENABLED"
-    }
+    mssql_licensing   = "DISABLED"
+    windows_licensing = "ENABLED"
+  }
 }

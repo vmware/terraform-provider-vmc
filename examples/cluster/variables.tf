@@ -1,11 +1,11 @@
 variable "api_token" {
   description = "API token used to authenticate when calling the VMware Cloud Services API."
-  default = ""
+  default     = ""
 }
 
 variable "org_id" {
   description = "Organization Identifier."
-  default = ""
+  default     = ""
 }
 
 variable "aws_account_number" {
@@ -13,13 +13,13 @@ variable "aws_account_number" {
   default     = ""
 }
 
-variable "sddc_name"{
+variable "sddc_name" {
   description = "Name of SDDC."
-  default = "sddc-test"
+  default     = "sddc-test"
 }
 
 variable "sddc_region" {
-  description = "The AWS  or VMC specific region."
+  description = "The AWS or VMC specific region."
   default     = "us-west-2"
 }
 
@@ -33,22 +33,22 @@ variable "vxlan_subnet" {
   default     = ""
 }
 
-variable provider_type {
+variable "provider_type" {
   description = "Determines what additional properties are available based on cloud provider. Default value : AWS"
   default     = "AWS"
 }
 
-variable host_instance_type {
+variable "host_instance_type" {
   description = "The instance type for the ESX hosts in the primary cluster of the SDDC. Possible values: I3_METAL, I4I_METAL"
   default     = ""
 }
 
-variable cluster_num_hosts {
+variable "cluster_num_hosts" {
   description = "The number of hosts in the (secondary) cluster."
-  default = 3
+  default     = 3
 }
 
-variable sddc_primary_cluster_num_hosts {
+variable "sddc_primary_cluster_num_hosts" {
   description = "The number of hosts in the primary cluster of the SDDC."
   default     = 3
 }

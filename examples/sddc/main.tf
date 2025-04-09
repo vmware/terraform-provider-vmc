@@ -7,7 +7,7 @@ terraform {
 }
 provider "vmc" {
   refresh_token = var.api_token
-  org_id = var.org_id
+  org_id        = var.org_id
 }
 # Empty data source defined in order to store the org display name and name in terraform state
 data "vmc_org" "my_org" {
@@ -32,10 +32,10 @@ resource "vmc_sddc" "sddc_1" {
   delay_account_link  = false
   skip_creating_vxlan = false
   sso_domain          = "vmc.local"
-  sddc_type = var.sddc_type
-  deployment_type = var.deployment_type
-  size = var.size
-  host_instance_type = var.host_instance_type
+  sddc_type           = var.sddc_type
+  deployment_type     = var.deployment_type
+  size                = var.size
+  host_instance_type  = var.host_instance_type
 
   account_link_sddc_config {
     customer_subnet_ids  = [data.vmc_customer_subnets.my_subnets.ids[0]]
@@ -43,7 +43,7 @@ resource "vmc_sddc" "sddc_1" {
   }
 
   microsoft_licensing_config {
-    mssql_licensing = "ENABLED"
+    mssql_licensing   = "ENABLED"
     windows_licensing = "DISABLED"
   }
 
