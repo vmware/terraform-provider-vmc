@@ -1,5 +1,25 @@
 # Release History
 
+## 1.15.4
+
+> Release Date: 2025-04-21
+
+CHORE:
+
+- Updated `go` from 1.23.7 to v1.23.8. [#313](https://github.com/vmware/terraform-provider-vmc/pull/313)
+- Updated `github.com/hashicorp/terraform-plugin-sdk/v2` from 2.36.0 to 2.36.1. [#297](https://github.com/vmware/terraform-provider-vmc/pull/297)
+- Updated `golang.org/x/oauth2` from 0.26.0 to 0.23.0. [#300](https://github.com/vmware/terraform-provider-vmc/pull/300), [#307](https://github.com/vmware/terraform-provider-vmc/pull/307)
+- Updated `golang.org/x/net` from 0.34.0 to 0.36.0. [#301](https://github.com/vmware/terraform-provider-vmc/pull/301)
+- Updated `github.com/vmware/vsphere-automation-sdk-go` from 0.7.0 to 0.8.0. [#303](https://github.com/vmware/terraform-provider-vmc/pull/303)
+- Updated `github.com/golang-jwt/jwt/v4` from 4.5.1 to 4.5.2. [#304](https://github.com/vmware/terraform-provider-vmc/pull/304)
+- Updated `github.com/gofrs/uuid/v5` from 5.3.1 to 5.3.2. [#305](https://github.com/vmware/terraform-provider-vmc/pull/305)
+- Updated `goreleaser` configuration to v2. [#309](https://github.com/vmware/terraform-provider-vmc/pull/309)
+- Updated `golangci-lint` configuration to v2. [#317](https://github.com/vmware/terraform-provider-vmc/pull/317)
+- Updated GitHub Actions workflows. [#310](https://github.com/vmware/terraform-provider-vmc/pull/310), [#316](https://github.com/vmware/terraform-provider-vmc/pull/316)
+- Migrated documentation from legacy path. [#306](https://github.com/vmware/terraform-provider-vmc/pull/306)
+- Applied documentation HCL formatting. [#314](https://github.com/vmware/terraform-provider-vmc/pull/314)
+- Removed unused files. [#308](https://github.com/vmware/terraform-provider-vmc/pull/308), [#311](https://github.com/vmware/terraform-provider-vmc/pull/311)
+
 ## 1.15.3
 
 > Release Date: 2025-02-11
