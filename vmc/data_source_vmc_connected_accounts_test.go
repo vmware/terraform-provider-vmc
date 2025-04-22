@@ -9,9 +9,9 @@ import (
 	"os"
 	"testing"
 
-	"github.com/vmware/terraform-provider-vmc/vmc/constants"
+	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/vmware/terraform-provider-vmc/vmc/constants"
 )
 
 func TestAccDataSourceVmcConnectedAccountsBasic(t *testing.T) {

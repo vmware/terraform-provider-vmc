@@ -7,10 +7,10 @@ package vmc
 import (
 	"fmt"
 
-	"github.com/vmware/terraform-provider-vmc/vmc/connector"
-
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/vmware/vsphere-automation-sdk-go/services/vmc/orgs/account_link"
+
+	"github.com/vmware/terraform-provider-vmc/vmc/connector"
 )
 
 func dataSourceVmcConnectedAccounts() *schema.Resource {

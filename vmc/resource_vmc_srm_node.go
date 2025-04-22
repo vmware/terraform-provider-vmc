@@ -10,17 +10,16 @@ import (
 	"strings"
 	"time"
 
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
+	"github.com/vmware/vsphere-automation-sdk-go/services/vmc/draas"
+	draasmodel "github.com/vmware/vsphere-automation-sdk-go/services/vmc/draas/model"
+	"github.com/vmware/vsphere-automation-sdk-go/services/vmc/model"
+
 	"github.com/vmware/terraform-provider-vmc/vmc/connector"
 	"github.com/vmware/terraform-provider-vmc/vmc/constants"
 	task "github.com/vmware/terraform-provider-vmc/vmc/task"
-	"github.com/vmware/vsphere-automation-sdk-go/services/vmc/model"
-
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
-
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-	"github.com/vmware/vsphere-automation-sdk-go/services/vmc/draas"
-	draasmodel "github.com/vmware/vsphere-automation-sdk-go/services/vmc/draas/model"
 )
 
 // srmNodeCreationLockMutex a mutex that allows only a single srm node per sddc to be created.

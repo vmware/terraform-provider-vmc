@@ -10,16 +10,15 @@ import (
 	"strings"
 	"time"
 
-	"github.com/vmware/terraform-provider-vmc/vmc/connector"
-	task "github.com/vmware/terraform-provider-vmc/vmc/task"
-
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
-
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 	"github.com/vmware/vsphere-automation-sdk-go/services/vmc/draas"
 	draasmodel "github.com/vmware/vsphere-automation-sdk-go/services/vmc/draas/model"
 	"github.com/vmware/vsphere-automation-sdk-go/services/vmc/model"
+
+	"github.com/vmware/terraform-provider-vmc/vmc/connector"
+	task "github.com/vmware/terraform-provider-vmc/vmc/task"
 )
 
 func resourceSiteRecovery() *schema.Resource {

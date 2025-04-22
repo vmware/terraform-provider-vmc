@@ -11,9 +11,10 @@ import (
 	"io"
 	"net/http"
 
-	"github.com/vmware/terraform-provider-vmc/vmc/connector"
 	"github.com/vmware/vsphere-automation-sdk-go/runtime/protocol/client"
 	"github.com/vmware/vsphere-automation-sdk-go/runtime/security"
+
+	"github.com/vmware/terraform-provider-vmc/vmc/connector"
 )
 
 const authnHeader = "csp-auth-token"

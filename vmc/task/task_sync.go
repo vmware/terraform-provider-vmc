@@ -10,9 +10,10 @@ import (
 	"sync"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
-	"github.com/vmware/terraform-provider-vmc/vmc/connector"
 	"github.com/vmware/vsphere-automation-sdk-go/lib/vapi/std/errors"
 	"github.com/vmware/vsphere-automation-sdk-go/services/vmc/model"
+
+	"github.com/vmware/terraform-provider-vmc/vmc/connector"
 )
 
 // KeyedMutex Mutex that operates multiple locks, based  on a string key.
