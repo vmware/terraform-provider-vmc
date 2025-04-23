@@ -8,9 +8,9 @@ import (
 	"os"
 	"testing"
 
-	"github.com/vmware/terraform-provider-vmc/vmc/constants"
-
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+
+	"github.com/vmware/terraform-provider-vmc/vmc/constants"
 )
 
 var testAccProviders map[string]*schema.Provider

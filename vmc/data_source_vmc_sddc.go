@@ -8,12 +8,12 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/vmware/terraform-provider-vmc/vmc/connector"
-	"github.com/vmware/vsphere-automation-sdk-go/services/vmc/orgs/sddcs"
-
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/vmware/vsphere-automation-sdk-go/lib/vapi/std/errors"
 	"github.com/vmware/vsphere-automation-sdk-go/services/vmc/orgs"
+	"github.com/vmware/vsphere-automation-sdk-go/services/vmc/orgs/sddcs"
+
+	"github.com/vmware/terraform-provider-vmc/vmc/connector"
 )
 
 func dataSourceVmcSddc() *schema.Resource {

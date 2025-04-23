@@ -9,8 +9,9 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
-	"github.com/vmware/terraform-provider-vmc/vmc/constants"
 	"github.com/vmware/vsphere-automation-sdk-go/services/vmc/model"
+
+	"github.com/vmware/terraform-provider-vmc/vmc/constants"
 )
 
 func TestToHostInstanceType(t *testing.T) {

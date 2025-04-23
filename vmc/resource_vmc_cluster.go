@@ -11,10 +11,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/vmware/terraform-provider-vmc/vmc/connector"
-	"github.com/vmware/terraform-provider-vmc/vmc/constants"
-	task "github.com/vmware/terraform-provider-vmc/vmc/task"
-
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
@@ -23,6 +19,10 @@ import (
 	"github.com/vmware/vsphere-automation-sdk-go/services/vmc/model"
 	"github.com/vmware/vsphere-automation-sdk-go/services/vmc/orgs/sddcs"
 	"github.com/vmware/vsphere-automation-sdk-go/services/vmc/orgs/sddcs/clusters/msft_licensing"
+
+	"github.com/vmware/terraform-provider-vmc/vmc/connector"
+	"github.com/vmware/terraform-provider-vmc/vmc/constants"
+	task "github.com/vmware/terraform-provider-vmc/vmc/task"
 )
 
 // clusterMutationKeyedMutex a mutex that allows only a single cluster per sddc to be mutated.

@@ -15,12 +15,12 @@ import (
 	"reflect"
 	"strings"
 
-	"github.com/vmware/terraform-provider-vmc/vmc/constants"
-	"golang.org/x/oauth2/clientcredentials"
-
 	"github.com/vmware/vsphere-automation-sdk-go/runtime/core"
 	"github.com/vmware/vsphere-automation-sdk-go/runtime/protocol/client"
 	"github.com/vmware/vsphere-automation-sdk-go/runtime/security"
+	"golang.org/x/oauth2/clientcredentials"
+
+	"github.com/vmware/terraform-provider-vmc/vmc/constants"
 )
 
 type Authenticator interface {

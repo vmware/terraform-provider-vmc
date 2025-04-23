@@ -8,12 +8,12 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/vmware/terraform-provider-vmc/vmc/connector"
+	"github.com/gofrs/uuid/v5"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/vmware/vsphere-automation-sdk-go/services/nsxt-vmc-aws-integration/nsx_vmc_app/infra"
 	"github.com/vmware/vsphere-automation-sdk-go/services/nsxt-vmc-aws-integration/nsx_vmc_app/model"
 
-	"github.com/gofrs/uuid/v5"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/vmware/terraform-provider-vmc/vmc/connector"
 )
 
 func resourcePublicIP() *schema.Resource {

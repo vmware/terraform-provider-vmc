@@ -14,10 +14,11 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
+	"github.com/vmware/vsphere-automation-sdk-go/services/vmc/model"
+
 	"github.com/vmware/terraform-provider-vmc/vmc/connector"
 	"github.com/vmware/terraform-provider-vmc/vmc/sddcgroup"
 	"github.com/vmware/terraform-provider-vmc/vmc/task"
-	"github.com/vmware/vsphere-automation-sdk-go/services/vmc/model"
 )
 
 func resourceSddcGroup() *schema.Resource {

@@ -5,11 +5,12 @@
 package task
 
 import (
-	"github.com/vmware/terraform-provider-vmc/vmc/connector"
 	autoscalerapi "github.com/vmware/vsphere-automation-sdk-go/services/vmc/autoscaler/api"
 	"github.com/vmware/vsphere-automation-sdk-go/services/vmc/draas"
 	"github.com/vmware/vsphere-automation-sdk-go/services/vmc/model"
 	"github.com/vmware/vsphere-automation-sdk-go/services/vmc/orgs"
+
+	"github.com/vmware/terraform-provider-vmc/vmc/connector"
 )
 
 // The following functions create API clients and poll for tasks with the provided ID.
