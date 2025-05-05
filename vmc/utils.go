@@ -85,7 +85,7 @@ func getNsxtReverseProxyURLConnector(nsxtReverseProxyURL string, wrapper *connec
 	if wrapper == nil {
 		return nil, fmt.Errorf("nil connector.Wrapper provided")
 	}
-	nsxtReverseProxyURL = strings.Replace(nsxtReverseProxyURL, constants.SksNSXTManager, "", -1)
+	nsxtReverseProxyURL = strings.ReplaceAll(nsxtReverseProxyURL, constants.SksNSXTManager, "")
 	copyWrapper := connector.CopyWrapper(*wrapper)
 	// The wrapper uses the VmcURL as service URL, so setting it to the NSX URL will
 	// force authentication against the NSX instance
