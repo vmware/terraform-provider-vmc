@@ -36,9 +36,6 @@ linters:
       - linters:
           - errcheck
         text: Error return value of `d.Set` is not checked
-      - linters:
-          - staticcheck
-        text: 'QF1004: could use strings.ReplaceAll instead'
     paths:
       - third_party$
       - builtin$
