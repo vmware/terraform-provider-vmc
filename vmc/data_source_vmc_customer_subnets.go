@@ -33,8 +33,8 @@ func dataSourceVmcCustomerSubnets() *schema.Resource {
 				ValidateFunc: validation.All(
 					validation.NoZeroValues,
 				),
-				DiffSuppressFunc: func(_, old, new string, _ *schema.ResourceData) bool {
-					return old == strings.ReplaceAll(strings.ToUpper(new), "-", "_")
+				DiffSuppressFunc: func(_, o, n string, _ *schema.ResourceData) bool {
+					return o == strings.ReplaceAll(strings.ToUpper(n), "-", "_")
 				},
 			},
 			"num_hosts": {
