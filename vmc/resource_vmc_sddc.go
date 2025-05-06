@@ -553,13 +553,14 @@ func resourceSddcUpdate(d *schema.ResourceData, m interface{}) error {
 			_, newTmp := d.GetChange("num_host")
 			newNum := newTmp.(int)
 
-			if newNum == 2 { // 2node SDDC creation
+			switch newNum {
+			case 2: // 2node SDDC creation
 				err := resourceSddcDelete(d, m)
 				if err != nil {
 					return err
 				}
 				return resourceSddcCreate(d, m)
-			} else if newNum == 3 { // 3node SDDC scale up
+			case 3: // 3node SDDC scale up
 				convertClient := sddcs.NewConvertClient(connectorWrapper)
 				sddcTypeUpdateTask, err := convertClient.Create(orgID, sddcID, nil)
 
@@ -582,7 +583,7 @@ func resourceSddcUpdate(d *schema.ResourceData, m interface{}) error {
 				if err != nil {
 					return err
 				}
-			} else {
+			default:
 				return fmt.Errorf("scaling SDDC is not supported. Please check sddc_type and num_host")
 			}
 		}
