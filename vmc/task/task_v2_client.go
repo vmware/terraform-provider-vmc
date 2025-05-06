@@ -101,7 +101,7 @@ func (client *V2ClientImpl) getBaseURL() string {
 // executeRequest Returns the body of the response as byte array pointer, the status code
 // or any error that may have occurred during the Http communication.
 func (client *V2ClientImpl) executeRequest(
-	request *http.Request) (responseBody *[]byte, statusCode int, error error) {
+	request *http.Request) (responseBody *[]byte, statusCode int, responseErr error) {
 	response, err := client.HTTPClient.Do(request)
 	defer func(Body io.ReadCloser) {
 		err := Body.Close()

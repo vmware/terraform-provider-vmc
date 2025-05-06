@@ -150,8 +150,8 @@ func sddcSchema() map[string]*schema.Schema {
 			ValidateFunc: validation.All(
 				validation.NoZeroValues,
 			),
-			DiffSuppressFunc: func(_, old, new string, _ *schema.ResourceData) bool {
-				return old == strings.ReplaceAll(strings.ToUpper(new), "-", "_")
+			DiffSuppressFunc: func(_, o, n string, _ *schema.ResourceData) bool {
+				return o == strings.ReplaceAll(strings.ToUpper(n), "-", "_")
 			},
 		},
 		"cluster_id": {
