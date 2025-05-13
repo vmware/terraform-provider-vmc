@@ -23,10 +23,10 @@ type Client interface {
 	connector.Authenticator
 	ValidateCreateSddcGroup(sddcIDs *[]string) error
 	ValidateUpdateSddcGroupMembers(groupID string, sddcIDs *[]string) error
-	GetSddcGroup(groupID string) (sddcGroup DeploymentGroup, error error)
-	CreateSddcGroup(name string, description string, sddcIDs *[]string) (groupID string, taskID string, error error)
-	UpdateSddcGroupMembers(groupID string, sddcIDsToAdd *[]string, sddcIDsToRemove *[]string) (taskID string, error error)
-	DeleteSddcGroup(groupID string) (taskID string, error error)
+	GetSddcGroup(groupID string) (sddcGroup DeploymentGroup, responseErr error)
+	CreateSddcGroup(name string, description string, sddcIDs *[]string) (groupID string, taskID string, responseErr error)
+	UpdateSddcGroupMembers(groupID string, sddcIDsToAdd *[]string, sddcIDsToRemove *[]string) (taskID string, responseErr error)
+	DeleteSddcGroup(groupID string) (taskID string, responseErr error)
 }
 
 // HTTPClient an interface, that is implemented by the http.DefaultClient,
@@ -159,7 +159,7 @@ func (client *ClientImpl) GetSddcGroup(groupID string) (*DeploymentGroup,
 func (client *ClientImpl) CreateSddcGroup(
 	name string,
 	description string,
-	sddcIDs *[]string) (groupID string, taskID string, error error) {
+	sddcIDs *[]string) (groupID string, taskID string, createErr error) {
 	createGroupNetworkConnectivityRequest := CreateGroupNetworkConnectivityRequest{}
 
 	createGroupNetworkConnectivityRequest.Name = name
@@ -199,7 +199,7 @@ func (client *ClientImpl) CreateSddcGroup(
 }
 
 func (client *ClientImpl) UpdateSddcGroupMembers(
-	groupID string, sddcIDsToAdd *[]string, sddcIDsToRemove *[]string) (taskID string, error error) {
+	groupID string, sddcIDsToAdd *[]string, sddcIDsToRemove *[]string) (taskID string, responseErr error) {
 	var addMembers []DeploymentGroupMember
 	var removeMembers []DeploymentGroupMember
 
@@ -226,7 +226,7 @@ func (client *ClientImpl) UpdateSddcGroupMembers(
 	return networkOperationResponse.Config.OperationID, nil
 }
 
-func (client *ClientImpl) DeleteSddcGroup(groupID string) (taskID string, error error) {
+func (client *ClientImpl) DeleteSddcGroup(groupID string) (taskID string, responseErr error) {
 	resourceID, err := client.getResourceIDFromGroupID(groupID)
 	if err != nil {
 		return "", err
@@ -240,7 +240,7 @@ func (client *ClientImpl) DeleteSddcGroup(groupID string) (taskID string, error 
 	return networkOperationResponse.ID, nil
 }
 
-func (client *ClientImpl) getResourceIDFromGroupID(groupID string) (resourceID string, error error) {
+func (client *ClientImpl) getResourceIDFromGroupID(groupID string) (resourceID string, responseErr error) {
 	getResourceIDURL := client.getBaseURL() + fmt.Sprintf(
 		"/network/%s/core/network-connectivity-configs?group_id=%s", client.connector.OrgID, groupID)
 
@@ -259,7 +259,7 @@ func (client *ClientImpl) getResourceIDFromGroupID(groupID string) (resourceID s
 		statusCode, string(*rawResponse))
 }
 
-func (client *ClientImpl) executeNetworkOperation(networkOperation *NetworkOperation) (networkOperationResponse *NetworkOperation, error error) {
+func (client *ClientImpl) executeNetworkOperation(networkOperation *NetworkOperation) (networkOperationResponse *NetworkOperation, responseErr error) {
 	networkOperationResponse = nil
 	requestPayload, err := json.Marshal(networkOperation)
 	if err != nil {
@@ -297,7 +297,7 @@ func (client *ClientImpl) getNetworkOperationsURL() string {
 // executeRequest Returns the body of the response as byte array pointer, the status code
 // or any error that may have occurred during the Http communication.
 func (client *ClientImpl) executeRequest(
-	request *http.Request) (responseBody *[]byte, statusCode int, error error) {
+	request *http.Request) (responseBody *[]byte, statusCode int, responseErr error) {
 	response, err := client.httpClient.Do(request)
 	defer func(Body io.ReadCloser) {
 		err := Body.Close()
