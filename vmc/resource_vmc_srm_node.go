@@ -44,7 +44,9 @@ func resourceSrmNode() *schema.Resource {
 				}
 
 				d.SetId(idParts[0])
-				d.Set("sddc_id", idParts[1])
+				if err := d.Set("sddc_id", idParts[1]); err != nil {
+					return nil, err
+				}
 				return []*schema.ResourceData{d}, nil
 			},
 		},
@@ -130,7 +132,9 @@ func resourceSrmNodeRead(d *schema.ResourceData, m interface{}) error {
 		return HandleReadError(d, "SRM Node", sddcID, err)
 	}
 	srmNodeMap := map[string]string{}
-	d.Set("sddc_id", *siteRecovery.SddcId)
+	if err := d.Set("sddc_id", *siteRecovery.SddcId); err != nil {
+		return err
+	}
 	for _, SRMNode := range siteRecovery.SrmNodes {
 		if *SRMNode.Id == srmNodeID {
 			srmNodeMap["id"] = *SRMNode.Id
@@ -144,11 +148,15 @@ func resourceSrmNodeRead(d *schema.ResourceData, m interface{}) error {
 			}
 			hostName := strings.TrimPrefix(*SRMNode.Hostname, constants.SrmPrefix)
 			partStr := strings.Split(hostName, constants.SddcSuffix)
-			d.Set("srm_node_extension_key_suffix", partStr[0])
+			if err := d.Set("srm_node_extension_key_suffix", partStr[0]); err != nil {
+				return err
+			}
 			break
 		}
 	}
-	d.Set("srm_instance", srmNodeMap)
+	if err := d.Set("srm_instance", srmNodeMap); err != nil {
+		return err
+	}
 	return nil
 }
 
