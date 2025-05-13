@@ -35,7 +35,9 @@ func resourcePublicIP() *schema.Resource {
 					return nil, fmt.Errorf("invalid format for nsxt_reverse_proxy_url : %v", err)
 				}
 				d.SetId(idParts[0])
-				d.Set("nsxt_reverse_proxy_url", idParts[1])
+				if err := d.Set("nsxt_reverse_proxy_url", idParts[1]); err != nil {
+					return nil, err
+				}
 				return []*schema.ResourceData{d}, nil
 			},
 		},
@@ -108,8 +110,12 @@ func resourcePublicIPRead(d *schema.ResourceData, m interface{}) error {
 		if err != nil {
 			return HandleReadError(d, "Public IP", uuid, err)
 		}
-		d.Set("ip", publicIP.Ip)
-		d.Set("display_name", publicIP.DisplayName)
+		if err := d.Set("ip", publicIP.Ip); err != nil {
+			return err
+		}
+		if err := d.Set("display_name", publicIP.DisplayName); err != nil {
+			return err
+		}
 	} else {
 		displayName := d.Get("display_name").(string)
 		if len(displayName) > 0 {
@@ -121,8 +127,12 @@ func resourcePublicIPRead(d *schema.ResourceData, m interface{}) error {
 			publicIpsList := publicIPResultList.Results
 			for _, publicIP := range publicIpsList {
 				if displayName == *publicIP.DisplayName {
-					d.Set("ip", publicIP.Ip)
-					d.Set("display_name", publicIP.DisplayName)
+					if err := d.Set("ip", publicIP.Ip); err != nil {
+						return err
+					}
+					if err := d.Set("display_name", publicIP.DisplayName); err != nil {
+						return err
+					}
 					break
 				}
 			}
@@ -156,7 +166,9 @@ func resourcePublicIPUpdate(d *schema.ResourceData, m interface{}) error {
 			return HandleUpdateError("Public IP", err)
 		}
 
-		d.Set("display_name", publicIP.DisplayName)
+		if err := d.Set("display_name", publicIP.DisplayName); err != nil {
+			return err
+		}
 	}
 
 	return resourcePublicIPRead(d, m)

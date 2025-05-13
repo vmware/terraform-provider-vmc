@@ -126,8 +126,12 @@ func dataSourceVmcCustomerSubnetsRead(d *schema.ResourceData, m interface{}) err
 		return HandleDataSourceReadError("Customer Subnets", err)
 	}
 
-	d.Set("ids", ids)
-	d.Set("customer_available_zones", compatibleSubnets.CustomerAvailableZones)
+	if err := d.Set("ids", ids); err != nil {
+		return err
+	}
+	if err := d.Set("customer_available_zones", compatibleSubnets.CustomerAvailableZones); err != nil {
+		return err
+	}
 	d.SetId(fmt.Sprintf("%s-%s", orgID, accountID))
 	return nil
 }

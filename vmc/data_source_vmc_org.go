@@ -44,8 +44,12 @@ func dataSourceVmcOrgRead(d *schema.ResourceData, m interface{}) error {
 		return HandleDataSourceReadError("VMC Organization", err)
 	}
 	d.SetId(orgID)
-	d.Set("display_name", org.DisplayName)
-	d.Set("name", org.Name)
+	if err := d.Set("display_name", org.DisplayName); err != nil {
+		return err
+	}
+	if err := d.Set("name", org.Name); err != nil {
+		return err
+	}
 
 	return nil
 }

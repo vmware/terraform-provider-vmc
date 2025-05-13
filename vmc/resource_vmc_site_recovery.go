@@ -134,10 +134,18 @@ func resourceSiteRecoveryRead(d *schema.ResourceData, m interface{}) error {
 		return HandleReadError(d, "Site recovery", sddcID, err)
 	}
 	d.SetId(siteRecovery.Id)
-	d.Set("site_recovery_state", siteRecovery.SiteRecoveryState)
-	d.Set("draas_h5_url", siteRecovery.DraasH5Url)
-	d.Set("user_id", siteRecovery.UserId)
-	d.Set("user_name", siteRecovery.UserName)
+	if err := d.Set("site_recovery_state", siteRecovery.SiteRecoveryState); err != nil {
+		return err
+	}
+	if err := d.Set("draas_h5_url", siteRecovery.DraasH5Url); err != nil {
+		return err
+	}
+	if err := d.Set("user_id", siteRecovery.UserId); err != nil {
+		return err
+	}
+	if err := d.Set("user_name", siteRecovery.UserName); err != nil {
+		return err
+	}
 
 	srmExtensionKey := d.Get("srm_extension_key_suffix").(string)
 	srmNodeMap := map[string]string{}
@@ -180,9 +188,15 @@ func resourceSiteRecoveryRead(d *schema.ResourceData, m interface{}) error {
 	vrNodeMap["type"] = *siteRecovery.VrNode.Type_
 	vrNodeMap["state"] = *siteRecovery.VrNode.State
 	vrNodeMap["ip_address"] = *siteRecovery.VrNode.IpAddress
-	d.Set("sddc_id", *siteRecovery.SddcId)
-	d.Set("srm_node", srmNodeMap)
-	d.Set("vr_node", vrNodeMap)
+	if err := d.Set("sddc_id", *siteRecovery.SddcId); err != nil {
+		return err
+	}
+	if err := d.Set("srm_node", srmNodeMap); err != nil {
+		return err
+	}
+	if err := d.Set("vr_node", vrNodeMap); err != nil {
+		return err
+	}
 	return nil
 }
 

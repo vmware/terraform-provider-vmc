@@ -408,30 +408,53 @@ func resourceSddcRead(d *schema.ResourceData, m interface{}) error {
 
 	d.SetId(sddc.Id)
 
-	d.Set("sddc_name", sddc.Name)
-	// The Terraform SDK does not support the use of time.Time type, so save the string
-	// representation
-	d.Set("updated", sddc.Updated.String())
-	d.Set("user_id", sddc.UserId)
-	d.Set("updated_by_user_id", sddc.UpdatedByUserId)
-	d.Set("created", sddc.Created.String())
-	d.Set("version", sddc.Version)
-	d.Set("updated_by_user_name", sddc.UpdatedByUserName)
-	d.Set("user_name", sddc.UserName)
-	d.Set("org_id", sddc.OrgId)
-	d.Set("sddc_type", sddc.SddcType)
-	// the key "provider" is reserved by the Terraform SDK, however the same information
-	// is provided by the sddc.ResourceConfig.Provider variable
-	//d.Set("provider", sddc.Provider)
-	d.Set("account_link_state", sddc.AccountLinkState)
-	d.Set("sddc_access_state", sddc.SddcAccessState)
-	d.Set("sddc_state", sddc.SddcState)
+	if err := d.Set("sddc_name", sddc.Name); err != nil {
+		return err
+	}
+	if err := d.Set("updated", sddc.Updated.String()); err != nil {
+		return err
+	}
+	if err := d.Set("user_id", sddc.UserId); err != nil {
+		return err
+	}
+	if err := d.Set("updated_by_user_id", sddc.UpdatedByUserId); err != nil {
+		return err
+	}
+	if err := d.Set("created", sddc.Created.String()); err != nil {
+		return err
+	}
+	if err := d.Set("version", sddc.Version); err != nil {
+		return err
+	}
+	if err := d.Set("updated_by_user_name", sddc.UpdatedByUserName); err != nil {
+		return err
+	}
+	if err := d.Set("user_name", sddc.UserName); err != nil {
+		return err
+	}
+	if err := d.Set("org_id", sddc.OrgId); err != nil {
+		return err
+	}
+	if err := d.Set("sddc_type", sddc.SddcType); err != nil {
+		return err
+	}
+	if err := d.Set("account_link_state", sddc.AccountLinkState); err != nil {
+		return err
+	}
+	if err := d.Set("sddc_access_state", sddc.SddcAccessState); err != nil {
+		return err
+	}
+	if err := d.Set("sddc_state", sddc.SddcState); err != nil {
+		return err
+	}
 	primaryClusterClient := sddcs.NewPrimaryclusterClient(connectorWrapper.Connector)
 	primaryCluster, err := primaryClusterClient.Get(orgID, sddcID)
 	if err != nil {
 		return HandleReadError(d, "Primary Cluster", sddcID, err)
 	}
-	d.Set("cluster_id", primaryCluster.ClusterId)
+	if err := d.Set("cluster_id", primaryCluster.ClusterId); err != nil {
+		return err
+	}
 	cluster := map[string]string{}
 	cluster["cluster_name"] = *primaryCluster.ClusterName
 	cluster["cluster_state"] = *primaryCluster.ClusterState
@@ -446,44 +469,86 @@ func resourceSddcRead(d *schema.ResourceData, m interface{}) error {
 			cluster["windows_licensing"] = *primaryCluster.MsftLicenseConfig.WindowsLicensing
 		}
 	}
-	d.Set("cluster_info", cluster)
+	if err := d.Set("cluster_info", cluster); err != nil {
+		return err
+	}
 	if sddc.ResourceConfig != nil {
-		d.Set("vc_url", sddc.ResourceConfig.VcUrl)
-		d.Set("cloud_username", sddc.ResourceConfig.CloudUsername)
-		d.Set("cloud_password", sddc.ResourceConfig.CloudPassword)
-		d.Set("nsxt_reverse_proxy_url", sddc.ResourceConfig.NsxApiPublicEndpointUrl)
-		d.Set("region", *sddc.ResourceConfig.Region)
-		d.Set("availability_zones", sddc.ResourceConfig.AvailabilityZones)
-		d.Set("deployment_type", ConvertDeployType(*sddc.ResourceConfig.DeploymentType))
-		d.Set("sso_domain", *sddc.ResourceConfig.SsoDomain)
-		d.Set("skip_creating_vxlan", *sddc.ResourceConfig.SkipCreatingVxlan)
-		d.Set("provider_type", sddc.ResourceConfig.Provider)
+		if err := d.Set("vc_url", sddc.ResourceConfig.VcUrl); err != nil {
+			return err
+		}
+		if err := d.Set("cloud_username", sddc.ResourceConfig.CloudUsername); err != nil {
+			return err
+		}
+		if err := d.Set("cloud_password", sddc.ResourceConfig.CloudPassword); err != nil {
+			return err
+		}
+		if err := d.Set("nsxt_reverse_proxy_url", sddc.ResourceConfig.NsxApiPublicEndpointUrl); err != nil {
+			return err
+		}
+		if err := d.Set("region", *sddc.ResourceConfig.Region); err != nil {
+			return err
+		}
+		if err := d.Set("availability_zones", sddc.ResourceConfig.AvailabilityZones); err != nil {
+			return err
+		}
+		if err := d.Set("deployment_type", ConvertDeployType(*sddc.ResourceConfig.DeploymentType)); err != nil {
+			return err
+		}
+		if err := d.Set("sso_domain", *sddc.ResourceConfig.SsoDomain); err != nil {
+			return err
+		}
+		if err := d.Set("skip_creating_vxlan", *sddc.ResourceConfig.SkipCreatingVxlan); err != nil {
+			return err
+		}
+		if err := d.Set("provider_type", sddc.ResourceConfig.Provider); err != nil {
+			return err
+		}
 		// SDDC's num_host should account for the amount of hosts on its primary cluster only.
 		// Otherwise, there will be no way to scale up or down the primary cluster.
-		d.Set("num_host", getHostCountCluster(&sddc, primaryCluster.ClusterId))
+		if err := d.Set("num_host", getHostCountCluster(&sddc, primaryCluster.ClusterId)); err != nil {
+			return err
+		}
 		if sddc.ResourceConfig.VpcInfo != nil && sddc.ResourceConfig.VpcInfo.VpcCidr != nil {
-			d.Set("vpc_cidr", *sddc.ResourceConfig.VpcInfo.VpcCidr)
+			if err := d.Set("vpc_cidr", *sddc.ResourceConfig.VpcInfo.VpcCidr); err != nil {
+				return err
+			}
 		}
 		skipCreatingVxLan := *sddc.ResourceConfig.SkipCreatingVxlan
 		if !skipCreatingVxLan {
-			d.Set("vxlan_subnet", sddc.ResourceConfig.VxlanSubnet)
+			if err := d.Set("vxlan_subnet", sddc.ResourceConfig.VxlanSubnet); err != nil {
+				return err
+			}
 		}
 		sddcSizeInfo := map[string]string{}
 		sddcSizeInfo["vc_size"] = *sddc.ResourceConfig.SddcSize.VcSize
 		sddcSizeInfo["nsx_size"] = *sddc.ResourceConfig.SddcSize.NsxSize
-		d.Set("sddc_size", sddcSizeInfo)
+		if err := d.Set("sddc_size", sddcSizeInfo); err != nil {
+			return err
+		}
 		if sddc.ResourceConfig.NsxCloudAdmin != nil {
-			d.Set("nsxt_cloudadmin", *sddc.ResourceConfig.NsxCloudAdmin)
+			if err := d.Set("nsxt_cloudadmin", *sddc.ResourceConfig.NsxCloudAdmin); err != nil {
+				return err
+			}
 			// Evade nil pointer dereference when user's access_token doesn't have NSX roles
 			if sddc.ResourceConfig.NsxCloudAdminPassword != nil {
-				_ = d.Set("nsxt_cloudadmin_password", *sddc.ResourceConfig.NsxCloudAdminPassword)
+				if err := d.Set("nsxt_cloudadmin_password", *sddc.ResourceConfig.NsxCloudAdminPassword); err != nil {
+					return err
+				}
 			}
 			if sddc.ResourceConfig.NsxCloudAuditPassword != nil {
-				_ = d.Set("nsxt_cloudaudit_password", *sddc.ResourceConfig.NsxCloudAuditPassword)
+				if err := d.Set("nsxt_cloudaudit_password", *sddc.ResourceConfig.NsxCloudAuditPassword); err != nil {
+					return err
+				}
 			}
-			d.Set("nsxt_cloudaudit", *sddc.ResourceConfig.NsxCloudAudit)
-			d.Set("nsxt_private_ip", *sddc.ResourceConfig.NsxMgrManagementIp)
-			d.Set("nsxt_private_url", *sddc.ResourceConfig.NsxMgrLoginUrl)
+			if err := d.Set("nsxt_cloudaudit", *sddc.ResourceConfig.NsxCloudAudit); err != nil {
+				return err
+			}
+			if err := d.Set("nsxt_private_ip", *sddc.ResourceConfig.NsxMgrManagementIp); err != nil {
+				return err
+			}
+			if err := d.Set("nsxt_private_url", *sddc.ResourceConfig.NsxMgrLoginUrl); err != nil {
+				return err
+			}
 		}
 	}
 	edrsPolicyClient := autoscalercluster.NewEdrsPolicyClient(connectorWrapper.Connector)
@@ -491,10 +556,18 @@ func resourceSddcRead(d *schema.ResourceData, m interface{}) error {
 	if err != nil {
 		return HandleReadError(d, "SDDC", sddcID, err)
 	}
-	d.Set("edrs_policy_type", *edrsPolicy.PolicyType)
-	d.Set("enable_edrs", edrsPolicy.EnableEdrs)
-	d.Set("max_hosts", *edrsPolicy.MaxHosts)
-	d.Set("min_hosts", *edrsPolicy.MinHosts)
+	if err := d.Set("edrs_policy_type", *edrsPolicy.PolicyType); err != nil {
+		return err
+	}
+	if err := d.Set("enable_edrs", edrsPolicy.EnableEdrs); err != nil {
+		return err
+	}
+	if err := d.Set("max_hosts", *edrsPolicy.MaxHosts); err != nil {
+		return err
+	}
+	if err := d.Set("min_hosts", *edrsPolicy.MinHosts); err != nil {
+		return err
+	}
 
 	if *sddc.Provider != constants.ZeroCloudProviderType {
 		// store intranet_mtu_uplink only for non zerocloud provider types
@@ -508,7 +581,9 @@ func resourceSddcRead(d *schema.ResourceData, m interface{}) error {
 		if err != nil {
 			return HandleReadError(d, "External connectivity configuration", sddcID, err)
 		}
-		d.Set("intranet_mtu_uplink", externalConnectivityConfig.IntranetMtu)
+		if err := d.Set("intranet_mtu_uplink", externalConnectivityConfig.IntranetMtu); err != nil {
+			return err
+		}
 	}
 	return nil
 }
@@ -649,7 +724,9 @@ func resourceSddcUpdate(d *schema.ResourceData, m interface{}) error {
 		if err != nil {
 			return HandleUpdateError("SDDC", err)
 		}
-		d.Set("sddc_name", sddc.Name)
+		if err := d.Set("sddc_name", sddc.Name); err != nil {
+			return err
+		}
 	}
 
 	if d.HasChange("intranet_mtu_uplink") {
