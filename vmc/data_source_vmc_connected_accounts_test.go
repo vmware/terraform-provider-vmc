@@ -32,9 +32,8 @@ func TestAccDataSourceVmcConnectedAccountsBasic(t *testing.T) {
 func testAccDataSourceVmcConnectedAccountsConfig() string {
 	return fmt.Sprintf(`
 data "vmc_connected_accounts" "my_accounts" {
-	account_number = %q
+  account_number = %q
 }
-`,
-		os.Getenv(constants.AwsAccountNumber),
+`, os.Getenv(constants.AwsAccountNumber),
 	)
 }

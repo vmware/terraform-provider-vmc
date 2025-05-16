@@ -61,31 +61,31 @@ func TestAccDataSourceVmcCustomerSubnetsOnlyRequiredProperties(t *testing.T) {
 func testAccDataSourceVmcCustomerSubnetsConfig() string {
 	return fmt.Sprintf(`
 
+
 data "vmc_connected_accounts" "my_accounts" {
-    account_number = %q
+  account_number = %q
 }
 
 data "vmc_customer_subnets" "my_subnets" {
-	connected_account_id = data.vmc_connected_accounts.my_accounts.id
-	region = "US_WEST_2"
-	sddc_type = "SingleAZ"
-	instance_type = "i3.metal"
+  connected_account_id = data.vmc_connected_accounts.my_accounts.id
+  region               = "US_WEST_2"
+  sddc_type            = "SingleAZ"
+  instance_type        = "i3.metal"
 }
-`,
-		os.Getenv(constants.AwsAccountNumber))
+`, os.Getenv(constants.AwsAccountNumber))
 }
 
 func testAccDataSourceVmcCustomerSubnetsOnlyRequiredProperties() string {
 	return fmt.Sprintf(`
 
+
 data "vmc_connected_accounts" "my_accounts" {
-    account_number = %q
+  account_number = %q
 }
 
 data "vmc_customer_subnets" "my_subnets" {
-	connected_account_id = data.vmc_connected_accounts.my_accounts.id
-	region = "US_WEST_2"
+  connected_account_id = data.vmc_connected_accounts.my_accounts.id
+  region               = "US_WEST_2"
 }
-`,
-		os.Getenv(constants.AwsAccountNumber))
+`, os.Getenv(constants.AwsAccountNumber))
 }

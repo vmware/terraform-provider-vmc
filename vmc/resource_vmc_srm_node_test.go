@@ -134,40 +134,39 @@ func testCheckVmcSrmNodeDestroy(s *terraform.State) error {
 func testAccVmcSrmNodeConfigBasic(srmExtensionKeySuffix string) string {
 	return fmt.Sprintf(`
 resource "vmc_sddc" "srm_node_test_sddc" {
-	sddc_name           = "terraform_srm_node_test"
-	num_host            = 2
-	provider_type       = "ZEROCLOUD"
-	host_instance_type  = "I3_METAL"
-	region = "US_WEST_2"
-	delay_account_link  = true
+  sddc_name          = "terraform_srm_node_test"
+  num_host           = 2
+  provider_type      = "ZEROCLOUD"
+  host_instance_type = "I3_METAL"
+  region             = "US_WEST_2"
+  delay_account_link = true
 }
 
 resource "vmc_site_recovery" "site_recovery_1" {
-	sddc_id = vmc_sddc.srm_node_test_sddc.id
+  sddc_id = vmc_sddc.srm_node_test_sddc.id
 }
 
-resource "vmc_srm_node" "srm_node_1"{
-	sddc_id = vmc_sddc.srm_node_test_sddc.id
-	srm_node_extension_key_suffix = %q
-	depends_on = [vmc_site_recovery.site_recovery_1]
-}`,
-		srmExtensionKeySuffix,
+resource "vmc_srm_node" "srm_node_1" {
+  sddc_id                       = vmc_sddc.srm_node_test_sddc.id
+  srm_node_extension_key_suffix = %q
+  depends_on                    = [vmc_site_recovery.site_recovery_1]
+}`, srmExtensionKeySuffix,
 	)
 }
 
 func testAccVmcMultipleSrmNodesConfig(srmExtensionKeySuffixes [2]string) string {
 	return fmt.Sprintf(`
 resource "vmc_sddc" "multiple_srm_nodes_sddc" {
-	sddc_name           = "terraform_srm_node_test"
-	num_host            = 2
-	provider_type       = "ZEROCLOUD"
-	host_instance_type  = "I3_METAL"
-	region = "US_WEST_2"
-	delay_account_link  = true
+  sddc_name          = "terraform_srm_node_test"
+  num_host           = 2
+  provider_type      = "ZEROCLOUD"
+  host_instance_type = "I3_METAL"
+  region             = "US_WEST_2"
+  delay_account_link = true
 }
 
 resource "vmc_site_recovery" "site_recovery_1" {
-	sddc_id = vmc_sddc.multiple_srm_nodes_sddc.id
+  sddc_id = vmc_sddc.multiple_srm_nodes_sddc.id
 }
 
 resource "vmc_srm_node" "srm_node_1" {
@@ -180,8 +179,7 @@ resource "vmc_srm_node" "srm_node_2" {
   sddc_id                       = resource.vmc_sddc.multiple_srm_nodes_sddc.id
   srm_node_extension_key_suffix = %q
   depends_on                    = [vmc_site_recovery.site_recovery_1]
-}`,
-		srmExtensionKeySuffixes[0],
+}`, srmExtensionKeySuffixes[0],
 		srmExtensionKeySuffixes[1],
 	)
 }
