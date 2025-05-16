@@ -34,9 +34,8 @@ func TestAccDataSourceVmcSddcBasic(t *testing.T) {
 func testAccDataSourceVmcSddcConfig() string {
 	return fmt.Sprintf(`
 data "vmc_sddc" "sddc_imported" {
-	sddc_id = %q
+  sddc_id = %q
 }
-`,
-		os.Getenv(constants.TestSddcID),
+`, os.Getenv(constants.TestSddcID),
 	)
 }

@@ -107,12 +107,11 @@ func testCheckVmcPublicIPDestroy(s *terraform.State) error {
 func testAccVmcPublicIPConfigBasic(displayName string) string {
 	return fmt.Sprintf(`
 resource "vmc_public_ip" "public_ip_1" {
-	display_name = %q
-	nsxt_reverse_proxy_url = %q
+  display_name           = %q
+  nsxt_reverse_proxy_url = %q
 
 }
-`,
-		displayName,
+`, displayName,
 		os.Getenv(constants.NsxtReverseProxyURL),
 	)
 }

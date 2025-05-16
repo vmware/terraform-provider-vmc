@@ -182,51 +182,51 @@ func testCheckVmcClusterDestroy(s *terraform.State) error {
 func testAccVmcClusterConfigBasic(sddcName string) string {
 	return fmt.Sprintf(`
 
+
 data "vmc_connected_accounts" "my_accounts" {
-      account_number = %q
+  account_number = %q
 }
 
 data "vmc_customer_subnets" "my_subnets" {
   connected_account_id = data.vmc_connected_accounts.my_accounts.id
   region               = "US_WEST_2"
-  sddc_type = "SingleAZ"
-  instance_type = "i3.metal"
+  sddc_type            = "SingleAZ"
+  instance_type        = "i3.metal"
 }
 
 resource "vmc_sddc" "sddc_1" {
-	sddc_name = %q
-	vpc_cidr      = "10.2.0.0/16"
-	num_host      = 3
-	provider_type = "AWS"
-	host_instance_type = "I3_METAL"
-	region = "US_WEST_2"
-	vxlan_subnet = "192.168.1.0/24"
-	delay_account_link  = false
-	skip_creating_vxlan = false
-	sso_domain          = "vmc.local"
-	deployment_type = "SingleAZ"
-    account_link_sddc_config {
+  sddc_name           = %q
+  vpc_cidr            = "10.2.0.0/16"
+  num_host            = 3
+  provider_type       = "AWS"
+  host_instance_type  = "I3_METAL"
+  region              = "US_WEST_2"
+  vxlan_subnet        = "192.168.1.0/24"
+  delay_account_link  = false
+  skip_creating_vxlan = false
+  sso_domain          = "vmc.local"
+  deployment_type     = "SingleAZ"
+  account_link_sddc_config {
     customer_subnet_ids  = [data.vmc_customer_subnets.my_subnets.ids[0]]
     connected_account_id = data.vmc_connected_accounts.my_accounts.id
-    }
-    timeouts {
-      create = "300m"
-      update = "300m"
-      delete = "180m"
+  }
+  timeouts {
+    create = "300m"
+    update = "300m"
+    delete = "180m"
   }
 }
 
 resource "vmc_cluster" "cluster_1" {
-	sddc_id = vmc_sddc.sddc_1.id
-	host_instance_type = "I3_METAL"
-	num_hosts = 3
-	microsoft_licensing_config {
-        mssql_licensing = "DISABLED"
-        windows_licensing = "ENABLED"
-    }
+  sddc_id            = vmc_sddc.sddc_1.id
+  host_instance_type = "I3_METAL"
+  num_hosts          = 3
+  microsoft_licensing_config {
+    mssql_licensing   = "DISABLED"
+    windows_licensing = "ENABLED"
+  }
 }
-`,
-		os.Getenv(constants.AwsAccountNumber),
+`, os.Getenv(constants.AwsAccountNumber),
 		sddcName,
 	)
 }
@@ -234,75 +234,73 @@ resource "vmc_cluster" "cluster_1" {
 func testAccVmcClusterConfigBasicZerocloud(sddcName string, clusterRef string) string {
 	return fmt.Sprintf(`
 resource "vmc_sddc" "sddc_zerocloud_cluster" {
-	sddc_name = %q
-	vpc_cidr      = "10.2.0.0/16"
-	num_host      = 2
-	provider_type = "ZEROCLOUD"
-	host_instance_type = "I3_METAL"
-	region = "US_WEST_2"
-	vxlan_subnet = "192.168.1.0/24"
-	delay_account_link  = false
-	skip_creating_vxlan = false
-	sso_domain          = "vmc.local"
-	deployment_type = "SingleAZ"
-    timeouts {
-      create = "300m"
-      update = "300m"
-      delete = "180m"
+  sddc_name           = %q
+  vpc_cidr            = "10.2.0.0/16"
+  num_host            = 2
+  provider_type       = "ZEROCLOUD"
+  host_instance_type  = "I3_METAL"
+  region              = "US_WEST_2"
+  vxlan_subnet        = "192.168.1.0/24"
+  delay_account_link  = false
+  skip_creating_vxlan = false
+  sso_domain          = "vmc.local"
+  deployment_type     = "SingleAZ"
+  timeouts {
+    create = "300m"
+    update = "300m"
+    delete = "180m"
   }
 }
 
 resource "vmc_cluster" %q {
-	sddc_id = vmc_sddc.sddc_zerocloud_cluster.id
-	host_instance_type = "I3_METAL"
-	num_hosts = 2
-	microsoft_licensing_config {
-        mssql_licensing = "DISABLED"
-        windows_licensing = "ENABLED"
-    }
+  sddc_id            = vmc_sddc.sddc_zerocloud_cluster.id
+  host_instance_type = "I3_METAL"
+  num_hosts          = 2
+  microsoft_licensing_config {
+    mssql_licensing   = "DISABLED"
+    windows_licensing = "ENABLED"
+  }
 }
 
 resource "vmc_cluster" "cluster_2" {
-	sddc_id = vmc_sddc.sddc_zerocloud_cluster.id
-	host_instance_type = "I3_METAL"
-	num_hosts = 2
-	microsoft_licensing_config {
-        mssql_licensing = "DISABLED"
-        windows_licensing = "ENABLED"
-    }
+  sddc_id            = vmc_sddc.sddc_zerocloud_cluster.id
+  host_instance_type = "I3_METAL"
+  num_hosts          = 2
+  microsoft_licensing_config {
+    mssql_licensing   = "DISABLED"
+    windows_licensing = "ENABLED"
+  }
 }
-`,
-		sddcName,
+`, sddcName,
 		clusterRef,
 	)
 }
 func testAccVmcClusterConfigBasicRequiredFieldsOnlyZerocloud(sddcName string, clusterRef string) string {
 	return fmt.Sprintf(`
 resource "vmc_sddc" "sddc_test_required_fields" {
-	sddc_name = %q
-	vpc_cidr      = "10.2.0.0/16"
-	num_host      = 2
-	provider_type = "ZEROCLOUD"
-	host_instance_type = "I3_METAL"
-	region = "US_WEST_2"
-	vxlan_subnet = "192.168.1.0/24"
-	delay_account_link  = false
-	skip_creating_vxlan = false
-	sso_domain          = "vmc.local"
-	deployment_type = "SingleAZ"
-    timeouts {
-      create = "300m"
-      update = "300m"
-      delete = "180m"
+  sddc_name           = %q
+  vpc_cidr            = "10.2.0.0/16"
+  num_host            = 2
+  provider_type       = "ZEROCLOUD"
+  host_instance_type  = "I3_METAL"
+  region              = "US_WEST_2"
+  vxlan_subnet        = "192.168.1.0/24"
+  delay_account_link  = false
+  skip_creating_vxlan = false
+  sso_domain          = "vmc.local"
+  deployment_type     = "SingleAZ"
+  timeouts {
+    create = "300m"
+    update = "300m"
+    delete = "180m"
   }
 }
 
 resource "vmc_cluster" %q {
-	sddc_id = vmc_sddc.sddc_test_required_fields.id
-	num_hosts = 2
+  sddc_id   = vmc_sddc.sddc_test_required_fields.id
+  num_hosts = 2
 }
-`,
-		sddcName,
+`, sddcName,
 		clusterRef,
 	)
 }
