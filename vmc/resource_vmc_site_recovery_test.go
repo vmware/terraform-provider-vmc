@@ -102,19 +102,18 @@ func testCheckVmcSiteRecoveryDestroy(s *terraform.State) error {
 func testAccVmcSiteConfigBasic(srmExtensionKeySuffix string) string {
 	return fmt.Sprintf(`
 resource "vmc_sddc" "srm_test_sddc" {
-	sddc_name           = "terraform_srm_test"
-	num_host            = 2
-	provider_type       = "ZEROCLOUD"
-	host_instance_type = "I3_METAL"
-	region = "US_WEST_2"
-	delay_account_link  = true
+  sddc_name          = "terraform_srm_test"
+  num_host           = 2
+  provider_type      = "ZEROCLOUD"
+  host_instance_type = "I3_METAL"
+  region             = "US_WEST_2"
+  delay_account_link = true
 }
 
-	resource "vmc_site_recovery" "site_recovery_1" {
-		sddc_id = vmc_sddc.srm_test_sddc.id
-	srm_extension_key_suffix = %q
-	}`,
-		srmExtensionKeySuffix,
+resource "vmc_site_recovery" "site_recovery_1" {
+  sddc_id                  = vmc_sddc.srm_test_sddc.id
+  srm_extension_key_suffix = %q
+}`, srmExtensionKeySuffix,
 	)
 }
 
