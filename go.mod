@@ -3,7 +3,7 @@ module github.com/vmware/terraform-provider-vmc
 go 1.24.7
 
 require (
-	github.com/gofrs/uuid/v5 v5.3.2
+	github.com/gofrs/uuid/v5 v5.4.0
 	github.com/hashicorp/terraform-plugin-sdk/v2 v2.38.1
 	github.com/hashicorp/terraform-plugin-testing v1.13.3
 	github.com/stretchr/testify v1.11.1
