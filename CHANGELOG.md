@@ -1,5 +1,17 @@
 # Release History
 
+## 1.15.6
+
+> Release Date: 2025-12-01
+
+CHORE:
+
+- Applied `terraform fmt` formatting to `_test.go` files. [#330](https://github.com/vmware/terraform-provider-vmc/pull/330)
+- Updated `golang.org/x/oauth2` from 0.30.0 to 0.32.0. [#339](https://github.com/vmware/terraform-provider-vmc/pull/339), [#342](https://github.com/vmware/terraform-provider-vmc/pull/342)
+- Updated `stretchr/testify` from 1.10.0 to 1.11.1. [#337](https://github.com/vmware/terraform-provider-vmc/pull/337), [#338](https://github.com/vmware/terraform-provider-vmc/pull/338)
+- Updated `hashicorp/terraform-plugin-testing` from 1.13.0 to 1.13.3. [#332](https://github.com/vmware/terraform-provider-vmc/pull/332), [#335](https://github.com/vmware/terraform-provider-vmc/pull/335), [#336](https://github.com/vmware/terraform-provider-vmc/pull/336)
+- Updated `hashicorp/terraform-plugin-sdk/v2` from 2.36.1 to 2.38.1. [#331](https://github.com/vmware/terraform-provider-vmc/pull/331), [#340](https://github.com/vmware/terraform-provider-vmc/pull/340), [#341](https://github.com/vmware/terraform-provider-vmc/pull/341)
+
 ## 1.15.5
 
 > Release Date: 2025-05-14
