@@ -1,5 +1,15 @@
 # Release History
 
+## 1.15.7
+
+> Release Date: 2026-02-09
+
+CHORE:
+
+- Updates `go` from 1.24.7 to v1.24.12. [#352](https://github.com/vmware/terraform-provider-vmc/pull/352)
+- Updated `golang.org/x/oauth2` from 0.34.0 to 0.35.0. [#351](https://github.com/vmware/terraform-provider-vmc/pull/351)
+- Updated `hashicorp/terraform-plugin-sdk/v2` from 2.38.1 to 2.38.2. [#350](https://github.com/vmware/terraform-provider-vmc/pull/350)
+
 ## 1.15.6
 
 > Release Date: 2025-12-01
