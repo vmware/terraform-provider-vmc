@@ -1,6 +1,6 @@
 module github.com/vmware/terraform-provider-vmc
 
-go 1.24.7
+go 1.24.12
 
 require (
 	github.com/gofrs/uuid/v5 v5.4.0
