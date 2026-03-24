@@ -1,5 +1,18 @@
 # Release History
 
+## 1.15.8
+
+> Release Date: 2026-03-24
+
+CHORE:
+
+- Updated `go` from 1.25.0 to v1.25.8. [#360](https://github.com/vmware/terraform-provider-vmc/pull/360)
+- Updated `google.golang.org/grpc` from 1.79.1 to 1.79.3. [#359](https://github.com/vmware/terraform-provider-vmc/pull/359)
+- Updates `cloudflare/circl` from 1.6.1 to 1.6.3. [#354](https://github.com/vmware/terraform-provider-vmc/pull/354)
+- Updated `golang.org/x/oauth2` from 0.35.0 to 0.36.0. [#356](https://github.com/vmware/terraform-provider-vmc/pull/356)
+- Updated `hashicorp/terraform-plugin-sdk/v2` from 2.38.2 to 2.40.0. [#355](https://github.com/vmware/terraform-provider-vmc/pull/355), [#361](https://github.com/vmware/terraform-provider-vmc/pull/361)
+- Updated `github.com/hashicorp/terraform-plugin-testing` from 1.14.0 to 1.15.0. [#362](https://github.com/vmware/terraform-provider-vmc/pull/362)
+
 ## 1.15.7
 
 > Release Date: 2026-02-09
