@@ -5,7 +5,7 @@ go 1.25.8
 require (
 	github.com/gofrs/uuid/v5 v5.4.0
 	github.com/hashicorp/terraform-plugin-sdk/v2 v2.40.0
-	github.com/hashicorp/terraform-plugin-testing v1.14.0
+	github.com/hashicorp/terraform-plugin-testing v1.15.0
 	github.com/stretchr/testify v1.11.1
 	github.com/vmware/vsphere-automation-sdk-go/lib v0.8.0
 	github.com/vmware/vsphere-automation-sdk-go/runtime v0.8.0
@@ -49,7 +49,7 @@ require (
 	github.com/hashicorp/terraform-registry-address v0.4.0 // indirect
 	github.com/hashicorp/terraform-svchost v0.1.1 // indirect
 	github.com/hashicorp/yamux v0.1.2 // indirect
-	github.com/mattn/go-colorable v0.1.13 // indirect
+	github.com/mattn/go-colorable v0.1.14 // indirect
 	github.com/mattn/go-isatty v0.0.20 // indirect
 	github.com/mitchellh/copystructure v1.2.0 // indirect
 	github.com/mitchellh/go-testing-interface v1.14.1 // indirect
