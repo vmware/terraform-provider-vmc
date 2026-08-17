@@ -33,17 +33,17 @@ machine. Check the [requirements][requirements] before proceeding.
 
 3. Add the following to your `~/.terraformrc`:
 
-   ```hcl
+   ```text
    provider_installation {
      dev_overrides {
-       "vmware/vcf" = "/Users/rainpole/go/bin"
+       "vmware/vmc" = "/Users/example/go/bin"
      }
 
      direct {}
    }
    ```
 
-    Where `/Users/rainpole/go/bin` is your `GOPATH/bin` path.
+    Where `/Users/example/go/bin` is your `GOPATH/bin` path.
 
 4. Run `go install` to install the development binary.
 
