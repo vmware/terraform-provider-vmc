@@ -1,5 +1,20 @@
 # Release History
 
+## 1.15.9
+
+> Release Date: 2026-08-17
+
+CHORE:
+
+- Updated `go` from 1.25.8 to v1.26.6. [#396](https://github.com/vmware/terraform-provider-vmc/pull/396)
+- Updated `hashicorp/terraform-plugin-sdk/v2` from 2.40.0 to 2.40.1. [#397](https://github.com/vmware/terraform-provider-vmc/pull/397)
+- Updated `github.com/hashicorp/terraform-plugin-testing` from 1.15.0 to 1.16.0. [#364](https://github.com/vmware/terraform-provider-vmc/pull/364)
+- Updated `github.com/stretchr/testify` from 1.11.1 to 1.12.0. [#395](https://github.com/vmware/terraform-provider-vmc/pull/395)
+- Updated `github.com/gofrs/uuid/v5` from 5.4.0 to 5.5.1. [#393](https://github.com/vmware/terraform-provider-vmc/pull/393), [#394](https://github.com/vmware/terraform-provider-vmc/pull/394)
+- Updated `google.golang.org/grpc` from 1.79.3 to 1.82.1. [#391](https://github.com/vmware/terraform-provider-vmc/pull/391)
+- Updated `golang.org/x/crypto` from 0.48.0 to 0.54.0. [#385](https://github.com/vmware/terraform-provider-vmc/pull/385), [#386](https://github.com/vmware/terraform-provider-vmc/pull/386)
+- Updated `golang.org/x/net` from 0.49.0 to 0.56.0. [#385](https://github.com/vmware/terraform-provider-vmc/pull/385), [#386](https://github.com/vmware/terraform-provider-vmc/pull/386)
+
 ## 1.15.8
 
 > Release Date: 2026-03-24
