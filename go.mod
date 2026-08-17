@@ -4,7 +4,7 @@ go 1.26.6
 
 require (
 	github.com/gofrs/uuid/v5 v5.5.1
-	github.com/hashicorp/terraform-plugin-sdk/v2 v2.40.0
+	github.com/hashicorp/terraform-plugin-sdk/v2 v2.40.1
 	github.com/hashicorp/terraform-plugin-testing v1.16.0
 	github.com/stretchr/testify v1.12.0
 	github.com/vmware/vsphere-automation-sdk-go/lib v0.8.0
