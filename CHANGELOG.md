@@ -1,5 +1,23 @@
 # Release History
 
+## 1.15.10
+
+> Release Date: Not Released
+
+SECURITY:
+
+- Mark `cloud_password`, `nsxt_cloudadmin_password`, and `nsxt_cloudaudit_password` as sensitive so
+  `terraform plan` and `terraform show` no longer print SDDC vCenter and NSX administrative
+  passwords. Outputs that reference these attributes are automatically marked sensitive. State is
+  unchanged.
+
+CHORE:
+
+- Updated `go` from 1.26.6 to v1.26.8. [#404](https://github.com/vmware/terraform-provider-vmc/pull/404)
+- Updated `golang.org/x/oauth2` from 0.36.0 to 0.37.0. [#403](https://github.com/vmware/terraform-provider-vmc/pull/403)
+- Updated `google.golang.org/grpc` from 1.82.1 to 1.83.2. [#400](https://github.com/vmware/terraform-provider-vmc/pull/400),
+  [#402](https://github.com/vmware/terraform-provider-vmc/pull/402)
+
 ## 1.15.9
 
 > Release Date: 2026-08-17
