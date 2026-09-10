@@ -259,6 +259,8 @@ In addition to arguments listed above, the following attributes are exported:
 
 * `nsxt_reverse_proxy_url` - The NSX reverse proxy URL for managing public IP.
 
+* `cloud_password` - The vCenter password for the SDDC cloud user.
+
 * `nsxt_cloudadmin` - The NSX `admin` user for direct access.
 
 * `nsxt_cloudadmin_password` - The NSX `admin` user password for direct access.

@@ -88,16 +88,18 @@ func dataSourceVmcSddc() *schema.Resource {
 				Computed: true,
 			},
 			"nsxt_cloudadmin_password": {
-				Type:     schema.TypeString,
-				Computed: true,
+				Type:      schema.TypeString,
+				Computed:  true,
+				Sensitive: true,
 			},
 			"nsxt_cloudaudit": {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
 			"nsxt_cloudaudit_password": {
-				Type:     schema.TypeString,
-				Computed: true,
+				Type:      schema.TypeString,
+				Computed:  true,
+				Sensitive: true,
 			},
 			"nsxt_private_ip": {
 				Type:     schema.TypeString,

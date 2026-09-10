@@ -14,6 +14,14 @@ import (
 	"github.com/vmware/terraform-provider-vmc/vmc/constants"
 )
 
+func TestDataSourceSddcPasswordAttributesAreSensitive(t *testing.T) {
+	for _, name := range []string{"nsxt_cloudadmin_password", "nsxt_cloudaudit_password"} {
+		if !dataSourceVmcSddc().Schema[name].Sensitive {
+			t.Errorf("data source vmc_sddc.%s must be Sensitive", name)
+		}
+	}
+}
+
 func TestAccDataSourceVmcSddcBasic(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:  func() { testAccPreCheckZerocloud(t) },

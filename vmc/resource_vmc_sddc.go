@@ -245,8 +245,9 @@ func sddcSchema() map[string]*schema.Schema {
 			Computed: true,
 		},
 		"cloud_password": {
-			Type:     schema.TypeString,
-			Computed: true,
+			Type:      schema.TypeString,
+			Computed:  true,
+			Sensitive: true,
 		},
 		"nsxt_reverse_proxy_url": {
 			Type:     schema.TypeString,
@@ -276,9 +277,10 @@ func sddcSchema() map[string]*schema.Schema {
 			Computed: true,
 		},
 		"nsxt_cloudadmin_password": {
-			Type:     schema.TypeString,
-			Optional: true,
-			Computed: true,
+			Type:      schema.TypeString,
+			Optional:  true,
+			Computed:  true,
+			Sensitive: true,
 		},
 		"nsxt_cloudaudit": {
 			Type:     schema.TypeString,
@@ -286,9 +288,10 @@ func sddcSchema() map[string]*schema.Schema {
 			Computed: true,
 		},
 		"nsxt_cloudaudit_password": {
-			Type:     schema.TypeString,
-			Optional: true,
-			Computed: true,
+			Type:      schema.TypeString,
+			Optional:  true,
+			Computed:  true,
+			Sensitive: true,
 		},
 		"nsxt_private_ip": {
 			Type:     schema.TypeString,

@@ -23,6 +23,14 @@ import (
 	"github.com/vmware/terraform-provider-vmc/vmc/constants"
 )
 
+func TestResourceSddcPasswordAttributesAreSensitive(t *testing.T) {
+	for _, name := range []string{"cloud_password", "nsxt_cloudadmin_password", "nsxt_cloudaudit_password"} {
+		if !resourceSddc().Schema[name].Sensitive {
+			t.Errorf("resource vmc_sddc.%s must be Sensitive", name)
+		}
+	}
+}
+
 func TestAccResourceVmcSddc_basic(t *testing.T) {
 	var sddcResource model.Sddc
 	sddcName := "terraform_test_sddc_" + acctest.RandStringFromCharSet(10, acctest.CharSetAlphaNum)
