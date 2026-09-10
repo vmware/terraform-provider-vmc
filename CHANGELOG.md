@@ -2,7 +2,7 @@
 
 ## 1.15.10
 
-> Release Date: Not Released
+> Release Date: 2026-09-10
 
 SECURITY:
 
