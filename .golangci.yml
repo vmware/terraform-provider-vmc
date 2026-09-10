@@ -31,6 +31,10 @@ linters:
       - common-false-positives
       - legacy
       - std-error-handling
+    rules:
+      - linters:
+          - staticcheck
+        text: 'SA1019: \(github.com/hashicorp/terraform-plugin-(sdk/v2|testing)/'
     paths:
       - third_party$
       - builtin$
