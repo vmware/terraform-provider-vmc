@@ -1,5 +1,16 @@
 # Release History
 
+## 1.15.11
+
+> Release Date: 2026-11-11
+
+CHORE:
+
+- Updated `go` from 1.26.8 to v1.26.10. [#410](https://github.com/vmware/terraform-provider-vmc/pull/410)
+- Updated `github.com/stretchr/testify` to from v1.12.0 to v1.12.1. [#412](https://github.com/vmware/terraform-provider-vmc/pull/412)
+- Updated `golang.org/x/net` from v0.58.0 to v0.62.0. [#411](https://github.com/vmware/terraform-provider-vmc/pull/411)
+- Updated `golang.org/x/oauth2` from 0.37.0 to 0.38.0. [#409](https://github.com/vmware/terraform-provider-vmc/pull/409)
+
 ## 1.15.10
 
 > Release Date: 2026-09-10
